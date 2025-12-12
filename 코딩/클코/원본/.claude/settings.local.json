@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node extract_subapps.js:*)",
+      "Bash(copy \"C:\\Users\\agape\\Desktop\\코딩\\클코\\원본\\extracted\\review.html\" \"C:\\Users\\agape\\Desktop\\코딩\\클코\\원본\\src\\review.html\")",
+      "Bash(copy:*)",
+      "Bash(node build.js:*)",
+      "Bash(node -e:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node build-gzip.js:*)",
+      "Bash(dir C:UsersagapeDesktop코딩클코시간표시간표 /b)",
+      "Bash(findstr:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

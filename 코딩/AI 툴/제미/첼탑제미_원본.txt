@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>치료 시간표 뷰어</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        .file-input-wrapper {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        .schedule-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 5px solid #007bff;
+        }
+        .time {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 1.1em;
+        }
+        .content {
+            margin-top: 5px;
+            color: #333;
+        }
+        .therapist {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .copy-btn {
+            background-color: #28a745;
+            margin-top: 20px;
+        }
+        .copy-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>치료 시간표 뷰어</h1>
+        
+        <div class="input-group">
+            <div class="file-input-wrapper">
+                <label>엑셀 파일 선택:</label><br>
+                <input type="file" id="excelFile" accept=".xlsx, .xls">
+            </div>
+            
+            <div>
+                <label>환자 이름:</label>
+                <input type="text" id="patientName" placeholder="환자 이름을 입력하세요 (예: 홍길동)">
+            </div>
+
+            <button onclick="processFile()">시간표 검색</button>
+        </div>
+
+        <div id="result"></div>
+        <button id="copyButton" class="copy-btn" style="display: none;" onclick="copyToClipboard()">결과 복사하기</button>
+    </div>
+
+    <script>
+        // 시간대 매핑 정보
+        const timeSlots = [
+            "07:30 ~ 08:00",
+            "08:00 ~ 08:30",
+            "08:30 ~ 09:00",
+            "09:05 ~ 09:35",
+            "09:40 ~ 10:10",
+            "10:15 ~ 10:45",
+            "10:50 ~ 11:20",
+            "11:25 ~ 11:55",
+            "12:00 ~ 12:30",
+            "점심시간",
+            "13:30 ~ 14:00",
+            "14:05 ~ 14:35",
+            "14:40 ~ 15:10",
+            "15:15 ~ 15:45",
+            "15:50 ~ 16:20"
+        ];
+
+        function processFile() {
+            const fileInput = document.getElementById('excelFile');
+            const patientName = document.getElementById('patientName').value.trim();
+            const resultDiv = document.getElementById('result');
+            const copyBtn = document.getElementById('copyButton');
+
+            if (!fileInput.files.length) {
+                alert('엑셀 파일을 선택해주세요.');
+                return;
+            }
+            if (!patientName) {
+                alert('환자 이름을 입력해주세요.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 첫 번째 시트 선택
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // JSON으로 변환 (헤더 포함)
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    let schedule = [];
+
+                    // 데이터 처리
+                    jsonData.forEach((row, rowIndex) => {
+                        // -----------------------------------------------------------
+                        // [수정된 부분] : 추가 치료 및 유효하지 않은 치료사 행 필터링
+                        // -----------------------------------------------------------
+                        
+                        // 1. 치료사 이름(B열, 인덱스 1) 가져오기
+                        let therapistName = row[1];
+
+                        // 2. 필터링 조건
+                        // - therapistName이 없거나 (빈칸, undefined)
+                        // - 제외할 키워드(N, CA, D, C, 추가 등)가 포함된 경우
+                        // - "시간", "치료사" 같은 헤더 행인 경우
+                        
+                        // 제외할 키워드 목록
+                        const excludeKeywords = ["N", "CA", "D", "C", "추가", "점심", "저녁", "시간", "치료사"];
+                        
+                        // 검사 로직
+                        if (!therapistName || excludeKeywords.some(keyword => String(therapistName).trim().startsWith(keyword))) {
+                            return; // 이 줄은 건너뜁니다 (아침시간표에 포함되지 않음)
+                        }
+                        // -----------------------------------------------------------
+
+
+                        // 행의 각 셀을 검사하여 환자 이름이 있는지 확인
+                        row.forEach((cell, cellIndex) => {
+                            if (cell && String(cell).includes(patientName)) {
+                                // 시간대 인덱스 계산 (C열부터 시작하므로 -2)
+                                const timeSlotIndex = cellIndex - 2;
+                                
+                                if (timeSlotIndex >= 0 && timeSlotIndex < timeSlots.length) {
+                                    // 치료 내용 정제 (이름과 괄호 등 제거 가능하면 제거)
+                                    // 현재 셀의 내용 전체를 가져오되 줄바꿈 등 처리
+                                    let treatment = String(cell).trim();
+                                    
+                                    schedule.push({
+                                        time: timeSlots[timeSlotIndex],
+                                        content: treatment,
+                                        therapist: row[1], // B열은 치료사 이름
+                                        rawIndex: timeSlotIndex // 정렬을 위한 인덱스
+                                    });
+                                }
+                            }
+                        });
+                    });
+
+                    // 시간순 정렬
+                    schedule.sort((a, b) => a.rawIndex - b.rawIndex);
+
+                    // 결과 출력
+                    if (schedule.length === 0) {
+                        resultDiv.innerHTML = `<div class="error">'${patientName}' 환자의 검색 결과가 없습니다.</div>`;
+                        copyBtn.style.display = 'none';
+                    } else {
+                        let html = `<h3>${patientName}님 치료 시간표</h3>`;
+                        schedule.forEach(item => {
+                            html += `
+                                <div class="schedule-card">
+                                    <div class="time">${item.time}</div>
+                                    <div class="content">${item.content}</div>
+                                    <div class="therapist">담당: ${item.therapist} 선생님</div>
+                                </div>
+                            `;
+                        });
+                        resultDiv.innerHTML = html;
+                        copyBtn.style.display = 'block';
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    alert('파일 처리 중 오류가 발생했습니다.');
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function copyToClipboard() {
+            const resultDiv = document.getElementById('result');
+            const range = document.createRange();
+            range.selectNode(resultDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('시간표가 복사되었습니다!');
+        }
+    </script>
+</body>
+</html>

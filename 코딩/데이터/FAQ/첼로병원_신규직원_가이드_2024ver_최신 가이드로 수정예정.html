@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첼로병원 재활센터 신규직원 가이드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #eef2f7;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #5a6c7d;
+            font-size: 1rem;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 50px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .search-box input {
+            width: 100%;
+            border: none;
+            font-size: 1.1rem;
+            outline: none;
+        }
+        
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .category-tab {
+            background: #00897b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        
+        .category-tab:hover, .category-tab.active {
+            background: white;
+            color: #00897b;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .faq-item {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .faq-question {
+            padding: 18px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .faq-question:hover {
+            background: #f8f9fa;
+        }
+        
+        .faq-question .arrow {
+            transition: transform 0.3s;
+            font-size: 1.2rem;
+            color: #00897b;
+        }
+        
+        .faq-item.open .faq-question .arrow {
+            transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+            display: none;
+            padding: 0 20px 20px;
+            color: #555;
+            line-height: 1.7;
+            border-top: 1px solid #eee;
+        }
+        
+        .faq-item.open .faq-answer {
+            display: block;
+        }
+        
+        .category-tag {
+            display: inline-block;
+            background: #00897b;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-right: 10px;
+        }
+        
+        .copy-btn {
+            background: #00897b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background: #00695c;
+            transform: translateY(-2px);
+        }
+        
+        .copy-btn.copied {
+            background: #28a745;
+        }
+        
+        .example-box {
+            background: #f5f7fa;
+            border-left: 4px solid #00897b;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .info-table th, .info-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .info-table th {
+            background: #00897b;
+            color: white;
+        }
+        
+        .info-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            color: #721c24;
+        }
+        
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            color: #155724;
+        }
+        
+        .section-title {
+            color: #00897b;
+            font-weight: 700;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #00897b;
+        }
+        
+        .sub-section {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .sub-section h4 {
+            color: #00695c;
+            margin-bottom: 10px;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #5a6c7d;
+            font-size: 1.1rem;
+        }
+        
+        .stats {
+            text-align: center;
+            color: #5a6c7d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .category-tab {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .faq-question {
+                padding: 15px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 첼로병원 재활센터 신규직원 가이드</h1>
+            <p>PT/OT 1년차 업무 매뉴얼 + P-Note 작성법</p>
+        </header>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 검색어를 입력하세요 (예: 액팅, FES, P-Note, 외진...)">
+        </div>
+        
+        <div class="category-tabs" id="categoryTabs">
+            <button class="category-tab active" data-category="all">전체</button>
+            <button class="category-tab" data-category="report">보고</button>
+            <button class="category-tab" data-category="acting">액팅</button>
+            <button class="category-tab" data-category="schedule">시간표</button>
+            <button class="category-tab" data-category="code">코드</button>
+            <button class="category-tab" data-category="modality">모달리티</button>
+            <button class="category-tab" data-category="eval">평가</button>
+            <button class="category-tab" data-category="pnote">P-Note</button>
+            <button class="category-tab" data-category="kakao">카톡</button>
+            <button class="category-tab" data-category="admin">근태</button>
+            <button class="category-tab" data-category="ot">OT전용</button>
+            <button class="category-tab" data-category="child">소아/수중</button>
+            <button class="category-tab" data-category="etc">기타</button>
+        </div>
+        
+        <div class="stats" id="stats"></div>
+        
+        <div class="faq-list" id="faqList"></div>
+        
+        <div class="no-results" id="noResults" style="display: none;">
+            검색 결과가 없습니다. 다른 키워드로 검색해보세요.
+        </div>
+    </div>
+
+    <script>
+        const faqData = [
+            // ============ 보고체계 ============
+            {
+                category: "report",
+                question: "일반적인 보고체계는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📋 기본 보고체계</div>
+                <ul>
+                    <li><strong>모든 상황 보고</strong>: 각 층 팀장님께 (부재 시 연차 높은 선생님 순서로)</li>
+                    <li>PT/OT 상관없이 각 층에서 일어난 일은 해당 층 팀장님께 먼저 보고 → 본인 층 팀장님께 보고</li>
+                </ul>
+                
+                <div class="example-box">예) 3층 환자 낙상 시 → 3층 팀장님께 보고 → 본인 층 팀장님께 보고</div>
+                
+                <div class="sub-section">
+                    <h4>빈타임 이동 시</h4>
+                    <p>'팀장님 + 모달리티 선생님'에게 보고 (화장실 포함)</p>
+                    <p>팀장님 부재 시: '연차 높은 선생님 + 모달리티 선생님'에게 보고</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>다른 층 물품 빌릴 시</h4>
+                    <p>팀장님께 보고 (부재 시 연차 높은 선생님 순서로)</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>연차(휴가) 보고</h4>
+                    <p>연차 전 날 종례 후, 팀장님과 센터장님께 연차 보고 (부재 시 전화로 연락)</p>
+                </div>
+                `
+            },
+            {
+                category: "report",
+                question: "위급상황 발생 시 어떻게 대처하나요?",
+                answer: `
+                <div class="section-title">🚨 위급상황 대처</div>
+                <p><strong>순서</strong>: 상황 처치하면서 간호부(스테이션과 멀면 소리치기) 전달 → 팀장님 보고</p>
+                
+                <div class="example-box">예) T-table 환자 기립성 저혈압 시
+→ 경사 낮추며 다른 선생님께 간호부 전달 부탁
+→ 상황 선 처치 후 팀장님께 보고</div>
+                
+                <div class="warning">
+                    <strong>⚠️ 기립성 저혈압 응급처치</strong><br>
+                    간호부에 크게 도움 요청하면서 스트랩 풀고, 베개 빼고 발을 심장보다 높게 들 수 있도록 조치 (짐볼 또는 발판 위)
+                </div>
+                `
+            },
+            
+            // ============ 액팅/청구 ============
+            {
+                category: "acting",
+                question: "액팅은 어떻게 넘기나요? (PT)",
+                answer: `
+                <div class="section-title">📝 PT 액팅 방법</div>
+                <ul>
+                    <li>액팅지가 나온 후 작성, <strong class="highlight">8시 30분까지 액팅 완료</strong></li>
+                    <li>30분 이후 절대 수정이나 액팅 금지</li>
+                    <li>8시 30분 이후 업무담당선생님이 확인 후 오류 발견 시 수정가능 (임의수정 금지)</li>
+                </ul>
+                
+                <div class="section-title">청구 코드</div>
+                <table class="info-table">
+                    <tr>
+                        <th>구분</th>
+                        <th>코드</th>
+                        <th>치료</th>
+                        <th>시간</th>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">전문재활</td>
+                        <td>MM105</td>
+                        <td>중추신경계발달치료 (N오더)</td>
+                        <td>30분 1개 체크</td>
+                    </tr>
+                    <tr>
+                        <td>MM301</td>
+                        <td>매트및이동치료 (M오더)</td>
+                        <td>30분 1개 체크</td>
+                    </tr>
+                    <tr>
+                        <td>MM151</td>
+                        <td>기능적전기자극치료 (F오더)</td>
+                        <td>30분 1개 체크</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">회복기</td>
+                        <td>IM301</td>
+                        <td>가산체크 풀고 (MM오더)</td>
+                        <td>15분×2개</td>
+                    </tr>
+                    <tr>
+                        <td>IM301001</td>
+                        <td>가산체크 필수 (RN, RM, RG오더)</td>
+                        <td>15분×2개</td>
+                    </tr>
+                </table>
+                
+                <div class="tip">
+                    <strong>💡 확인사항</strong><br>
+                    • 회복기 환자 1:1 가산치료 체크(✓) 되어있는지<br>
+                    • 회복기 환자 IM코드인지 / 전문재활 환자 MM코드인지<br>
+                    • PT는 NDT 청구가 써티 있는 선생님한테 됐는지<br>
+                    • 액팅 시간에 맞게 적었는지
+                </div>
+                `
+            },
+            {
+                category: "acting",
+                question: "액팅은 어떻게 넘기나요? (OT)",
+                answer: `
+                <div class="section-title">📝 OT 액팅 방법</div>
+                
+                <div class="sub-section">
+                    <h4>전문재활 환자</h4>
+                    <table class="info-table">
+                        <tr><th>오더</th><th>시간 배분</th></tr>
+                        <tr><td>CA</td><td>C: 10분, A: 20분</td></tr>
+                        <tr><td>C/C</td><td>C: 15분/15분</td></tr>
+                        <tr><td>S</td><td>30분</td></tr>
+                        <tr><td>D</td><td>30분</td></tr>
+                        <tr><td>V</td><td>30분</td></tr>
+                        <tr><td>H</td><td>30분</td></tr>
+                        <tr><td>전산화인지</td><td>30분</td></tr>
+                        <tr><td>Y</td><td>15분</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기재활 환자</h4>
+                    <p>RS, RA, RD: 각 15분씩, 총 2개 체크</p>
+                    <ul>
+                        <li>앞에 15분 홀드 시 → 뒤에 시간으로 액팅</li>
+                        <li>뒤에 15분 홀드 시 → 앞에 시간으로 액팅</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>주말 C/C/C 청구 시</h4>
+                    <p>10분씩 나눠서 액팅</p>
+                    <div class="example-box">예) 12:00~12:10 C 정상환 / 12:10~12:20 C 최나현 / 12:20~12:30 C 이진주</div>
+                </div>
+                `
+            },
+            {
+                category: "acting",
+                question: "오더 오류가 있을 때 어떻게 보고하나요?",
+                answer: `
+                <div class="section-title">📢 오더 오류 보고</div>
+                <p>오더 없는 경우, 액팅지와 오더가 다른 경우, 청구시간과 외출시간이 겹치는 경우 → <strong>행정&스케줄 알림 공지방</strong>에 남기기</p>
+                
+                <div class="sub-section">
+                    <h4>PT 예시 문구</h4>
+                    <div class="example-box">1/25 월요일 전문재활 최경낭님 F 오더 없습니다.
+1/25 월요일 회복기재활 오순화님 RM 오더 없습니다.
+1/25 월요일 회복기재활 허영님 오전 MM 오더 없습니다.
+1/25 월요일 전문재활 최세균님 오더는 M인데 액팅지에는 G로 올라왔습니다.
+1/25 월요일 전문재활 신동억님 외출시간과 G 오더 시간 겹칩니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '1/25 월요일 전문재활 최경낭님 F 오더 없습니다.')">PT 예시 복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>OT 예시 문구</h4>
+                    <div class="example-box">1/25 월요일 전문재활 최경낭님 C 오더 없습니다.
+1/25 월요일 회복기재활 심경수님 RS 오더 없습니다.
+1/25 월요일 전문재활 우부권님 오더는 C인데 액팅지에는 S로 올라왔습니다.
+1/25 월요일 회복기재활 백종순님 오더는 RS인데 액팅지에는 RA로 올라왔습니다.
+1/25 월요일 전문재활 신동억님 CA(14:05~14:35) 외출시간(13:20~15:10)과 겹칩니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '1/25 월요일 전문재활 최경낭님 C 오더 없습니다.')">OT 예시 복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가 오더 오류 시</h4>
+                    <div class="example-box">1/25 전문재활 한은주님 ROM, MMT, BBS 평가오더 없습니다.
+1/25 회복기 석명자님 ROM 평가 오더 없습니다.
+1/25 회복기 근골격계 오순화님 BBS 평가 오더 없습니다.</div>
+                </div>
+                `
+            },
+            {
+                category: "acting",
+                question: "부도지는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📋 부도지 작성</div>
+                <div class="warning">
+                    <strong>⚠️ 중요</strong>: 모든 부도지 작성은 환자 해당 층 팀장님께 보고 후 승인 시 작성해야 함!<br>
+                    (팀장님 부재 시 연차 높은 선생님 순서로) → PT/OT 상관없이
+                </div>
+                
+                <div class="sub-section">
+                    <h4>작성 내용</h4>
+                    <ul>
+                        <li>성함, 시간, 해당치료(오더 RN, RM, G, M 확인) 체크 후 사유 작성</li>
+                        <li>기타일 경우 사유 무조건 작성</li>
+                        <li><strong>회복기</strong>: 15분 단위로 작성</li>
+                        <li><strong>전문재활</strong>: 30분 단위로 작성</li>
+                        <li>외래 환자: 이름 앞에 <strong>'OPD'</strong> 기록</li>
+                        <li>대체 치료 홀드 시: 치료사 칸에 본인 이름 적고 어떤 선생님 대체인지 표기</li>
+                    </ul>
+                    <div class="example-box">예) 홍길동T 대체 OOO</div>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>기구 변경/청구시간 변경 시</h4>
+                    <p>팀장님 승인 후 부도지 신환 칸에 변경사항 적고 사유 작성</p>
+                    <div class="example-box">기구 변경: 박XX님(M) 기구 (오전&오후) S → M으로 변경 부탁드립니다.
+청구시간 변경: 김XX님(G) 외진으로 C 9시 5분 → 11시 25분에 타셨습니다.</div>
+                </div>
+                
+                <div class="tip">
+                    잘못 작성 시: 빨간색 볼펜으로 두 줄 긋고 새로 작성 (수정테이프 사용금지)
+                </div>
+                `
+            },
+            
+            // ============ 시간표 ============
+            {
+                category: "schedule",
+                question: "시간표 색깔 구분은 어떻게 되나요?",
+                answer: `
+                <div class="section-title">🎨 PT/OT 시간표 색깔 구분</div>
+                
+                <div class="sub-section">
+                    <h4>공통사항</h4>
+                    <table class="info-table">
+                        <tr><th>색깔</th><th>의미</th></tr>
+                        <tr><td style="background:#fff3cd;">노란색</td><td>신환, 시간표 변경, 기구시간 이동, 회복기↔전문재활 변경</td></tr>
+                        <tr><td style="background:#d4edda;">녹색</td><td>회복기재활 환자</td></tr>
+                        <tr><td style="background:#fff;">무색</td><td>전문재활 환자</td></tr>
+                        <tr><td style="background:#e9ecef;">회색</td><td>가퇴원 환자</td></tr>
+                        <tr><td style="color:#28a745;">초록색 글씨</td><td>FES, 기구, 통증치료 HOLD 된 경우</td></tr>
+                        <tr><td style="background:#cfe2ff;">파란색</td><td>외래환자</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>OT만 해당</h4>
+                    <table class="info-table">
+                        <tr><th>색깔</th><th>의미</th></tr>
+                        <tr><td style="background:#ffe5d0;">주황색</td><td>complex 1개</td></tr>
+                        <tr><td style="background:#e2d5f1;">보라색</td><td>연하 치료 시 vital 같이 시행하는 경우</td></tr>
+                    </table>
+                </div>
+                `
+            },
+            {
+                category: "schedule",
+                question: "시간표 변경은 어떻게 처리하나요?",
+                answer: `
+                <div class="section-title">📅 시간표 변경 처리</div>
+                <p>포스트잇에 변경된 사항 적어서 <strong class="highlight">8시 15분 전까지</strong> 환자분, 간병사님에게 설명과 전달</p>
+                
+                <div class="sub-section">
+                    <h4>층별 처리 방법</h4>
+                    <ul>
+                        <li><strong>3층</strong>: 안순재 선생님께 제출 + 환자분께 전달</li>
+                        <li><strong>4층</strong>: 송영규 선생님께 제출 + 환자분께 전달</li>
+                        <li><strong>5,6층</strong>: 환자분, 간병사님께 직접 전달</li>
+                    </ul>
+                </div>
+                
+                <div class="example-box">예) 1월 18일 화요일 607호 남태국님 RA 08:30~09:00 → 10:15~10:45으로 변경</div>
+                
+                <div class="tip">
+                    화살표 있는 환자분들: 요양보호사(간병사)님께서 모시고 올라가고 내려옴<br>
+                    (개인 간병사님일 경우 개인 간병사님께서 직접 이동)
+                </div>
+                `
+            },
+            
+            // ============ 치료코드 ============
+            {
+                category: "code",
+                question: "전문재활 PT 치료코드는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">💊 전문재활 PT 치료코드</div>
+                
+                <table class="info-table">
+                    <tr><th>코드</th><th>치료명</th><th>시간</th><th>비고</th></tr>
+                    <tr><td>N</td><td>운동치료Ⅰ (NDT)</td><td>30분</td><td>1:1 운동치료</td></tr>
+                    <tr><td>M</td><td>운동치료Ⅱ</td><td>30분</td><td>기구, 기립경사훈련</td></tr>
+                    <tr><td>F</td><td>기능적전기자극치료 (FES)</td><td>30분</td><td></td></tr>
+                    <tr><td>P</td><td>수중재활치료</td><td>30분</td><td>지하1층</td></tr>
+                    <tr><td>H</td><td>호흡재활치료</td><td>30분</td><td>5,6층</td></tr>
+                    <tr><td>M7</td><td>도수치료</td><td>30분</td><td></td></tr>
+                    <tr><td>M12</td><td>도수치료+자기장10분+윙백OR감압</td><td>30분+10분</td><td></td></tr>
+                    <tr><td>M15</td><td>도수치료+자기장치료</td><td>50분+10분</td><td></td></tr>
+                    <tr><td>O7, N7</td><td>신경계 도수치료</td><td>30분</td><td></td></tr>
+                    <tr><td>TT</td><td>기립경사훈련</td><td>30분</td><td>T-table</td></tr>
+                    <tr><td>TH/TN</td><td>통증치료 (핫팩/전기)</td><td>12분+12분</td><td>2층</td></tr>
+                    <tr><td>TI/TN</td><td>통증치료 (한냉/전기)</td><td>12분+12분</td><td>2층</td></tr>
+                </table>
+                
+                <div class="sub-section">
+                    <h4>운동치료Ⅱ 기구 약어</h4>
+                    <table class="info-table">
+                        <tr><th>약어</th><th>기구명</th></tr>
+                        <tr><td>C</td><td>코끼리</td></tr>
+                        <tr><td>M</td><td>전동자전거</td></tr>
+                        <tr><td>T</td><td>트레드밀</td></tr>
+                        <tr><td>S</td><td>Standing-F</td></tr>
+                        <tr><td>Tt</td><td>Tilting table</td></tr>
+                        <tr><td>CPM</td><td>CPM</td></tr>
+                    </table>
+                </div>
+                `
+            },
+            {
+                category: "code",
+                question: "전문재활 OT 치료코드는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">💊 전문재활 OT 치료코드</div>
+                
+                <table class="info-table">
+                    <tr><th>코드</th><th>치료명</th><th>시간</th></tr>
+                    <tr><td>CA</td><td>작업치료 (C:10분 + A:20분)</td><td>30분</td></tr>
+                    <tr><td>S</td><td>Special 작업치료</td><td>30분</td></tr>
+                    <tr><td>C</td><td>Complex 작업치료 (1개일 시 30분)</td><td>15분</td></tr>
+                    <tr><td>D</td><td>연하치료</td><td>30분</td></tr>
+                    <tr><td>V</td><td>Vital + 연하치료</td><td>30분</td></tr>
+                    <tr><td>H</td><td>호흡치료</td><td>30분</td></tr>
+                    <tr><td>Y</td><td>골반저근자극치료 (바이오피드백)</td><td>15분</td></tr>
+                    <tr><td>O7</td><td>신경계도수치료 (작업)</td><td>30분</td></tr>
+                    <tr><td>L7</td><td>언어치료</td><td>30분</td></tr>
+                    <tr><td>RTMS</td><td>경두개자기자극치료</td><td>30분</td></tr>
+                    <tr><td>전산화인지</td><td>전산화인지치료 (배러코그)</td><td>30분</td></tr>
+                </table>
+                `
+            },
+            {
+                category: "code",
+                question: "회복기재활 치료코드는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">💊 회복기재활 치료코드</div>
+                <p>회복기는 <strong>15분씩 12단위</strong>까지 들어갈 수 있음</p>
+                
+                <table class="info-table">
+                    <tr><th>코드</th><th>치료명</th><th>시간</th></tr>
+                    <tr><td>RN</td><td>1:1 재활치료 (신경계 PT)</td><td>15분×2</td></tr>
+                    <tr><td>RM</td><td>1:1 재활치료 (신경계 PT)</td><td>15분×2</td></tr>
+                    <tr><td>RG</td><td>1:1 재활치료 (근골격계, 2층)</td><td>15분×2</td></tr>
+                    <tr><td>MM</td><td>운동치료Ⅱ (회복기)</td><td>15분×2</td></tr>
+                    <tr><td>RA</td><td>1:1 재활치료 (OT)</td><td>15분×2</td></tr>
+                    <tr><td>RS</td><td>1:1 재활치료 (OT)</td><td>15분×2</td></tr>
+                    <tr><td>RD</td><td>1:1 연하치료</td><td>15분×2</td></tr>
+                    <tr><td>RL</td><td>1:1 언어치료 (회복기)</td><td>15분×2</td></tr>
+                </table>
+                
+                <div class="tip">
+                    <strong>💡 구분법</strong><br>
+                    • 1:1 재활치료<strong>.</strong> (점 있음) = 운동치료 (3,4층 통합간병 구분용)<br>
+                    • 1:1 재활치료 (점 없음) = 작업치료<br>
+                    • 1:1 재활치료(연하) = 연하치료
+                </div>
+                `
+            },
+            {
+                category: "code",
+                question: "청구단위는 어떻게 되나요? (onset 기준)",
+                answer: `
+                <div class="section-title">📊 청구단위 (Onset 기준)</div>
+                
+                <div class="sub-section">
+                    <h4>전문재활 PT</h4>
+                    <table class="info-table">
+                        <tr><th>Onset 기준</th><th>N (NDT)</th><th>M (Mat)</th><th>F (FES)</th></tr>
+                        <tr><td>6개월 이내 BID</td><td>2단위</td><td>2단위</td><td>2단위</td></tr>
+                        <tr><td>6개월 이후 BID</td><td>2단위</td><td>2단위</td><td class="highlight">1단위</td></tr>
+                        <tr><td>1년 이후</td><td class="highlight">1단위</td><td>2단위</td><td>1단위</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>전문재활 OT (onset 1년 기준)</h4>
+                    <table class="info-table">
+                        <tr><th>구분</th><th>연하치료 있는 환자</th><th>연하치료 없는 환자</th></tr>
+                        <tr><td>1년 이내</td><td>CA, C, DV</td><td>CA, C</td></tr>
+                        <tr><td>1년 이후</td><td>CA, DV 중 1개만 (원장님 지시)</td><td>CA</td></tr>
+                        <tr><td>2년 경과 시</td><td colspan="2">S로 변경</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기</h4>
+                    <p>15분씩 12단위까지 가능</p>
+                    <p>RN, RM, RA, RS, RL, RD, RG, MM, TI/TN - 치료실 상황에 따라 OT/PT 치료 단위 변동 가능</p>
+                </div>
+                `
+            },
+            {
+                category: "code",
+                question: "PT 스케줄표 약어는 무슨 뜻인가요?",
+                answer: `
+                <div class="section-title">📋 PT 스케줄표 약어 설명</div>
+                
+                <table class="info-table">
+                    <tr><th>약어</th><th>의미</th></tr>
+                    <tr><td>N김종만3</td><td>1:1 운동치료 (환자: 김종만, 3병동)</td></tr>
+                    <tr><td>N정진복2A</td><td>1:1 운동치료, 월수금 치료</td></tr>
+                    <tr><td>N신승철B</td><td>1:1 운동치료, 화목 치료</td></tr>
+                    <tr><td>N이두영2E</td><td>1:1 운동치료, 월수 치료</td></tr>
+                    <tr><td>N신필수F</td><td>1:1 운동치료, 금 치료</td></tr>
+                    <tr><td>N5조윤형D</td><td>1:1 신경계도수치료, 매일</td></tr>
+                    <tr><td>M정귀남S</td><td>오더가 M인 환자, Standing frame</td></tr>
+                    <tr><td>M고임자C</td><td>오더가 M인 환자, 코끼리</td></tr>
+                    <tr><td>M김승서T</td><td>오더가 M인 환자, 트레드밀</td></tr>
+                    <tr><td>M유영근2Tt</td><td>오더가 M인 환자, T-table</td></tr>
+                    <tr><td>M오도경M</td><td>오더가 M인 환자, 전동자전거</td></tr>
+                    <tr><td>MM원병균Tt</td><td>회복기 운동치료Ⅱ, T-table</td></tr>
+                    <tr><td>F정용운</td><td>기능적전기자극치료</td></tr>
+                    <tr><td>SF박영길</td><td>서비스 기능적전기자극치료</td></tr>
+                    <tr><td>C허철</td><td>전문재활환자, 기구 CPM</td></tr>
+                    <tr><td>TT송현수Tt</td><td>기립경사훈련, T-table</td></tr>
+                    <tr><td>W이성모2A</td><td>로봇재활치료 (워크봇), 월수금</td></tr>
+                    <tr><td>W2이제경(화)</td><td>로봇재활치료 (모닝워크), 화요일</td></tr>
+                    <tr><td>RG신숙홍OS</td><td>회복기 근골격계, 2층 도수치료센터</td></tr>
+                </table>
+                `
+            },
+            {
+                category: "code",
+                question: "OT 스케줄표 약어는 무슨 뜻인가요?",
+                answer: `
+                <div class="section-title">📋 OT 스케줄표 약어 설명</div>
+                
+                <table class="info-table">
+                    <tr><th>약어</th><th>의미</th></tr>
+                    <tr><td>C오도경</td><td>complex 15분 작업치료 (1개 있을 시 30분)</td></tr>
+                    <tr><td>RA정금분</td><td>1:1 재활치료</td></tr>
+                    <tr><td>D이병무</td><td>연하치료</td></tr>
+                    <tr><td>D최경낭V</td><td>vital + 연하치료</td></tr>
+                    <tr><td>RS김정자3</td><td>1:1 재활치료</td></tr>
+                    <tr><td>CA오희자</td><td>30분 작업치료 (10분 작업치료 + 20분 ADL)</td></tr>
+                    <tr><td>S민재규</td><td>special 30분 작업치료</td></tr>
+                    <tr><td>O7변준석</td><td>1:1 신경계도수치료 (작업)</td></tr>
+                    <tr><td>Y박노준</td><td>골반저근자극치료</td></tr>
+                    <tr><td>H조연우</td><td>호흡치료</td></tr>
+                    <tr><td>R유동열D</td><td>RTMS, 매일 치료</td></tr>
+                    <tr><td>전산화인지 박기정</td><td>배러코그 사용 인지치료</td></tr>
+                    <tr><td>RD이민희</td><td>1:1 연하치료 (vital 붙이지 않음)</td></tr>
+                    <tr><td>RA정금분OS</td><td>회복기 근골격계, 2층 도수치료센터</td></tr>
+                    <tr><td>RL김정희9</td><td>회복기재활, 1:1 언어치료</td></tr>
+                    <tr><td>L6기서우</td><td>전문재활, 비급여 1:1 언어치료</td></tr>
+                    <tr><td>P바트호약</td><td>전문재활, 1:1 수중재활치료 (지하1층)</td></tr>
+                </table>
+                `
+            },
+            {
+                category: "code",
+                question: "산재/도수치료 코드는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">💊 산재/도수치료 코드</div>
+                
+                <div class="sub-section">
+                    <h4>산재-재활</h4>
+                    <p>모든 치료는 <strong>2층</strong>에서 진행</p>
+                    <table class="info-table">
+                        <tr><th>구분</th><th>내용</th></tr>
+                        <tr><td>산재재활-하지/상지/허리 및 수부</td><td>1:1 도수치료 20분 + 자가운동 10분</td></tr>
+                        <tr><td>M25</td><td>1:1 도수치료 20분</td></tr>
+                        <tr><td>집중산재 종료 후 외래 통원 시 M25</td><td>도수치료 15분 + 자기장 10분 (15회 진행)</td></tr>
+                        <tr><td>산재로봇</td><td>모닝워크 로봇보행치료 30분</td></tr>
+                    </table>
+                </div>
+                
+                <div class="tip">
+                    • 집중산재-수부는 <strong>OT</strong>가 진행<br>
+                    • 집중산재 종결 후 M25는 <strong>PT</strong>가 진행
+                </div>
+                `
+            },
+            
+            // ============ 모달리티 ============
+            {
+                category: "modality",
+                question: "FES는 어떻게 진행하나요?",
+                answer: `
+                <div class="section-title">⚡ FES (기능적전기자극치료)</div>
+                
+                <div class="sub-section">
+                    <h4>기본 규칙</h4>
+                    <ul>
+                        <li>회복기 환자는 FES 안받음 (경우에 따라 받을 수 있음 예: FF최XX)</li>
+                        <li>오전, 오후 메인 모달리티 선생님이 붙임</li>
+                        <li>시간표에 맞게 붙여드리기 (치료시간이 되어도 나오지 않으면 모시러감)</li>
+                        <li>신환일 경우 환자 차트에서 발병부위와 onset 확인</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>부착 부위</h4>
+                    <table class="info-table">
+                        <tr><th>횟수</th><th>오전</th><th>오후</th></tr>
+                        <tr><td>하루 2번</td><td>상지</td><td>하지</td></tr>
+                        <tr><td>하루 1번</td><td colspan="2">월화수: 상지 / 목금토일: 하지</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>주의사항</h4>
+                    <ul>
+                        <li>정확한 근육 위치에 부착하고 Motion 나오는지 확인</li>
+                        <li>패드가 잘 부착될 수 있도록 에탄올 분무기 사용</li>
+                        <li>패드 교체: 구멍 나면 바로 교체</li>
+                        <li>패드 부착부위 잘 붙여져 있는지, 기계 꺼지진 않았는지 수시로 확인</li>
+                        <li>치료실에 나와서 받는 것이 원칙 (방에서 붙이려면 팀장님 승인 필요)</li>
+                    </ul>
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ 금기</strong>: 심장에 Holter기계(pace maker) 부착환자에게는 적용 X
+                </div>
+                `
+            },
+            {
+                category: "modality",
+                question: "기구 사용 시 주의사항은 무엇인가요?",
+                answer: `
+                <div class="section-title">🏋️ 기구별 주의사항</div>
+                
+                <div class="sub-section">
+                    <h4>① 코끼리</h4>
+                    <ul>
+                        <li>앞으로 돌리는지, 스트랩 풀렸는지, 사용 후 잠금 확인</li>
+                        <li>발이 발판에 잘 있는지, 등받이가 너무 뒤로 젖혀있지 않은지 확인</li>
+                        <li>스트랩 부위 감각저하로 상처 생길 위험 → 바지 밑으로 당겨 묶거나 수건 덧대어 묶기</li>
+                        <li>TKR, THR 환자: 의자 높게, THR환자는 상체 숙이면 안됨 (치료사가 스트랩 묶어드릴 것)</li>
+                        <li>허리 통증 호소 시: 등받이 뒤로 젖힘</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>② Standing-F / Tilt table</h4>
+                    <ul>
+                        <li>정렬에 맞게 서 있는지, 기립성 저혈압 주의, 컨디션 수시로 확인</li>
+                        <li>가슴부위는 헐렁하게 묶기</li>
+                        <li>각도는 환자 상태에 맞게 조절</li>
+                        <li>엉덩이 스트랩 너무 위로 묶지 않기</li>
+                        <li>발 돌아가지 않게 하기</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>③ 전동자전거</h4>
+                    <ul>
+                        <li>환자 종아리 부위에 수건과 스트랩 확인</li>
+                        <li>속도 확인하기</li>
+                        <li>휠체어 밀리지 않도록 뒷바퀴 고정 (고임용 나무 or 의자 이용)</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>④ 트레드밀</h4>
+                    <ul>
+                        <li>안전핀 꼽았는지, 바지 밑단 끌리지 않는지, 신발 꺾어 신지 않는지</li>
+                        <li>손잡이 잡고 타는지, 엉덩이 뒤로 빼고 타시는지, 전방 주시 확인</li>
+                        <li>환자 기능에 맞게 속도 조절</li>
+                        <li><strong>금지</strong>: 달리기, 뒤로타기, 옆으로 타기, 슬리퍼</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>기구 내리는 순서</strong>: 기립경사대 → 스탠딩 → 코끼리<br>
+                    휠체어 먼저 가져온 후, 기구 스트랩 풀기 (미리 스트랩 풀어놓지 않기 - 낙상위험)
+                </div>
+                `
+            },
+            {
+                category: "modality",
+                question: "모달리티 선생님 업무는 무엇인가요?",
+                answer: `
+                <div class="section-title">👨‍⚕️ 모달리티 선생님 업무</div>
+                
+                <div class="sub-section">
+                    <h4>순서</h4>
+                    <p><strong>5,6층</strong>: 기구 → FES</p>
+                    <p><strong>3,4층</strong>: FES → 기구</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>기본 업무</h4>
+                    <ul>
+                        <li>기구 태울 때 꼭 요양보호사님(간병사님)과 함께 태우기</li>
+                        <li>치료실 전체적으로 확인: 치료시간 외 나와 있는 환자, 낙상 위험환자, 휠체어 정리</li>
+                        <li>수시로 기구 타고 있는 환자 컨디션 확인</li>
+                        <li>위생용품 점검 (분무기, 카트, 휴지통, 손소독제)</li>
+                        <li>치료시간에 다른 환자, 외부 보호자분들 치료실 출입 안내</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>오후 모달리티 선생님</h4>
+                    <ul>
+                        <li>오전 모달리티 선생님에게 오전 특이사항 전달받기</li>
+                        <li><strong class="highlight">1시 30분 전까지</strong> PT부도지, OT부도지 사진 모달리티 카톡방에 공지</li>
+                        <li>각 층 FES카트와 기구 정리</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>16:25 타임 이후 HOLD 발생 시</h4>
+                    <p>행정실에 전화하여 스케줄 담당선생님께 보고</p>
+                    <div class="example-box">'Mat 김OO님 O:OO 타임 (~사유)로 (기구 or FES) 못 받으셨습니다.'
+(성함, 오더종류, 사유, 시간 보고)</div>
+                </div>
+                `
+            },
+            
+            // ============ 평가 ============
+            {
+                category: "eval",
+                question: "평가는 언제 어떻게 진행하나요?",
+                answer: `
+                <div class="section-title">📋 평가 진행</div>
+                
+                <ul>
+                    <li><strong>재평가</strong>: 매월 첫째 주 월요일 평가 진행</li>
+                    <li><strong>재입원 시</strong>: 기간 상관없이 초기평가로 P/N 작성</li>
+                    <li>평가지는 한 달에 1번만 작성</li>
+                    <li>달이 바뀌고 재입원한 경우: 평가지, 평가 P/N 작성</li>
+                </ul>
+                
+                <div class="sub-section">
+                    <h4>연차 시 평가 대체</h4>
+                    <ul>
+                        <li><strong>1일 연차</strong>: 다음날 차트담당T 평가 진행</li>
+                        <li><strong>2일 이상 연차(휴가)</strong>: 대체T가 평가 진행 후
+                            <ul>
+                                <li>OT: 평가지만 작성, 휴가복귀 후 P/N는 담당T가 작성</li>
+                                <li>PT: 대체T가 P/N, 평가지 둘 다 작성</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가 못할 경우</h4>
+                    <p>외진, 컨저, 기타 등 사유로 평가 못할 시 → 팀장님께 보고 후 2층 행정실 게시판에 환자분 성함과 사유 작성</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기 90일 연장 대상자</h4>
+                    <p>OT/PT - 회복기 재활 평가지에 작성</p>
+                </div>
+                `
+            },
+            {
+                category: "eval",
+                question: "전문재활 PT 평가오더는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📊 전문재활 PT 평가오더</div>
+                
+                <table class="info-table">
+                    <tr><th>진단</th><th>평가 항목</th></tr>
+                    <tr><td>Stroke (hemi/tetra/quadri)</td><td>ROM & MMT, BBS</td></tr>
+                    <tr><td>Stroke (para)</td><td>ROM & MMT, BBS (OT 평가 없음, 상태 따라 우울평가만)</td></tr>
+                    <tr><td>Stroke (mono)</td><td>ROM & MMT, BBS</td></tr>
+                    <tr><td>SCI (Cervical/Thoracic/Lumbar)</td><td>ROM & MMT, BBS</td></tr>
+                    <tr><td>O.S (단순허리통증)</td><td>평가 없음 (골절로 가동범위 제한 시 ROM&MMT)</td></tr>
+                    <tr><td>THRA / TKRA</td><td>ROM & MMT</td></tr>
+                    <tr><td>Parkinson's disease</td><td>ROM & MMT, BBS</td></tr>
+                    <tr><td>Amputation</td><td>ROM & MMT, BBS (의족 유/무 상관없이)</td></tr>
+                    <tr><td>신경손상 (상완신경총손상 등)</td><td>ROM & MMT (하지 손상 시 BBS)</td></tr>
+                </table>
+                `
+            },
+            {
+                category: "eval",
+                question: "전문재활 OT 평가오더는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📊 전문재활 OT 평가오더</div>
+                
+                <table class="info-table">
+                    <tr><th>진단</th><th>평가 항목</th></tr>
+                    <tr><td>Stroke (mono/hemi/tetra/quadri)</td><td>MMSE, MBI, CDR, PHQ-9, HAND</td></tr>
+                    <tr><td>SCI (Cervical)</td><td>MBI, PHQ-9, HAND (65세 이상만 MMSE, CDR)</td></tr>
+                    <tr><td>Parkinson's disease</td><td>MMSE, MBI, CDR, PHQ-9, HAND</td></tr>
+                    <tr><td>근골격계</td><td>PHQ-9 (필요시 CDR, MMSE)</td></tr>
+                    <tr><td>비사용</td><td>MBI, PHQ-9 (필요시 CDR, MMSE)</td></tr>
+                    <tr><td>신경손상</td><td>MBI, 수지기능평가</td></tr>
+                </table>
+                
+                <div class="tip">
+                    <strong>💡 치매약 복용 기준</strong><br>
+                    • 아리셉트정: MMSE 26점 이하 / CDR 1-3점<br>
+                    • 에빅사정: MMSE 20점 이하 / CDR 2-3점
+                </div>
+                `
+            },
+            {
+                category: "eval",
+                question: "회복기재활 평가오더는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📊 회복기재활 평가오더</div>
+                
+                <div class="sub-section">
+                    <h4>PT 평가</h4>
+                    <table class="info-table">
+                        <tr><th>질환군</th><th>통합기능평가 (오더없이)</th><th>추가오더 필요</th></tr>
+                        <tr><td>뇌손상</td><td>MMT, BBS, MAS, FAC</td><td>ROM</td></tr>
+                        <tr><td>척수</td><td>MMT, MAS, FAC, ASIA</td><td>ROM</td></tr>
+                        <tr><td>뇌·척수 중복손상</td><td>MMT, BBS, MAS, FAC, ASIA</td><td>ROM</td></tr>
+                        <tr><td>근골격계</td><td>ROM, MMT, FAC</td><td>BBS</td></tr>
+                        <tr><td>비사용</td><td>ROM, MMT, BBS, FAC</td><td>없음</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>OT 평가</h4>
+                    <table class="info-table">
+                        <tr><th>질환군</th><th>통합기능평가 (오더없이)</th><th>추가오더 필요</th></tr>
+                        <tr><td>뇌손상</td><td>MMSE, MBI</td><td>CDR, PHQ-9, HAND</td></tr>
+                        <tr><td>척수</td><td>SCIM, MMSE</td><td>PHQ-9, HAND (필요시 CDR)</td></tr>
+                        <tr><td>뇌·척수 중복손상</td><td>MMSE, MBI, SCIM</td><td>PHQ-9, HAND, CDR</td></tr>
+                        <tr><td>근골격계</td><td>없음</td><td>PHQ-9 (필요시 CDR, MMSE)</td></tr>
+                        <tr><td>비사용</td><td>MBI</td><td>PHQ-9 (필요시 CDR, MMSE)</td></tr>
+                    </table>
+                </div>
+                
+                <div class="warning">
+                    간호간병서비스(3,4층) 받는 경우: 모든 환자 매달 MBI 평가지 필요<br>
+                    (MBI 오더는 없으나 평가지 올려야 함 - 척수는 EMR / 근골격계는 회복기재활에 작성)
+                </div>
+                `
+            },
+            
+            // ============ P-Note ============
+            {
+                category: "pnote",
+                question: "P-Note 기본 작성법은 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📝 P-Note 작성 기본</div>
+                
+                <div class="sub-section">
+                    <h4>작성 시기</h4>
+                    <ul>
+                        <li><strong>재평가</strong>: 한 달에 1번 매월 첫 번째 월요일에 시행 후 P-Note 작성</li>
+                        <li><strong>차트검사</strong>: 한 달에 1번 매월 재평가 한 다음 주 시행
+                            <ul>
+                                <li>월, 화, 수 검사 → 수요일 퇴근 전까지 행정실에 제출</li>
+                                <li>목, 금 확인 후 본인이 수정 후 싸인</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>작성 양식 (전체적인 환자 평가 6항목)</h4>
+                    <ol>
+                        <li>누운 자세에서 옆으로 돌아눕기</li>
+                        <li>누운 자세에서 침대 가장자리로 앉기</li>
+                        <li>앉은 자세 균형</li>
+                        <li>앉은 자세에서 일어서기</li>
+                        <li>선 자세에서의 균형</li>
+                        <li>보행</li>
+                    </ol>
+                    <p>+ <strong>재평가 내용</strong> + <strong>장·단기 목표/치료계획 2줄</strong> (신환 시)</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>Assist % 기준</h4>
+                    <table class="info-table">
+                        <tr><th>용어</th><th>%</th></tr>
+                        <tr><td>independent (독립적으로)</td><td>0~4%</td></tr>
+                        <tr><td>supervision (관리감독하에)</td><td>%는 없이 사용</td></tr>
+                        <tr><td>minimal assist (최소한의 보조하에)</td><td>5~23%</td></tr>
+                        <tr><td>moderate assist (중등도의 보조하에)</td><td>24~49%</td></tr>
+                        <tr><td>maximal assist (최대한의 보조하에)</td><td>50~95%</td></tr>
+                        <tr><td>total assist (전체적인 보조하에)</td><td>96~100%</td></tr>
+                    </table>
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "전문재활 환자 P-Note 예시는?",
+                answer: `
+                <div class="section-title">📝 전문재활 P-Note 작성 예시</div>
+                
+                <div class="sub-section">
+                    <h4>신환 - 전체적인 환자 평가</h4>
+                    <div class="example-box">1. 누운 자세에서 옆으로 돌아 눕기
+2. 누운 자세에서 침대 가장자리로 앉기
+3. 앉은 자세 균형
+4. 앉은 자세에서 일어서기
+5. 선 자세에서의 균형
+6. 보행
+7. FES
+8. 장기,단기 목표/ 치료계획 2줄</div>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>재평가 P-Note 예시</h4>
+                    <div class="example-box">1. 누운 자세에서 옆으로 돌아눕기
+- 누운 자세에서 옆으로 돌아눕기 시 치료사의 관리감독하에 가능하심
+
+2. 누운 자세에서 침대 가장자리로 앉기
+- 누운 자세에서 침대 가장자리로 앉기 시 치료사의 최소한의(15%) 보조를 필요로 하심
+
+3. 앉은 자세 균형
+- 앉은 자세 균형 시 치료사의 관리감독하에 가능하심
+
+4. 앉은 자세에서 일어서기
+- 앉은 자세에서 일어서기 시 치료사의 중등도(45%) 보조→최소한의(23%) 보조를 필요로 하심. 이 때 오른쪽에는 체중을 주지 않는 모습을 보임
+
+5. 선 자세에서의 균형
+- 선 자세에서의 균형 시 치료사의 중등도의(49%) 보조를 필요로 하심
+
+6. 보행
+- 10m 보행 : 2분 7초→2분 2초 (5초 단축. 치료사의 최대한(95%)의 보조, Q-cane, AFO 사용)
+- 오른쪽 다리를 치료사가 앞으로 전진 할 수 있도록 도와주고 체중은 환자가 주도록 구두 지시함
+
+7. 재평가
+* 10월 관절 가동범위 및 도수근력 검사 재평가
+- 오른쪽 엉덩관절 내측회전 : 5도→15도
+           무릎 신전 : T→P
+- 왼쪽 엉덩관절 외전 : P→F
+         엉덩관절 내전 : P→F
+
+* 기능적전기자극치료 향상내용
+- knee joint extension 작용을 하며 stance phase 시 knee joint의 운동성 및 안정성 증진을 위해 마비측 quadriceps m.에 30분간 적용하여 Rt. knee jt. extension 시 T→P 근력 증진되었습니다.
+
+* 버그 균형 검사 재평가
+- 총점 : 27/56점→37/56점 (10점 향상)
+1번 앉은 자세에서 일어나기 1점 →2점</div>
+                </div>
+                
+                <div class="tip">
+                    <strong>향상내용 없을 시</strong><br>
+                    • ROM&MMT: Key muscle 6개 전부 현 상태 작성<br>
+                    • BBS: 총점만 작성 (예: 총점 : 11/56점)
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "회복기재활 환자 P-Note는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📝 회복기재활 P-Note 작성</div>
+                
+                <div class="sub-section">
+                    <h4>① 뇌손상 환자</h4>
+                    <p><strong>신환</strong>: 전체적인 환자 평가 6항목 + 평가(BBS, FAC, MAS) + 장단기 목표/치료계획</p>
+                    <p><strong>재평가</strong>: 전체적인 환자 평가 향상내용 + MMT, BBS, FAC, MAS 재평가</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>② 척수손상 환자</h4>
+                    <p><strong>신환</strong>: 전체적인 환자 평가 6항목 + 평가(FAC, MAS, ASIA) + 장단기 목표/치료계획</p>
+                    <p><strong>재평가</strong>: 전체적인 환자 평가 향상내용 + MMT, FAC, MAS, ASIA 재평가</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>재평가 예시 (뇌손상)</h4>
+                    <div class="example-box">7. 재평가
+* 10월 도수근력 검사 재평가
+- 오른쪽 무릎 굴곡 : T→P
+- 왼쪽 엉덩관절 외전 : P→F
+
+* 버그 균형 검사 재평가
+- 총점 : 27/56점→37/56점 (10점 향상)
+1번 앉은 자세에서 일어나기 1점 →2점
+
+* 기능적 보행지수(FAC) : 2점(의존적보행)→3점(독립적보행)
+
+* 경직 평가 척도(MAS) : 상지 G1+→G1
+                        하지 G1+→G1</div>
+                </div>
+                
+                <div class="tip">
+                    • MMT 향상내용 없을 시: 평가지에 있는 총점으로만 작성 (예: 116점)<br>
+                    • BBS 향상내용 없을 시: 총점만 작성 (예: 총점 : 11/56점)
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "FES improve (향상내용)은 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">⚡ FES Improve 작성법</div>
+                <p>FES 치료를 받는 환자는 상지와 하지에 해당 액션으로만 재평가 주에 향상 내용 기재</p>
+                <p class="warning">특히 onset 7~12개월 환자의 경우 더욱 주의!</p>
+                
+                <div class="sub-section">
+                    <h4>상지 - Shoulder abduction</h4>
+                    <div class="example-box">-shoulder abduction 작용을 하며 상지의 기능적인 움직임을 활성화하고 shoulder joint의 안정성을 위해 마비측 deltoid m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-shoulder abduction 작용을 하며 상지의 기능적인 움직임을 활성화하고 shoulder joint의 안정성을 위해 마비측 deltoid m.에 30분간 적용')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>상지 - Elbow flexion</h4>
+                    <div class="example-box">-elbow flexion 작용을 하며 elbow joint의 안정성 제공하고 기능적 움직임 증진을 위해 마비측 biceps m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-elbow flexion 작용을 하며 elbow joint의 안정성 제공하고 기능적 움직임 증진을 위해 마비측 biceps m.에 30분간 적용')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>상지 - Wrist extension</h4>
+                    <div class="example-box">-wrist extension 작용을 하며 reaching시 안정성을 제공하고 hand grip을 유도하기 위해 마비측 extensor carpi radialis m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-wrist extension 작용을 하며 reaching시 안정성을 제공하고 hand grip을 유도하기 위해 마비측 extensor carpi radialis m.에 30분간 적용')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>하지 - Hip flexion</h4>
+                    <div class="example-box">-hip flexion 작용을 하며 stance phase에서 pelvic의 안정성 증진을 위해 마비측 iliopsoas m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-hip flexion 작용을 하며 stance phase에서 pelvic의 안정성 증진을 위해 마비측 iliopsoas m.에 30분간 적용')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>하지 - Knee extension</h4>
+                    <div class="example-box">-knee joint extension 작용을 하며 stance phase 시 knee joint의 운동성 및 안정성 증진을 위해 마비측 quadriceps m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-knee joint extension 작용을 하며 stance phase 시 knee joint의 운동성 및 안정성 증진을 위해 마비측 quadriceps m.에 30분간 적용')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>하지 - Ankle dorsiflexion</h4>
+                    <div class="example-box">-ankle joint dorsi flexion, foot inversion 작용을 하며 gait 시 발끌림 방지와 ankle의 안정성 증진을 위해 마비측 tibialis anterior m.에 30분간 적용</div>
+                    <button class="copy-btn" onclick="copyText(this, '-ankle joint dorsi flexion, foot inversion 작용을 하며 gait 시 발끌림 방지와 ankle의 안정성 증진을 위해 마비측 tibialis anterior m.에 30분간 적용')">복사</button>
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "근골격계/절단 환자 평가기록지는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📋 근골격계 평가 기록지 작성</div>
+                
+                <div class="sub-section">
+                    <h4>기본 정보</h4>
+                    <ul>
+                        <li>재평가 주에 근골격계 평가 기록지 작성 (물리치료사 작성)</li>
+                        <li>입원하고 다음 달부터 의학적재평가 작성</li>
+                        <li>차팅시간: 17:55~17:56</li>
+                        <li>추가오더 BBS 평가지는 기존 환자차트에 올리고 근골격계기록지에 BBS 점수 추가 작성</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>기본 내용 작성</h4>
+                    <table class="info-table">
+                        <tr><th>항목</th><th>내용</th></tr>
+                        <tr><td>상병명</td><td>1. (주상병) - Diagnosis 첫줄 / 2. (부상병) - C/C에 있는 질병</td></tr>
+                        <tr><td>치료부위</td><td>중점적으로 치료하고 있는 부위</td></tr>
+                        <tr><td>치료시간</td><td>16단위(4시간)</td></tr>
+                        <tr><td>치료방법</td><td>본인이 치료하고 있는 치료 작성</td></tr>
+                        <tr><td>의사의 지시감독</td><td>원장님의 특별한 지시사항 있으면 작성</td></tr>
+                        <tr><td>비고(특이사항)</td><td>장단목표, 치료계획 작성, 그 외 특이사항</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가 항목</h4>
+                    <ul>
+                        <li><strong>초기평가</strong>: FAC/MMT/통증정도평가/BBS 점수 작성, ROM 제한 있는 관절 작성</li>
+                        <li><strong>재평가</strong>: 향상된 평가 점수 작성, 향상된 관절 작성</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    <strong>회복기 전환 시점</strong><br>
+                    • 연하치료 동반한 근골격계 (고관절/골반/대퇴 골절 및 치환술): 30일 이후 전문재활<br>
+                    • 절단환자: 60일 이후 전문재활
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "비사용증후군 환자 평가기록지는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📋 비사용증후군 평가 기록지 작성</div>
+                
+                <div class="sub-section">
+                    <h4>기본 정보</h4>
+                    <ul>
+                        <li>재평가 주에 작성 (작업치료사 MBI 평가지 보고 물리치료사가 작성, OT가 확인)</li>
+                        <li>차팅시간: 17:55~17:56</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>초기평가 기준 점수 (중요!)</h4>
+                    <table class="info-table">
+                        <tr><th>평가</th><th>기준</th></tr>
+                        <tr><td>MBI</td><td class="highlight">80점 이하</td></tr>
+                        <tr><td>BBS</td><td class="highlight">40점 이하</td></tr>
+                        <tr><td>MMT</td><td class="highlight">48점 이하 (N/T는 체크 불가)</td></tr>
+                    </table>
+                    <p>※ 다음 달 재평가부터 기준 점수 이상으로 향상 가능</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가 항목</h4>
+                    <p>MBI/BBS/FAC/MMT/ROM/VAS 작성</p>
+                    <div class="example-box">MBI (75점 / 100점) 80점 이하 (작업치료사 기재)
+BBS (33점 / 56점) 40점 이하
+FAC (3)
+MMT 우측 상지: Z~N / 하지: Z~N
+    좌측 상지: Z~N / 하지: Z~N (N/T 입력불가)
+ROM 이상 있는 관절만 작성
+VAS 통증 있는 부위만 작성</div>
+                </div>
+                
+                <div class="tip">
+                    <strong>회복기 전환 시점</strong><br>
+                    연하치료 동반한 비사용증후군: 60일 이후 전문재활로 변경
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "1년 미만 통합기능평가료 대상환자 P-Note는?",
+                answer: `
+                <div class="section-title">📝 1년 미만 통합기능평가료 대상환자</div>
+                <p>회복기가 종료된 다음날부터 90일 동안 해당</p>
+                
+                <div class="example-box">예) 2020년 4월 14일 회복기 종료
+→ 4월 15일부터 7월 13일까지: 1년미만통합기능평가료 대상자 P-note 양식, 회복기재활에 평가지 작성
+→ 7월 14일 이후: 전문재활 P-note 양식, 기존 환자차트에 평가지 작성</div>
+                
+                <div class="sub-section">
+                    <h4>뇌손상 환자 재평가 항목</h4>
+                    <ul>
+                        <li>전체적인 환자 평가 (향상내용)</li>
+                        <li>ROM&MMT 재평가</li>
+                        <li>기능적전기자극치료 향상내용</li>
+                        <li>BBS 재평가</li>
+                        <li>기능적보행지수(FAC) 재평가</li>
+                        <li>경직평가척도(MAS - 상지, 하지)</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>척수손상 환자 재평가 항목</h4>
+                    <ul>
+                        <li>전체적인 환자 평가 (향상내용)</li>
+                        <li>ROM&MMT 재평가</li>
+                        <li>기능적전기자극치료 향상내용</li>
+                        <li>기능적보행지수(FAC) 재평가</li>
+                        <li>경직평가척도(MAS - 상지, 하지)</li>
+                        <li>척추손상등급(ASIA)</li>
+                    </ul>
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "일일차팅(RFT)은 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📝 일일차팅(RFT) 작성</div>
+                
+                <div class="sub-section">
+                    <h4>PT 차팅 규칙</h4>
+                    <ul>
+                        <li>기존 BID NDT: 2줄 기입, 1줄은 중복 허용</li>
+                        <li>NDT, GAIT, MAT: 3일은 같은 치료내용 가능 (단, N끼리/G끼리/M끼리만 안 겹치면 됨)</li>
+                        <li>회복기: 1단위당 1줄 작성</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>OT 차팅 규칙</h4>
+                    <ul>
+                        <li><strong>회복기</strong>: 2개 작성, 당일 다른 치료사와 안 겹쳐야 함 (전후일 1개까지 OK, 3일 이상 중복 X)</li>
+                        <li><strong>전문재활</strong>: 3개 작성, 3개 다 같은 항목 X (2개까지 허용)</li>
+                        <li>환자 기능에 맞춰 작성, 필요시 '치료사의 assist하에' 붙여서 작성</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>T-table 일일차팅 예시</h4>
+                    <div class="example-box">Mat 15시15분 ~ 15시45분
+- 욕창 및 골다공증을 방지하기 위하여 경사대를 이용한다.
+각도 - 70도, 10도, 10도
+시간 - 15:15, 15:30, 15:45
+BP - 76/52, 113/68, 115/73
+Pulse - 73, 72, 67
+증상 - 70도 숨쉬기 답답함 호소
+       10도 특이사항 없음
+       10도 특이사항 없음</div>
+                </div>
+                
+                <div class="tip">
+                    <strong>FES 차팅 시</strong><br>
+                    • FES 2회: 오전 상지 / 오후 하지<br>
+                    • FES 1회: 월화수 상지 / 목금토일 하지<br>
+                    • MMT G grade 근육에도 차팅 가능
+                </div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "신환 평가 시 치료계획 예시는?",
+                answer: `
+                <div class="section-title">📝 신환 평가 시 치료계획 예시</div>
+                <p>신환 평가 후 P-note 작성 시 치료계획 2줄 작성란에는 아래 내용만 기재:</p>
+                
+                <div class="example-box">- 머리와 목의 조절 운동
+- 체간 정렬 교정 운동
+- 골반 움직임 교정 운동
+- 상지 수동관절운동 (관절구축, 변형 방지 위해)
+- 하지 수동관절운동
+- 복부 & 체간 근육 안정화 운동
+- 상지 근력 증진 운동
+- 하지 근력 증진 운동
+- 상지 관절 기능적 움직임 증진 운동
+- 하지 관절 기능적 움직임 증진 운동
+- 단축 근육 신장 운동
+- 체중이동 & 체중지지 운동
+- 상지 정렬 교정 운동
+- 하지 정렬 교정 운동
+- 상지의 근 긴장도 억제 운동
+- 하지의 근 긴장도 억제 운동
+- 균형감각 운동
+- 근 지구력 향상 운동
+- 정적 & 동적 자세 조절을 위한 균형 운동</div>
+                `
+            },
+            {
+                category: "pnote",
+                question: "P-Note/차팅 참고사항 정리",
+                answer: `
+                <div class="section-title">📌 P-Note & 일일차팅 참고사항</div>
+                
+                <ol>
+                    <li><strong>NDT 차팅</strong>에 GAIT, MAT 서식내용 혼용 가능 (회복기는 PT, OT 서식 혼용 가능)</li>
+                    <li>GAIT, MAT 차팅 시 환자상태 모르면 <strong>담당치료사께 물어보거나 P-NOTE 확인</strong></li>
+                    <li>근골격계, 절단, 비사용증후군 GAIT/MAT 일일차팅은 <strong>T-table 서식내용으로만</strong> 작성</li>
+                    <li>P-NOTE 재평가 주 RFT 차팅근육과 FES improve 향상 근육 불일치해도 됨</li>
+                    <li>FES 향상내용 작성 시 지난 달 RFT에 작성 안 됐어도 됨</li>
+                    <li><strong>퇴원 후 외래 시</strong>: 첫 P-NOTE는 전체평가로 작성</li>
+                    <li>기능이 많이 떨어진 환자: 팀장님 상의 후 메모칸에 사유 기재</li>
+                    <li><strong>재입원</strong>: 재평가 안 하고 퇴원 → 평가지 & P-NOTE 작성 / 재평가 후 퇴원하고 같은 달 재입원 → 작성 X</li>
+                    <li>재입원 시 작성 필요하면 무조건 <strong>신환양식</strong>으로 (향상/저하 내용 없이 최종기능만)</li>
+                    <li>장기간 all hold 후 스케줄 들어간 환자: 스케줄 담당선생님께 재평가 전달 후 재평가로 평가지 & P-NOTE 작성</li>
+                    <li><strong>6번 보행 항목</strong>: 보행향상, 보조도구, assist정도, 10MWT 기입 (10MWT 가능하신 분 필수)</li>
+                    <li><strong>의학적 재평가</strong>: 매달 첫 번째 월요일 주에 회복기/전문재활 모두 작성</li>
+                    <li>재평가주 P-NOTE와 의학적 재평가 내용 일치해야 함 (P-NOTE 수정 시 의학적 재평가도 수정)</li>
+                </ol>
+                `
+            },
+            
+            // ============ 카톡보고 ============
+            {
+                category: "kakao",
+                question: "외출/외진 카톡 보고는 어떻게 하나요?",
+                answer: `
+                <div class="section-title">📱 외출/외진 카톡 보고</div>
+                <p>환자분 외출, 외진 또는 외박 나가시는 것 보면 <strong>바로</strong> 카톡방에 공지</p>
+                
+                <div class="sub-section">
+                    <h4>외출 보고</h4>
+                    <div class="example-box">XXX님 외출 가셨습니다. 귀원시간은 ~예정입니다. 담당선생님께서는 치료 전 확인부탁드립니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, 'XXX님 외출 가셨습니다. 귀원시간은 ~예정입니다. 담당선생님께서는 치료 전 확인부탁드립니다.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>외진 보고</h4>
+                    <div class="example-box">XXX님 성모병원으로 외진 가셨습니다. 귀원 예정 시간은 미정입니다. 담당선생님께서는 치료 전 확인 부탁드립니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, 'XXX님 성모병원으로 외진 가셨습니다. 귀원 예정 시간은 미정입니다. 담당선생님께서는 치료 전 확인 부탁드립니다.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>귀원 보고</h4>
+                    <div class="example-box">XXX님 귀원하셨습니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, 'XXX님 귀원하셨습니다.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>컨디션 저하 보고</h4>
+                    <div class="example-box">XX님 (컨저/구토)로 방으로 들어가셨습니다. 담당 선생님들께서는 치료 전에 확인 부탁드립니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, 'XX님 (컨저/구토)로 방으로 들어가셨습니다. 담당 선생님들께서는 치료 전에 확인 부탁드립니다.')">복사</button>
+                </div>
+                `
+            },
+            {
+                category: "kakao",
+                question: "퇴원/전실 카톡 보고는 어떻게 하나요?",
+                answer: `
+                <div class="section-title">📱 퇴원/전실 카톡 보고</div>
+                
+                <div class="sub-section">
+                    <h4>퇴원 시 처리 순서</h4>
+                    <ol>
+                        <li>오피스톡에 환자퇴원 일자 공지되면 그날 아침에 환자 퇴원시간 파악</li>
+                        <li>퇴원 전까지 받으실 치료 파악 (간호 선생님/환자분께 확인)</li>
+                        <li>팀장님께 보고</li>
+                        <li>시간표 담당선생님께 전달</li>
+                        <li>전체카톡방/행정&스케줄 알림 카톡방에 공지</li>
+                    </ol>
+                    <div class="example-box">김XX님 오전치료만 받으시고 퇴원하신다고 하셨습니다. 담당선생님께서는 치료 전 확인 부탁드립니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '김XX님 오전치료만 받으시고 퇴원하신다고 하셨습니다. 담당선생님께서는 치료 전 확인 부탁드립니다.')">복사</button>
+                    
+                    <div class="example-box">김XX님 9:35에 끝나는 RM치료까지 받으시고 퇴원하신다고 하셨습니다. 담당선생님께서는 치료 전 확인 부탁드립니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '김XX님 9:35에 끝나는 RM치료까지 받으시고 퇴원하신다고 하셨습니다. 담당선생님께서는 치료 전 확인 부탁드립니다.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>전실 시 처리 순서</h4>
+                    <ol>
+                        <li>환자 전실시간 파악 및 남은 치료를 해당 층/전실할 층 어디서 받는지 파악</li>
+                        <li>팀장님께 보고</li>
+                        <li>모달리티 및 전체 카톡방에 공지</li>
+                    </ol>
+                    <div class="example-box">[전체카톡방] 김XX님 206호에서 304호로 점심시간 이후 전실하실 예정이며, 점심 이후 치료는 3층에서 받으신다고 하셨습니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '김XX님 206호에서 304호로 점심시간 이후 전실하실 예정이며, 점심 이후 치료는 3층에서 받으신다고 하셨습니다.')">복사</button>
+                    
+                    <div class="example-box">[모달리티 카톡방] 김XX님 206호에서 304호로 점심시간 이후 전실하실 예정입니다.</div>
+                    <button class="copy-btn" onclick="copyText(this, '김XX님 206호에서 304호로 점심시간 이후 전실하실 예정입니다.')">복사</button>
+                </div>
+                `
+            },
+            {
+                category: "kakao",
+                question: "외출시간이 치료시간과 겹칠 때 어떻게 하나요?",
+                answer: `
+                <div class="section-title">⏰ 외출시간 겹침 처리</div>
+                
+                <div class="sub-section">
+                    <h4>치료 중간에 외출 가실 경우</h4>
+                    <p>해당치료 끝나는 시간 <strong>+5분</strong>으로 외출시간 간호부에 수정 요청</p>
+                    <div class="example-box">• 09:05 코끼리 타시다가 중간에 외출 가실 경우
+  → 09:35 치료 끝 시간 +5분 = 09:40으로 외출시간 수정 요청
+
+• 회복기 11:25 치료 받으시다 11:35 도중에 외진 나가실 경우
+  → 15분 치료 받으신 것으로 11:40 치료 끝 시간 +5분 = 11:45으로 수정 요청</div>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>귀원 시 치료시간 바로 이어질 경우</h4>
+                    <p>치료시간 <strong>-5분</strong>으로 귀원시간 간호부에 수정 요청</p>
+                    <div class="example-box">• 귀원 11:30에 하셨으나 11:25 NDT 치료 받으셨다면
+  → 11:25 치료시간 -5분 = 11:20으로 귀원시간 수정 요청
+
+• 회복기 환자 14:40 치료 못 받으시다가 14:55 귀원하셔서 뒷 15분 치료 받으셨다면
+  → 14:55 치료시간 -5분 = 14:50으로 귀원시간 수정 요청</div>
+                </div>
+                `
+            },
+            
+            // ============ 근태 ============
+            {
+                category: "admin",
+                question: "연차/휴가는 어떻게 쓰나요?",
+                answer: `
+                <div class="section-title">📅 연차/휴가 규정</div>
+                
+                <ul>
+                    <li>하루에 PT,OT 상관없이 <strong>12명 이내</strong> 사용 가능 (상황에 따라 변동)</li>
+                    <li>달의 마지막 날에 다음 달 휴가원 작성</li>
+                    <li>연차나 휴가 작성 후 <strong>취소나 변경 불가능</strong></li>
+                    <li>본인 연차 개수 총무과에 문의 후 파악하여 작성</li>
+                    <li>연말 연차 모자란 것 다음 해 연차 당겨쓰기 <strong>금지</strong></li>
+                </ul>
+                
+                <div class="sub-section">
+                    <h4>연차 시 해야 할 일</h4>
+                    <ul>
+                        <li><strong>3,4층</strong>: 홀드지 팀장님 자리에 올려놓기, 환자분들에게 전달</li>
+                        <li><strong>5,6층</strong>: 환자분들에게 전달</li>
+                        <li>연차 가기 전 다른 선생님께 부탁하기</li>
+                        <li><strong>중복환자 명단</strong>: 연차 전날 8:30까지 각 층 팀장님께 제출 (날짜/치료사/환자 기재)</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>무급휴가</h4>
+                    <ul>
+                        <li>입사일 기준 근무일 만 2년 이후 날짜부터 가능</li>
+                        <li>겹치면 입사순으로 3명 가능 (변동 가능)</li>
+                        <li>신청기간 이후 작성 시 팀장님께 보고 후 작성</li>
+                    </ul>
+                </div>
+                `
+            },
+            {
+                category: "admin",
+                question: "주말출근은 어떻게 하나요?",
+                answer: `
+                <div class="section-title">📅 주말출근</div>
+                
+                <div class="sub-section">
+                    <h4>토요일 출근</h4>
+                    <ul>
+                        <li>그 주 <strong>월요일 퇴근 전(5시 30분 전)</strong>까지</li>
+                        <li>2층 행정실 명단에 O, X로 표시</li>
+                        <li>토요 출근 인원(전체 1/2) 미만 시 A, B조 지정 출근</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>일요일/공휴일 출근</h4>
+                    <ul>
+                        <li>치료사실 명단 부착 후 단톡에 공지 이후 작성 (한달 단위)</li>
+                        <li>일요일/공휴일은 <strong>6층</strong>에서 치료 진행</li>
+                        <li><strong>8시 10분 전</strong>까지 6층 도착 후 청소</li>
+                    </ul>
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ 주의사항</strong><br>
+                    • 일요일 출근하고 싶은데 해당 층 작성 날이 연차면 → 팀장님께 미리 보고<br>
+                    • 주말 출근표 명단 수정 시 → 반드시 팀장님과 스케줄 담당선생님께 보고 후 수정 테이프 사용<br>
+                    • A조 출근 시 부득이하게 못하면 → B조 같은 T랑 상의 후 팀장님께 보고
+                </div>
+                `
+            },
+            {
+                category: "admin",
+                question: "청소는 언제 어떻게 하나요?",
+                answer: `
+                <div class="section-title">🧹 청소</div>
+                
+                <div class="sub-section">
+                    <h4>대청소</h4>
+                    <p>한 달에 한 번씩 퇴근 후 진행 (날짜는 종례 때 알려줌, 치료사실 달력에 명시)</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>아침청소</h4>
+                    <ul>
+                        <li>평일: 2개 조로 1주일씩 돌아가면서</li>
+                        <li>주말, 공휴일: 다 같이 청소</li>
+                    </ul>
+                    <table class="info-table">
+                        <tr><th>요일</th><th>시간</th></tr>
+                        <tr><td>월요일 (전체 아침조회 있는 날)</td><td>8시 10분</td></tr>
+                        <tr><td>평일, 토요일</td><td>8시 15분</td></tr>
+                        <tr><td>일요일, 공휴일</td><td>8시 10분</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>린넨 교체</h4>
+                    <p>베개 커버 & 치료실 모든 수건 교체: <strong>매주 수요일</strong> 뒷정리 시</p>
+                </div>
+                `
+            },
+            
+            // ============ OT 전용 ============
+            {
+                category: "ot",
+                question: "OT 평가 진행 방법은? (MMSE, MBI, CDR, Hand, PHQ-9)",
+                answer: `
+                <div class="section-title">📋 OT 평가 진행</div>
+                
+                <ul>
+                    <li>매월 첫째 주 월요일에 평가 시행</li>
+                    <li>재활공유→OT양식→차트관리 확인하여 본인 담당 환자 수시로 확인</li>
+                </ul>
+                
+                <div class="sub-section">
+                    <h4>전문재활 환자</h4>
+                    <p>CA or S or C or D(평가) or 전산화 환자 → <strong>차트 담당 선생님</strong>이 평가 진행 및 P/N 작성</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기재활 환자</h4>
+                    <ul>
+                        <li><strong>신환</strong>: 첫 타임 선생님이 평가 진행 후 평가지 작성 → 차트담당선생님이 평가지 확인하여 평가한 선생님 이름으로 P/N 작성</li>
+                        <li><strong>재평가</strong>: 차트 담당 선생님이 평가 진행</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가 주 액팅</h4>
+                    <table class="info-table">
+                        <tr><th>평가</th><th>액팅 이름</th></tr>
+                        <tr><td>전문재활 MMSE, CDR, PHQ-9</td><td>담당 원장님 성함</td></tr>
+                        <tr><td>전문재활 MBI, Hand function test</td><td>담당 치료사 이름</td></tr>
+                        <tr><td>회복기 Hand, CDR, PHQ-9</td><td>평가 진행 치료사 이름</td></tr>
+                    </table>
+                </div>
+                
+                <div class="tip">
+                    <strong>CDR 평가</strong>: 큰 변동사항 없으면 MMSE 점수 증진과 관계없이 작성 (MMSE점수와 상관관계 없음)<br>
+                    너무 큰 변동 시 팀장님께 보고 후 작성
+                </div>
+                `
+            },
+            {
+                category: "ot",
+                question: "OT 연하치료 주의사항은?",
+                answer: `
+                <div class="section-title">🍽️ 연하치료</div>
+                
+                <ul>
+                    <li>사용한 Vital과 도구는 제자리에 정리</li>
+                    <li>Vital 사용 후 전원 끈 후 환자에게서 제거</li>
+                    <li>퇴근 시 Vital 충전기에 꽂고 퇴근</li>
+                    <li>회복기 재활 연하 환자는 Vital 붙이지 않음 (필요시 개수 남으면 부착 가능)</li>
+                    <li>연하 치료 시 자리 배치: 작업치료 책상과 매트 사이에서 진행</li>
+                    <li><strong>금지 장소</strong>: 작업치료 도구장, 치료실 입구 같이 혼잡한 곳</li>
+                </ul>
+                
+                <div class="warning">
+                    <strong>⚠️ 금기</strong>: 심장에 Holter기계(pace maker) 부착환자에게는 적용 X
+                </div>
+                
+                <div class="sub-section">
+                    <h4>부도지 작성 (연하치료)</h4>
+                    <ul>
+                        <li>DV 환자가 컨저로 D 홀드, Vital만 배드에서 시행 → 비고란에 "vital 시행했음" 표기</li>
+                        <li>DV 환자가 외진으로 DV 모두 홀드 → 비고란에 "vital 시행하지 못함" 표기</li>
+                    </ul>
+                </div>
+                `
+            },
+            {
+                category: "ot",
+                question: "전산화 인지치료 기록지는 어떻게 올리나요?",
+                answer: `
+                <div class="section-title">🖥️ 전산화 인지치료 기록지</div>
+                
+                <ul>
+                    <li><strong>매달 말일</strong>에 기록지 올려야 함</li>
+                    <li>재활공유 폴더에 전산화인지 매뉴얼 참고하여 올리기</li>
+                </ul>
+                
+                <div class="sub-section">
+                    <h4>전산화 인지치료 담당자 연차 시</h4>
+                    <p>포스트잇에 환자 ID, 치료내용 작성하여 사용하는 컴퓨터 화면 뒤에 부착 후 퇴근</p>
+                </div>
+                `
+            },
+            
+            // ============ 소아/수중 ============
+            {
+                category: "child",
+                question: "소아재활센터 업무는 어떻게 되나요?",
+                answer: `
+                <div class="section-title">👶 소아재활센터</div>
+                
+                <div class="sub-section">
+                    <h4>오더 코드</h4>
+                    <table class="info-table">
+                        <tr><th>구분</th><th>코드</th><th>치료명</th></tr>
+                        <tr><td rowspan="4">PT</td><td>IN105</td><td>(어린이) 중추신경계발달치료</td></tr>
+                        <tr><td>IN301</td><td>(어린이) 매트및이동치료</td></tr>
+                        <tr><td>IN048</td><td>(어린이) 전신풀치료</td></tr>
+                        <tr><td>IN122</td><td>(어린이) 도수치료 (로봇치료)</td></tr>
+                        <tr><td rowspan="3">OT</td><td>IN114</td><td>(어린이) 일상생활동작훈련치료</td></tr>
+                        <tr><td>IN141</td><td>(어린이) 연하장애재활치료</td></tr>
+                        <tr><td>FZ693</td><td>발달평가-Denver</td></tr>
+                    </table>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>부도지 작성</h4>
+                    <ul>
+                        <li>카톡방 팀장님 공지 시: 미보고 후 부도지 작성</li>
+                        <li>공지 제외 시: 팀장님 보고 후 부도지 작성</li>
+                        <li>추가치료 부도 시: 부도지 작성 안하고 팀장님께 보고</li>
+                        <li>전문재활: 30분 단위 / 회복기: 15분 단위</li>
+                        <li>낮병동: 이름 앞에 '낮병동' / 외래: 이름 앞에 'OPD' / 입원: 이름 앞에 '회복기'</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>평가</h4>
+                    <ul>
+                        <li>회복기 낮병동/외래 환아: <strong>5개월마다</strong> 재평가 진행</li>
+                        <li>종결 회복기 환아: 종결하는 주 월요일에 재평가 (보호자에게 미리 안내)</li>
+                        <li>낮병동 환아: 매달 평가 주 첫 번째 월요일에 P-NOTE 작성</li>
+                    </ul>
+                </div>
+                `
+            },
+            {
+                category: "child",
+                question: "소아 평가 목록은 어떻게 되나요?",
+                answer: `
+                <div class="section-title">📊 소아 전문재활 평가 목록</div>
+                
+                <table class="info-table">
+                    <tr><th>구분</th><th>평가</th><th>급여/비급여</th><th>기록</th></tr>
+                    <tr><td rowspan="3">PT</td><td>근골격계 및 근력평가 (ROM&MMT)</td><td>급여</td><td>EMR</td></tr>
+                    <tr><td>아동 대동작 기능 평가 (GMFM)</td><td>비급여 15,000원</td><td>EMR</td></tr>
+                    <tr><td>아동용 균형능력평가 (PBS)</td><td>급여</td><td>EMR</td></tr>
+                    <tr><td rowspan="8">OT</td><td>일상생활평가 - Weefim (영유아)</td><td>급여</td><td>EMR</td></tr>
+                    <tr><td>일상생활평가 - MBI (장애진단용)</td><td>급여</td><td>EMR</td></tr>
+                    <tr><td>손기능평가 (Grooved Pegboard / Jebsen-Taylor)</td><td>급여</td><td>EMR</td></tr>
+                    <tr><td>발달평가 - Bayley (베일리)</td><td>급여</td><td>스캔</td></tr>
+                    <tr><td>발달평가 - Denver-2 (덴버)</td><td>비급여 15,000원</td><td>스캔</td></tr>
+                    <tr><td>시지각평가 - DTVP</td><td>비급여 23,000원</td><td>스캔</td></tr>
+                    <tr><td>인지평가 - KBIT2</td><td>비급여 25,000원</td><td>스캔</td></tr>
+                    <tr><td>연하평가</td><td>비급여 20,000원</td><td>EMR</td></tr>
+                </table>
+                
+                <div class="tip">
+                    <strong>베일리 평가 급여 기준</strong><br>
+                    • 생후 24개월까지: 최대 3회<br>
+                    • 생후 24개월 초과~42개월: 년 1회<br>
+                    • 42개월 초과해도 발달수준 42개월 미만 시: 사례별로 인정
+                </div>
+                `
+            },
+            {
+                category: "child",
+                question: "수중재활센터 차팅은 어떻게 하나요?",
+                answer: `
+                <div class="section-title">🏊 수중재활센터</div>
+                
+                <div class="sub-section">
+                    <h4>차팅 시간</h4>
+                    <p>오전 18:33 / 오후 18:34 (수중치료 차팅일 경우 전문재활, 회복기 차팅시간 동일)</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>액팅</h4>
+                    <table class="info-table">
+                        <tr><th>구분</th><th>액팅 내용</th></tr>
+                        <tr><td>전문재활 수중치료</td><td>전신풀치료 - 풀치료 (전신풀) 1일당</td></tr>
+                        <tr><td>소아 수치료 (회복기)</td><td>(어린이) 전신풀치료 - 풀치료 15분 단위 2개 1일당</td></tr>
+                        <tr><td>산재 수치료</td><td>수중운동치료(산재) - 수중운동치료 (개인) 1일당</td></tr>
+                    </table>
+                    <p><strong>요일 구분</strong>: A = 월,수,금 / B = 화,목 / D = 월,화,수,목,금</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>차팅 예시</h4>
+                    <div class="example-box">[전문재활 소아 수중치료]
+(P박주혜A) 전신풀치료 09시40분 ~ 10시10분
+- Gluteal muscle strengthening
+- Knee extensor strengthening
+
+[회복기재활 소아 수중치료]
+(RP박건율B) 1:1치료 전신풀치료 09시40분 ~ 09시55분
+             1:1치료 전신풀치료 09시55분 ~ 10시10분
+- Gluteal muscle strengthening
+- Knee extensor strengthening</div>
+                    <p>※ Mat, Gate, NDT, 소아Mat, 소아NDT 중 수중재활에서 가능한 치료내용 사용</p>
+                </div>
+                `
+            },
+            
+            // ============ 기타 ============
+            {
+                category: "etc",
+                question: "출근 후 할 일은 무엇인가요?",
+                answer: `
+                <div class="section-title">🌅 출근 후 할 일 (PT/OT 공통)</div>
+                
+                <ol>
+                    <li><strong>챙길 것</strong>: 치료시간표, 액팅지, 차팅지, 기구시간표
+                        <ul>
+                            <li>아침마다 각 층 1년차 선생님이 가져옴</li>
+                            <li>주말 출근 시 제일 일찍 오는 1년차 선생님이 챙기기</li>
+                        </ul>
+                    </li>
+                    <li><strong>액팅</strong>: 액팅지 나온 후 작성, <strong class="highlight">8시 30분까지 완료</strong></li>
+                </ol>
+                
+                <div class="sub-section">
+                    <h4>액팅지/차팅지 나오는 시간</h4>
+                    <ul>
+                        <li>각 액팅지: 다음 날 오전 8시 전</li>
+                        <li>일요일 액팅지: 월요일 출근 후 행정 담당 선생님 단톡 공지 후 행정실에서 가져오기</li>
+                        <li>월,화,수,목요일 차팅지: 해당날짜 2일 뒤 오전</li>
+                        <li>금,토,일요일 차팅지: 다음 주 화요일 오전</li>
+                        <li>말일 다음날 아침에 나오는 청구시간표는 액팅지가 아니고 차팅지</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>컴퓨터</h4>
+                    <p>컴퓨터, 오피스톡, 브레인, 치료시간표(재활공유 폴더) 열어 두고 <strong>반드시 팀장님 종례 후 종료</strong></p>
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "전화예절은 어떻게 하나요?",
+                answer: `
+                <div class="section-title">📞 전화예절</div>
+                <p>모달리티 선생님이 우선적으로 전화 받기</p>
+                
+                <div class="sub-section">
+                    <h4>전화 받을 때</h4>
+                    <div class="example-box">"감사합니다. O층(내가 현재 있는 층) 재활센터 XXX입니다."</div>
+                    <button class="copy-btn" onclick="copyText(this, '감사합니다. O층 재활센터 XXX입니다.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>전화 끊을 때</h4>
+                    <div class="example-box">"수고하세요."</div>
+                    <button class="copy-btn" onclick="copyText(this, '수고하세요.')">복사</button>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>전화 전달 받을 때</h4>
+                    <div class="example-box">"전화 받았습니다."</div>
+                    <button class="copy-btn" onclick="copyText(this, '전화 받았습니다.')">복사</button>
+                </div>
+                
+                <div class="tip">
+                    전화 받을 시에 어디에서 전화 왔는지 화면에 뜨는 내선번호로 확인
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "스테이션 주의사항은 무엇인가요?",
+                answer: `
+                <div class="section-title">🏥 스테이션 주의사항</div>
+                
+                <ul>
+                    <li>업무와 관계없는 일, <strong>휴대폰 사용 자제</strong></li>
+                    <li>원장님 회진 시 스테이션 안에서 환자상태 확인, <strong>음식섭취 자제</strong></li>
+                    <li>정숙, 깔끔하게 정리(데스크)</li>
+                    <li>환자상태 체크 (기구, FES, 치료대기 시) → PT, OT 구분없이</li>
+                    <li>간호부 물품 <strong>허락받고</strong> 사용 (혈압계 등)</li>
+                </ul>
+                `
+            },
+            {
+                category: "etc",
+                question: "동행서비스는 어떻게 진행하나요?",
+                answer: `
+                <div class="section-title">📸 동행서비스</div>
+                <p><strong>회복기 신환만</strong> 해당 (단, 개인정보동의 하에 진행, 관심 구분에서 동의여부 확인)</p>
+                
+                <div class="sub-section">
+                    <h4>회복기 근골격계</h4>
+                    <ul>
+                        <li>입원 시 초기촬영 (입원 날짜로부터 7일 이내)</li>
+                        <li>20일 후 경과 촬영하여 퇴원 전 업로드</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기 신경계</h4>
+                    <ul>
+                        <li>입원 시 초기촬영 (입원 날짜로부터 7일 이내)</li>
+                        <li>180일 동안 <strong>30일 간격</strong>으로 <strong>총 6번</strong> 촬영</li>
+                        <li>재평가 주에만 촬영 / 재평가 주 <strong>목요일까지</strong> 제출</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    차트담당 치료사가 각 층 동행 담당선생님들에게 확인 → 팀장님들에게 최종 확인 후 업로드 결정<br>
+                    (1년차 선생님은 같은 담당 선생님들과 상의 후 촬영 진행)
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "통합계획관리는 어떻게 진행하나요?",
+                answer: `
+                <div class="section-title">📋 통합계획관리</div>
+                
+                <div class="sub-section">
+                    <h4>일정</h4>
+                    <ul>
+                        <li><strong>화요일</strong>: 3층</li>
+                        <li><strong>수요일</strong>: 4층</li>
+                        <li><strong>목요일</strong>: 5층</li>
+                        <li><strong>금요일</strong>: 6층</li>
+                    </ul>
+                    <p>12시에 환자 해당 층에서 진행 (PT선생님 1명, OT선생님 1명)</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>회복기재활 환자</h4>
+                    <p>입원 시 / 5주 후 / 퇴원예정 <strong>총 3번</strong> 진행 (90일 연장 시 4번)</p>
+                    <p>※ 1년 미만 90일 환자 결정 여부는 주치의 원장님 결정에 따라 다름</p>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>근골격계 / 비사용</h4>
+                    <ul>
+                        <li>근골격계: PT 진행, OT 진행 X</li>
+                        <li>비사용: PT, OT 진행</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>산재 환자</h4>
+                    <ul>
+                        <li><strong>집중산재</strong> (다직종, 재활치료종합계획): 한달에 한번 작성, 입원 후 총 3번 (많으면 4번)</li>
+                        <li><strong>일반산재</strong> (다직종): 기존방식으로 매주 작성</li>
+                    </ul>
+                </div>
+                
+                <div class="tip">
+                    PT, OT 양식지(재활공유파일)대로 팀장님이 정해준 날까지 작성 후 검사받고 제출<br>
+                    컨퍼런스 이후 회의 진행한 선생님께 찾아가서 설명 듣고 양식지 다시 받아 <strong>당일 퇴근 전까지</strong> 꼭 작성
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "소모품 작성은 어떻게 하나요?",
+                answer: `
+                <div class="section-title">📦 소모품 작성</div>
+                
+                <ul>
+                    <li><strong>매주 목요일</strong> 주문</li>
+                    <li>소모품작성 종이에 필요한 물품이름과 개수 적기</li>
+                    <li>소모품 담당선생님한테 확인 후 물품이 필요한 사유공지 후 정확한 수량 적기</li>
+                </ul>
+                `
+            },
+            {
+                category: "etc",
+                question: "환자 정보 적힌 종이는 어떻게 폐기하나요?",
+                answer: `
+                <div class="section-title">🗑️ 환자 정보 종이 폐기</div>
+                
+                <p>파쇄바구니에 <strong>클립제거 후 뒤집어서</strong> 버리기 → 담당선생님이 폐기</p>
+                `
+            },
+            {
+                category: "etc",
+                question: "PT/OT 뒷정리는 어떻게 하나요?",
+                answer: `
+                <div class="section-title">🧹 뒷정리</div>
+                
+                <div class="sub-section">
+                    <h4>오전 선생님 (점심 식사 전)</h4>
+                    <ol>
+                        <li>전동 자전거 전원 끄기</li>
+                        <li>트레드밀 전선과 안전핀을 FES 카트의 2번째 칸에 넣기</li>
+                        <li>FES 카트를 스테이션 안에 넣어 놓기</li>
+                        <li>치료실 정리, 기구 정리</li>
+                        <li>시간표와 부도지 뒤집어 놓기</li>
+                        <li><strong>1:30분 전까지</strong> 부도지 사진 찍어서 모달리티 카톡방에 올리기</li>
+                    </ol>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>오후 선생님</h4>
+                    <ol>
+                        <li>트레드밀(전원선은 간호과 스테이션에 보관), 전동자전거 전원 끄고 코드 뽑아서 정리 후 데스크 뒤 서랍에 보관</li>
+                        <li>FES선과 카트 정리, 충전 선 꽂은 후 데스크 안쪽에 갖다 놓고 충전 (2채널짜리 한 개는 따로 충전)</li>
+                        <li>치료실 내 모든 카트는 퇴근 전 데스크 쪽에 정리</li>
+                    </ol>
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ 주의</strong>: 치료 마지막 타임 끝나지 않은 시간에 정리 금지
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "외래 환자 P-Note는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📝 외래 환자 P-Note</div>
+                
+                <div class="sub-section">
+                    <h4>자보, 산재, 보호1·2종</h4>
+                    <p><strong>매달</strong> 평가 진행</p>
+                    <ul>
+                        <li><strong>신환</strong>: 전체적인 환자 평가 (6항목 + FES + 장단기 목표/치료계획)</li>
+                        <li><strong>재평가</strong>: 전체적인 환자평가 + ROM&MMT, BBS 재평가</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>건강보험</h4>
+                    <p><strong>3개월마다</strong> 평가 진행</p>
+                    <div class="example-box">예) 2022년 8월 25일 내원환자
+- 8월 25일: 전체적인 환자평가
+- 9월 5일~9일: 치료내용 (9월의 첫 번째 월요일 주)
+- 10월 3일~7일: 치료내용 (10월의 첫 번째 월요일 주)
+- 11월 7일~11일: 전체적인 환자평가, ROM&MMT, BBS 재평가 (11월의 첫 번째 월요일 주)</div>
+                </div>
+                `
+            },
+            {
+                category: "etc",
+                question: "입원 도수환자(N7) P-Note는 어떻게 작성하나요?",
+                answer: `
+                <div class="section-title">📝 입원 도수환자 (N7)</div>
+                
+                <ul>
+                    <li>P-note, 일일차팅, ROM&MMT, BBS 평가지는 따로 작성하지 않음</li>
+                    <li>도수치료확인서에 치료사 & 환자 서명은 <strong>수기</strong>로 작성</li>
+                    <li>도수치료기록은 <strong>전자차팅</strong></li>
+                </ul>
+                
+                <div class="sub-section">
+                    <h4>도수차트지 순서</h4>
+                    <p>Patient's chart → 도수치료 확인서</p>
+                    <ul>
+                        <li>Patient's chart에 C/C 작성</li>
+                        <li>도수치료 확인서에 치료한 날 치료사와 환자 본인 서명</li>
+                    </ul>
+                </div>
+                
+                <div class="sub-section">
+                    <h4>도수치료 기록지 차팅 방법 (전자차팅)</h4>
+                    <div class="example-box">MANUAL THERAPY 11시25분 ~ 11시55분 (상용구 A01, A02..... = N01)
+- dynamic balance training
+- stance phase control</div>
+                    <p>첫 줄에 manual therapy 적고 내용은 2줄 작성</p>
+                </div>
+                `
+            }
+        ];
+
+        // 검색 및 필터링 함수
+        function filterFAQ() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const activeCategory = document.querySelector('.category-tab.active').dataset.category;
+            
+            const filteredData = faqData.filter(item => {
+                const matchesSearch = item.question.toLowerCase().includes(searchTerm) || 
+                                     item.answer.toLowerCase().includes(searchTerm);
+                const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderFAQ(filteredData);
+        }
+
+        // FAQ 렌더링 함수
+        function renderFAQ(data) {
+            const faqList = document.getElementById('faqList');
+            const noResults = document.getElementById('noResults');
+            const stats = document.getElementById('stats');
+            
+            if (data.length === 0) {
+                faqList.innerHTML = '';
+                noResults.style.display = 'block';
+                stats.textContent = '';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            stats.textContent = `${data.length}개 항목`;
+            
+            const categoryNames = {
+                report: '보고',
+                acting: '액팅',
+                schedule: '시간표',
+                code: '코드',
+                modality: '모달리티',
+                eval: '평가',
+                pnote: 'P-Note',
+                kakao: '카톡',
+                admin: '근태',
+                ot: 'OT전용',
+                child: '소아/수중',
+                etc: '기타'
+            };
+            
+            faqList.innerHTML = data.map((item, index) => `
+                <div class="faq-item" data-index="${index}">
+                    <div class="faq-question" onclick="toggleFAQ(${index})">
+                        <span><span class="category-tag">${categoryNames[item.category]}</span>${item.question}</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <div class="faq-answer">${item.answer}</div>
+                </div>
+            `).join('');
+        }
+
+        // FAQ 토글 함수
+        function toggleFAQ(index) {
+            const items = document.querySelectorAll('.faq-item');
+            items[index].classList.toggle('open');
+        }
+
+        // 복사 함수
+        function copyText(button, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '복사됨!';
+                button.classList.add('copied');
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // 카테고리 탭 이벤트
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                filterFAQ();
+            });
+        });
+
+        // 검색 이벤트
+        document.getElementById('searchInput').addEventListener('input', filterFAQ);
+
+        // 초기 렌더링
+        renderFAQ(faqData);
+    </script>
+</body>
+</html>

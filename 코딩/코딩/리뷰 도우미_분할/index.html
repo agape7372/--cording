@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>첼 TOP (Review Only)</title>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --app-bg: #f8fafc;
+            --nav-bg: #ffffff;
+            --primary: #334155;
+            --accent: #0f766e;
+            --text-main: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--app-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 1. 랜딩 페이지 --- */
+        #landing-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #landing-page.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+
+        .intro-logo {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 40px;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 280px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent);
+        }
+
+        .app-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* --- 2. 메인 레이아웃 --- */
+        #app-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            visibility: hidden;
+        }
+
+        #app-layout.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .app-header {
+            background: var(--nav-bg);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .app-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .app-title-area:hover {
+            background: #f1f5f9;
+        }
+
+        .app-brand {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .home-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--app-bg);
+        }
+
+        @media (max-width: 600px) {
+            .app-card {
+                width: 100%;
+                max-width: 320px;
+                flex-direction: row;
+                align-items: center;
+                padding: 20px;
+                text-align: left;
+            }
+
+            .card-icon {
+                margin-bottom: 0;
+                margin-right: 20px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="landing-page">
+        <div class="intro-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <h1 class="intro-title">첼 TOP</h1>
+        <div class="card-container">
+            <div class="app-card" onclick="enterApp()">
+                <div class="card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <div>
+                    <div class="card-title">리뷰 도우미</div>
+                    <div class="card-desc">스케줄 분석 및 최적화</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        <header class="app-header">
+            <div class="app-title-area" onclick="goHome()" title="홈으로 이동">
+                <i class="fa-solid fa-layer-group" style="color:var(--primary)"></i>
+                <span class="app-brand ms-2">첼 TOP</span>
+                <span class="home-hint"><i class="fa-solid fa-house ms-1"></i> HOME</span>
+            </div>
+            </header>
+        <div class="main-content">
+            <iframe id="frame-review" title="리뷰 도우미"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // [수정] 리뷰 도우미 소스 코드만 유지
+        return \`\${startTimeStr}-\${endTimeStr}\`}function parseToken(rawToken){let name=String(rawToken).normalize('NFKC').replace(/^[\\s\\uFEFF\\xA0]+|[\\s\\uFEFF\\xA0]+$/g,'');if(!name)return null;let results=[];if(name.includes("전산화인지")){results.push({code:"COG",source:'prefix'});name=name.replace("전산화인지","").trim()||"전산화인지"}const robotMatch=name.match(/^RG['"‘]?([^'"’]+)['"’]?R$/i);if(robotMatch){results.push({code:"ROBOT",source:'prefix'});name=robotMatch[1].trim()}else if(name.startsWith("RG")&&name.endsWith("R")&&name.length>3){results.push({code:"ROBOT",source:'prefix'});name=name.substring(2,name.length-1).replace(/['"‘]/g,'').trim()}if(name.toLowerCase().includes("rtms")){results.push({code:"RTMS",source:'prefix'});name="rTMS"}let prefixFound=false;for(let p of PREFIX_LIST){if(name.toUpperCase().startsWith(p.toUpperCase())){if(['COG','ROBOT','RTMS'].some(c=>results.some(r=>r.code===c)))break;let dbKey=p;if(CONTEXT_MAP[p]&&CONTEXT_MAP[p].prefix)dbKey=CONTEXT_MAP[p].prefix;results.push({code:dbKey,source:'prefix'});name=name.substring(p.length).trim();prefixFound=true;break}}for(let s of SUFFIX_LIST){if(name.toUpperCase().endsWith(s.toUpperCase())){let dbKey=s;if(CONTEXT_MAP[s]&&CONTEXT_MAP[s].suffix)dbKey=CONTEXT_MAP[s].suffix;results.push({code:dbKey,source:'suffix'});name=name.substring(0,name.length-s.length).trim();break}}return{name,found:results}}function analyzeData(workbook){const sheet=workbook.Sheets[workbook.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:""});let headerRowIdx=rows.findIndex(r=>r.join(" ").includes("치료사")||(r.join(" ").includes(":")&&r.join(" ").includes("~")));if(headerRowIdx===-1){alert("유효한 스케줄 형식이 아닙니다.");resetApp();return}const headers=rows[headerRowIdx];const timeCols=headers.map((h,i)=>{const str=String(h).trim();if(str.includes(":")||str.includes("~")){return{idx:i,label:formatTimeHeader(str)}}return null}).filter(Boolean);const thColIdx=Math.max(headers.findIndex(h=>String(h).includes("치료사")),1);const state={rowMap:[],therapistStats:{},conflictMap:{},adlTherapists:new Set,patientStats:{},timeCols:timeCols};let lastTherapist=null;for(let i=headerRowIdx+1;i<rows.length;i++){const row=rows[i];let therapist=String(row[thColIdx]||"").trim();const hasScheduleData=timeCols.some(tc=>row[tc.idx]&&String(row[tc.idx]).trim());if(therapist)lastTherapist=therapist;else if(lastTherapist&&hasScheduleData)therapist=lastTherapist;else continue;if(!state.therapistStats[therapist])state.therapistStats[therapist]={PT:0,OT:0};const rowData={therapist,schedule:{}};timeCols.forEach(tc=>{const cellVal=row[tc.idx];rowData.schedule[tc.idx]=[];if(!cellVal)return;const tokens=String(cellVal).split(/[\\n,]+/).map(s=>s.trim()).filter(s=>s&&s!=='점심'&&!s.includes("대체"));for(let k=0;k<tokens.length;k++){let result=parseToken(tokens[k]);if(result&&result.found.some(f=>f.code==='COG')&&k+1<tokens.length&&!/^[A-Za-z]/.test(tokens[k+1])){result.name=tokens[++k]}if(result){if(result.found.length===0&&result.name===tokens[k]){result.found.push({code:"ETC",source:'prefix'})}const hasPrefix=result.found.some(r=>r.source==='prefix');let countedForThisToken=false;let validSumCounted=false;result.found.forEach(item=>{let dbKey=item.code;const info=TREATMENT_DB[dbKey]||{type:'ETC',nb:false,cat:'ETC',name:dbKey};let skipStats=false;if(hasPrefix&&item.source==='suffix'){skipStats=true}if(!info.isTime&&!skipStats){if(info.type==='PT')state.therapistStats[therapist].PT++;else if(info.type==='OT')state.therapistStats[therapist].OT++;const cKey=\`\${tc.label}|\${result.name}\`;if(!state.conflictMap[cKey])state.conflictMap[cKey]=[];state.conflictMap[cKey].push({th:therapist,code:item.code});if(!state.patientStats[result.name])state.patientStats[result.name]={total:0,codes:[],validSum:0,hasRec:false};if(!countedForThisToken){state.patientStats[result.name].total++;countedForThisToken=true}state.patientStats[result.name].codes.push(dbKey);if(info.cat==='REC')state.patientStats[result.name].hasRec=true;if(!info.nb){if(!validSumCounted){state.patientStats[result.name].validSum++;validSumCounted=true}}}if(tc.label.includes("7:30")||tc.label.includes("8:00"))state.adlTherapists.add(therapist);rowData.schedule[tc.idx].push({code:item.code.replace(/_PRE|_SUF/g,''),name:result.name,info,source:item.source})})}}});state.rowMap.push(rowData)}Object.entries(state.conflictMap).forEach(([key,list])=>{const uniqueTherapists=new Set(list.map(i=>i.th));if(uniqueTherapists.size>1){state.conflictMap[key].isConflict=true}});GLOBAL_DATA=state;renderVisual(state,timeCols);setTimeout(()=>{$('loading').classList.add('hidden');$('result_area').classList.remove('hidden');$('top_controls').classList.remove('hidden')},300)}function renderVisual(state,timeCols){const conflicts=[];Object.entries(state.conflictMap).forEach(([k,list])=>{if(state.conflictMap[k].isConflict){const[time,name]=k.split("|");conflicts.push({time,name,details:list.map(x=>\`\${x.th}(\${x.code.replace(/_PRE|_SUF/g,'')})\`).join(', ')})}});const listEl=$('conflict_list');listEl.innerHTML="";if(conflicts.length>0){$('conflict_dashboard').classList.remove('hidden');$('success_msg').classList.add('hidden');$('badge_cnt').innerText=conflicts.length;conflicts.forEach((c,idx)=>{const free=getFreeTherapists(c.time,state);const html=\`<div class="conflict-item"><div style="flex:1;overflow:hidden;"><div class="d-flex align-items-center mb-1"><span class="badge bg-danger me-2">\${c.time}</span><span class="fw-bold text-dark">\${c.name}</span></div><div class="small text-muted text-truncate">\${c.details}</div></div><button class="btn-icon-only ms-2" onclick="toggleSuggestion('sug_\${idx}')"><i class="fa-solid fa-magnifying-glass"></i></button></div><div id="sug_\${idx}" class="suggestion-panel"><span class="badge bg-secondary me-1">PT</span> \${free.pt.join(', ')||'-'}<br><span class="badge bg-warning text-dark me-1 mt-1">OT</span> \${free.ot.join(', ')||'-'}</div>\`;listEl.innerHTML+=html})}else{$('conflict_dashboard').classList.add('hidden');$('success_msg').classList.remove('hidden')}let html="<thead><tr><th>치료사</th>"+timeCols.map(t=>\`<th>\${t.label}</th>\`).join('')+"</tr></thead><tbody>";let lastTh="";let lastJob="";state.rowMap.forEach((row,i)=>{const isMac=CONFIG.MACHINE_THERAPISTS.includes(row.therapist);const job=isMac?"MAC":(state.therapistStats[row.therapist].OT>state.therapistStats[row.therapist].PT?"OT":"PT");html+=\`<tr class="\${(i>0&&job!==lastJob)?'group-divider':''}">\`;lastJob=job;if(row.therapist!==lastTh){let span=1;for(let k=i+1;k<state.rowMap.length;k++){if(state.rowMap[k].therapist===row.therapist)span++;else break}html+=\`<td rowspan="\${span}">\${row.therapist}</td>\`}lastTh=row.therapist;let blocked=0;timeCols.forEach(tc=>{const pts=row.schedule[tc.idx];const isBlocked=checkBlocked(tc.label,row.therapist,state.adlTherapists.has(row.therapist));if(isBlocked&&(!pts||pts.length===0)){blocked++}else{if(blocked>0){html+=\`<td colspan="\${blocked}" class="cell-blocked"></td>\`;blocked=0}if(pts&&pts.length>0){const g=pts.reduce((acc,curr)=>{if(!acc[curr.name])acc[curr.name]=[];acc[curr.name].push(curr);return acc},{});let patientList=Object.keys(g).map(name=>{const items=g[name];const suffixItem=items.find(i=>i.source==='suffix');const prefixItem=items.find(i=>i.source==='prefix');const sortKey=(suffixItem?suffixItem.code:(prefixItem?prefixItem.code:'ZZ'));return{name,items,sortKey}});patientList.sort((a,b)=>{if(a.sortKey<b.sortKey)return-1;if(a.sortKey>b.sortKey)return 1;return a.name.localeCompare(b.name)});const content=patientList.map(p=>{const name=p.name;const items=p.items;const confData=state.conflictMap[\`\${tc.label}|\${name}\`];const isConf=confData&&confData.isConflict;const is2F=items.some(x=>x.info.floor==="2F");const pre=items.filter(x=>x.source==='prefix'&&!x.info.isTime).map(x=>\`<span class="txt-code-pre">\${x.code}</span>\`).join('');const suf=items.filter(x=>x.source==='suffix'&&!x.info.isTime).map(x=>\`<span class="txt-code-suf">\${x.code}</span>\`).join('');const time=items.filter(x=>x.info.isTime).map(x=>\`<span class="time-marker">\${x.code}</span>\`).join('');return\`<div class="patient-line \${isConf?'conflict-text':''}">\${pre}<span class="txt-name">\${name}</span>\${suf}\${time}\${is2F?'<span class="special-badge badge-2f">2F</span>':''}</div>\`}).join('');const cellHasConf=pts.some(p=>{const c=state.conflictMap[\`\${tc.label}|\${p.name}\`];return c&&c.isConflict});html+=\`<td class="\${cellHasConf?'cell-conflict':''}">\${content}</td>\`}else{html+=\`<td></td>\`}}});if(blocked>0)html+=\`<td colspan="\${blocked}" class="cell-blocked"></td>\`;html+="</tr>"});$('visual_table').innerHTML=html+"</tbody>";renderStats(state)}function renderStats(state){const sorted=Object.keys(state.patientStats).sort();$('tbody_stats').innerHTML=sorted.map(name=>{const s=state.patientStats[name];const counts=s.codes.reduce((a,c)=>(a[c]=(a[c]||0)+1,a),{});const pills=Object.entries(counts).map(([dbKey,cnt])=>{const info=TREATMENT_DB[dbKey]||{type:'ETC',nb:false};const isNb=info.nb;const displayName=dbKey.replace(/_PRE|_SUF|_TIME/g,'');return\`<span class="code-pill \${isNb?'is-nb':''}">\${displayName} <b>\${cnt}</b></span>\`}).join('');let status=\`<span class="status-badge st-pro">전문</span>\`;if(s.hasRec){const score=s.validSum*2;status=\`<span class="status-badge \${score===CONFIG.TARGET?'st-ok':(score<CONFIG.TARGET?'st-short':'st-over')}">\${score===CONFIG.TARGET?'정상':(score<CONFIG.TARGET?'부족':'초과')}</span>\`}return\`<tr><td class="fw-bold text-dark">\${name}</td><td><div class="pill-container">\${pills}</div></td><td class="text-center fw-bold text-primary">\${s.total}</td><td class="text-center">\${status}</td></tr>\`}).join('')}function checkBlocked(time,therapist,isAdl){return isAdl?(time.includes("15:15")||time.includes("3:15")||time.includes("15:50")||time.includes("3:50")):(time.includes("7:30")||time.includes("8:00"))}function getFreeTherapists(timeLabel,state){const targetCol=state.timeCols.find(tc=>tc.label===timeLabel);if(!targetCol)return{pt:[],ot:[]};const colIdx=targetCol.idx;const busyTherapists=new Set;state.rowMap.forEach(row=>{if(row.schedule[colIdx]&&row.schedule[colIdx].length>0){busyTherapists.add(row.therapist)}});const pt=[],ot=[];Object.keys(state.therapistStats).forEach(th=>{if(CONFIG.MACHINE_THERAPISTS.includes(th))return;if(busyTherapists.has(th))return;if(checkBlocked(timeLabel,th,state.adlTherapists.has(th)))return;(state.therapistStats[th].PT>=state.therapistStats[th].OT?pt:ot).push(th)});return{pt,ot}}function toggleSuggestion(id){$(id).classList.toggle('show')}<\/script></body></html>`;
+
+        // 앱 초기 로딩: 리뷰 프레임만 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('frame-review').src = 'review.html';
+        });
+
+        // 앱 진입: 인자 제거됨
+        function enterApp() {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            landingPage.classList.add('fade-out');
+            setTimeout(() => {
+                appLayout.classList.add('active');
+            }, 300);
+        }
+
+        // 홈으로 가기
+        function goHome() {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            appLayout.classList.remove('active');
+            setTimeout(() => {
+                landingPage.classList.remove('fade-out');
+            }, 300);
+        }
+    </script>
+</body>
+
+</html>

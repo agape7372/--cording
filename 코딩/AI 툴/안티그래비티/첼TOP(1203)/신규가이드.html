@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첼로병원 신규직원 FAQ 가이드</title>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #334155;
+            --accent: #0d9488;
+            --bg: #f8fafc;
+            --text-main: #1e293b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* 검색창 */
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none;
+        }
+
+        .search-clear.show {
+            display: block;
+        }
+
+        /* 카테고리 탭 */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 10px 16px;
+            border: none;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .category-tab:hover {
+            background: #f1f5f9;
+        }
+
+        .category-tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .category-tab .count {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .category-tab.active .count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* FAQ 아이템 */
+        .faq-section {
+            margin-bottom: 30px;
+        }
+
+        .faq-section-title {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-left: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .faq-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .faq-item.hidden {
+            display: none;
+        }
+
+        .faq-question {
+            width: 100%;
+            padding: 16px 20px;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-main);
+            transition: background 0.2s;
+        }
+
+        .faq-question:hover {
+            background: #f8fafc;
+        }
+
+        .faq-question .q-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), #14b8a6);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .faq-question .q-text {
+            flex: 1;
+        }
+
+        .faq-question .toggle-icon {
+            color: #94a3b8;
+            transition: transform 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .faq-item.open .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+            background: #f8fafc;
+            border-top: 1px solid transparent;
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+            border-top-color: var(--border);
+        }
+
+        .faq-answer-content {
+            padding: 20px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #475569;
+        }
+
+        .faq-answer-content strong {
+            color: var(--primary);
+        }
+
+        .faq-answer-content ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .faq-answer-content li {
+            margin-bottom: 5px;
+        }
+
+        .faq-answer-content code {
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--accent);
+        }
+
+        /* 태그 */
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .tag-new {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .tag-important {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* 검색 결과 없음 */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            display: none;
+        }
+
+        .no-results.show {
+            display: block;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* 푸터 */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        /* 하이라이트 */
+        .highlight {
+            background: #fef08a;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .category-tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 5px;
+            }
+
+            .category-tab {
+                flex-shrink: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="header-icon"><i class="fa-solid fa-book-open"></i></div>
+            <h1>신규직원 FAQ 가이드</h1>
+            <p>자주 묻는 질문과 답변을 모았습니다</p>
+        </div>
+
+        <!-- 검색창 -->
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="궁금한 내용을 검색하세요...">
+            <button class="search-clear" id="searchClear" onclick="clearSearch()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- 카테고리 탭 -->
+        <div class="category-tabs" id="categoryTabs">
+            <button class="category-tab active" data-category="all">
+                <i class="fa-solid fa-grip"></i> 전체
+                <span class="count" id="countAll">0</span>
+            </button>
+            <button class="category-tab" data-category="schedule">
+                <i class="fa-solid fa-calendar"></i> 스케줄
+            </button>
+            <button class="category-tab" data-category="code">
+                <i class="fa-solid fa-code"></i> 처방코드
+            </button>
+            <button class="category-tab" data-category="print">
+                <i class="fa-solid fa-print"></i> 인쇄/저장
+            </button>
+            <button class="category-tab" data-category="trouble">
+                <i class="fa-solid fa-wrench"></i> 문제해결
+            </button>
+        </div>
+
+        <!-- FAQ 리스트 -->
+        <div id="faqContainer">
+            <!-- 스케줄 관련 -->
+            <div class="faq-section" data-section="schedule">
+                <h3 class="faq-section-title">📅 스케줄 관련</h3>
+                <div class="faq-list">
+                    <div class="faq-item" data-category="schedule" data-keywords="파일 업로드 엑셀">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">스케줄 파일은 어떻게 업로드하나요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                <strong>리뷰 도우미</strong>에서 파일을 업로드할 수 있습니다:
+                                <ul>
+                                    <li>화면 중앙의 <strong>업로드 영역</strong>을 클릭하거나</li>
+                                    <li>엑셀 파일(.xlsx, .csv)을 해당 영역에 <strong>드래그 앤 드롭</strong></li>
+                                </ul>
+                                지원 형식: <code>.xlsx</code>, <code>.csv</code>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="schedule" data-keywords="중복 충돌 빨간색">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">스케줄 충돌(빨간색 표시)이 나타나면 어떻게 하나요?</span>
+                            <span class="tag tag-important">중요</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                빨간색은 <strong>같은 시간에 같은 환자가 2명 이상의 치료사에게 배정</strong>된 경우입니다.
+                                <ul>
+                                    <li>상단의 <strong>중복 해결 필요</strong> 패널에서 상세 내역 확인</li>
+                                    <li>돋보기(🔍) 버튼 클릭 시 해당 시간에 <strong>여유 있는 치료사 목록</strong> 표시</li>
+                                    <li>원본 엑셀 파일에서 수정 후 다시 업로드</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="schedule" data-keywords="치료사 정렬 순서">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">치료사 목록은 어떤 순서로 정렬되나요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                치료사는 <strong>PT/OT 직종별</strong>로 그룹화되어 표시됩니다.
+                                <ul>
+                                    <li>각 치료사의 PT/OT 배정 비율에 따라 자동 분류</li>
+                                    <li>그룹 구분선(굵은 선)으로 구분</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 처방코드 관련 -->
+            <div class="faq-section" data-section="code">
+                <h3 class="faq-section-title">🏷️ 처방코드 관련</h3>
+                <div class="faq-list">
+                    <div class="faq-item" data-category="code" data-keywords="RM RN RG MM 회복기">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">RM, RN, RG, MM 코드는 무엇인가요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                <strong>회복기 재활치료</strong> 관련 코드입니다:
+                                <ul>
+                                    <li><code>RM</code> - 회복기 재활치료 (Motor)</li>
+                                    <li><code>RN</code> - 회복기 재활치료 (Neuro)</li>
+                                    <li><code>RG</code> - 회복기 재활치료 (Gait/보행)</li>
+                                    <li><code>MM</code> - 회복기 운동치료</li>
+                                </ul>
+                                이 코드들은 <strong>1:1 재활치료</strong>로 분류됩니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="code" data-keywords="N7 M15 도수 비급여 NB">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">N7, M15 등 파란색으로 표시되는 코드는 무엇인가요?</span>
+                            <span class="tag tag-new">NEW</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                <strong>비급여(NB) 치료</strong> 항목으로, 도수치료 등이 해당됩니다:
+                                <ul>
+                                    <li><code>N7</code> - 도수치료 7분</li>
+                                    <li><code>M15</code> - 도수치료 15분</li>
+                                    <li><code>H7</code> - 상지로봇치료 (2층)</li>
+                                    <li><code>O7</code> - 작업도수치료</li>
+                                </ul>
+                                통계 계산 시 별도로 집계됩니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="code" data-keywords="2F 이동 층 로봇 rTMS">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">2F 표시가 붙은 치료는 무엇인가요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                <strong>2층에서 진행되는 치료</strong>입니다. 환자 이동이 필요합니다:
+                                <ul>
+                                    <li><code>W</code> - 로봇보행치료</li>
+                                    <li><code>ROBOT</code> - 로봇치료</li>
+                                    <li><code>rTMS</code> - 경두개자기자극치료</li>
+                                    <li><code>H7</code> - 상지로봇치료</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="code" data-keywords="A B 월수금 화목 요일">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">A, B 코드(요일 표시)는 무엇인가요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                치료 요일을 나타내는 코드입니다:
+                                <ul>
+                                    <li><code>A</code> - 월, 수, 금 (주 3회)</li>
+                                    <li><code>B</code> - 화, 목 (주 2회)</li>
+                                    <li><code>D</code> - Daily (매일)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 인쇄/저장 관련 -->
+            <div class="faq-section" data-section="print">
+                <h3 class="faq-section-title">🖨️ 인쇄/저장 관련</h3>
+                <div class="faq-list">
+                    <div class="faq-item" data-category="print" data-keywords="인쇄 프린트 출력">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">시간표를 인쇄하려면 어떻게 하나요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                <strong>아침 시간표</strong> 앱에서:
+                                <ul>
+                                    <li>환자 목록 입력 후 <strong>시간표 생성</strong> 클릭</li>
+                                    <li><strong>🖨️ 전체 인쇄</strong> 버튼 클릭</li>
+                                    <li>A4 가로 방향으로 2명씩 인쇄됩니다</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="print" data-keywords="저장 폴더 자동">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">저장 폴더 연결 기능은 무엇인가요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                PC 크롬/엣지에서만 사용 가능한 기능입니다:
+                                <ul>
+                                    <li><strong>📂 저장 폴더 연결</strong> 버튼으로 폴더 지정</li>
+                                    <li>이후 HTML 저장 시 해당 폴더에 자동 저장</li>
+                                    <li>기존 파일명에서 차트번호/호실 자동완성 지원</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="print" data-keywords="HTML 편집 수정">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">저장된 HTML 파일은 어떻게 편집하나요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                저장된 HTML 파일을 브라우저(크롬, 엣지)로 열면:
+                                <ul>
+                                    <li>치료 항목 셀을 <strong>클릭하여 직접 수정</strong> 가능</li>
+                                    <li>수정 후 <code>Ctrl+P</code>로 인쇄</li>
+                                    <li>파란색 테두리가 편집 가능 영역 표시</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 문제해결 관련 -->
+            <div class="faq-section" data-section="trouble">
+                <h3 class="faq-section-title">🔧 문제해결</h3>
+                <div class="faq-list">
+                    <div class="faq-item" data-category="trouble" data-keywords="파일 오류 에러 형식">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">파일 업로드 시 오류가 발생합니다</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                다음 사항을 확인해주세요:
+                                <ul>
+                                    <li>파일 형식이 <code>.xlsx</code> 또는 <code>.csv</code>인지 확인</li>
+                                    <li>엑셀 파일이 손상되지 않았는지 확인</li>
+                                    <li>시간 형식이 <code>9:00</code> 또는 <code>9:00~9:30</code> 형태인지 확인</li>
+                                    <li>"치료사" 열이 포함되어 있는지 확인</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="trouble" data-keywords="환자 인식 안됨 이름">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">환자가 시간표에 나타나지 않습니다</span>
+                            <span class="tag tag-important">중요</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                다음을 확인해주세요:
+                                <ul>
+                                    <li>입력한 이름이 엑셀 파일의 이름과 <strong>정확히 일치</strong>하는지 확인</li>
+                                    <li>공백이나 특수문자가 없는지 확인</li>
+                                    <li>여러 파일을 사용하는 경우, 해당 환자가 포함된 파일이 업로드되었는지 확인</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="trouble" data-keywords="미인식 데이터 코드">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">"미인식 데이터" 경고가 나타납니다</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                시스템이 인식하지 못하는 처방코드가 있을 때 나타납니다:
+                                <ul>
+                                    <li>로그창에서 해당 코드 확인</li>
+                                    <li>오타가 있는지 확인 (예: <code>rTMS</code> vs <code>RTMS</code>)</li>
+                                    <li>새로운 처방코드는 관리자에게 추가 요청</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item" data-category="trouble" data-keywords="리셋 초기화 새로고침">
+                        <button class="faq-question" onclick="toggleFAQ(this)">
+                            <span class="q-icon">Q</span>
+                            <span class="q-text">처음부터 다시 시작하려면 어떻게 하나요?</span>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-content">
+                                두 가지 방법이 있습니다:
+                                <ul>
+                                    <li>앱 상단의 <strong>↻ 리셋</strong> 버튼 클릭</li>
+                                    <li>브라우저 새로고침 (<code>F5</code> 또는 <code>Ctrl+R</code>)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색 결과 없음 -->
+        <div class="no-results" id="noResults">
+            <i class="fa-solid fa-face-frown"></i>
+            <p>검색 결과가 없습니다</p>
+            <p style="font-size: 0.8rem; margin-top: 5px;">다른 키워드로 검색해보세요</p>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="footer">
+            <p>첼로병원 재활의학과 | 문의: 내선 XXX</p>
+            <p style="margin-top: 5px;">마지막 업데이트: 2024.12</p>
+        </div>
+    </div>
+
+    <script>
+        // FAQ 토글
+        function toggleFAQ(button) {
+            const item = button.closest('.faq-item');
+            const wasOpen = item.classList.contains('open');
+
+            // 다른 열린 항목 닫기 (선택적)
+            // document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+
+            if (wasOpen) {
+                item.classList.remove('open');
+            } else {
+                item.classList.add('open');
+            }
+        }
+
+        // 검색 기능
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+        const noResults = document.getElementById('noResults');
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            searchClear.classList.toggle('show', query.length > 0);
+            filterFAQ(query);
+        });
+
+        function clearSearch() {
+            searchInput.value = '';
+            searchClear.classList.remove('show');
+            filterFAQ('');
+            searchInput.focus();
+        }
+
+        function filterFAQ(query) {
+            const items = document.querySelectorAll('.faq-item');
+            const sections = document.querySelectorAll('.faq-section');
+            let visibleCount = 0;
+
+            // 카테고리 필터 초기화
+            document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector('[data-category="all"]').classList.add('active');
+
+            items.forEach(item => {
+                const questionText = item.querySelector('.q-text').textContent.toLowerCase();
+                const answerText = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+                const keywords = (item.dataset.keywords || '').toLowerCase();
+
+                const matches = query === '' ||
+                    questionText.includes(query) ||
+                    answerText.includes(query) ||
+                    keywords.includes(query);
+
+                item.classList.toggle('hidden', !matches);
+                if (matches) visibleCount++;
+            });
+
+            // 섹션 표시/숨김
+            sections.forEach(section => {
+                const visibleItems = section.querySelectorAll('.faq-item:not(.hidden)');
+                section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+            });
+
+            // 결과 없음 표시
+            noResults.classList.toggle('show', visibleCount === 0 && query !== '');
+
+            // 전체 카운트 업데이트
+            document.getElementById('countAll').textContent = visibleCount;
+        }
+
+        // 카테고리 탭 기능
+        document.getElementById('categoryTabs').addEventListener('click', function (e) {
+            const tab = e.target.closest('.category-tab');
+            if (!tab) return;
+
+            const category = tab.dataset.category;
+
+            // 탭 활성화
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // 검색 초기화
+            searchInput.value = '';
+            searchClear.classList.remove('show');
+
+            // 필터링
+            const items = document.querySelectorAll('.faq-item');
+            const sections = document.querySelectorAll('.faq-section');
+
+            if (category === 'all') {
+                items.forEach(item => item.classList.remove('hidden'));
+                sections.forEach(section => section.style.display = 'block');
+            } else {
+                items.forEach(item => {
+                    const match = item.dataset.category === category;
+                    item.classList.toggle('hidden', !match);
+                });
+                sections.forEach(section => {
+                    const sectionCategory = section.dataset.section;
+                    section.style.display = sectionCategory === category ? 'block' : 'none';
+                });
+            }
+
+            noResults.classList.remove('show');
+            updateCount();
+        });
+
+        // 카운트 업데이트
+        function updateCount() {
+            const visibleItems = document.querySelectorAll('.faq-item:not(.hidden)');
+            document.getElementById('countAll').textContent = visibleItems.length;
+        }
+
+        // 초기 카운트
+        document.addEventListener('DOMContentLoaded', function () {
+            const totalItems = document.querySelectorAll('.faq-item').length;
+            document.getElementById('countAll').textContent = totalItems;
+        });
+    </script>
+</body>
+
+</html>

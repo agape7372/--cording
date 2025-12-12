@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>재활센터 매뉴얼 - Pantone × Duotone</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="hub-header">
+            <div class="pantone-badge">PANTONE®<span>Peach Fuzz & Clouds</span></div>
+            <h1>신규 가이드</h1>
+            <p>재활센터 카테고리 허브 v6</p>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="검색어를 입력하세요 (예: 연차, 코드, 소아)">
+            <button onclick="performSearch()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="font-control">
+            <span class="font-control-label">글자 크기</span>
+            <button class="font-btn" onclick="setFontSize('small')" data-size="small" title="작게">
+                <svg viewBox="0 0 24 24" fill="currentColor"><text x="7" y="17" font-size="11" font-weight="bold">A</text></svg>
+            </button>
+            <button class="font-btn active" onclick="setFontSize('medium')" data-size="medium" title="보통">
+                <svg viewBox="0 0 24 24" fill="currentColor"><text x="5" y="18" font-size="14" font-weight="bold">A</text></svg>
+            </button>
+            <button class="font-btn" onclick="setFontSize('large')" data-size="large" title="크게">
+                <svg viewBox="0 0 24 24" fill="currentColor"><text x="3" y="19" font-size="17" font-weight="bold">A</text></svg>
+            </button>
+        </div>
+        
+        <div class="category-grid" id="categoryGrid"></div>
+        
+        <div class="results-header">
+            <h3 id="currentCatTitle">전체 항목</h3>
+            <span id="resultCount"></span>
+        </div>
+        <div id="resultsList"></div>
+    </div>
+    
+    <div class="floating-btn-container" id="floatingBtnContainer">
+        <button class="floating-btn copy-btn" onclick="copySelectedItems()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            복사 <span class="btn-count" id="copyCount">0</span>
+        </button>
+        <button class="floating-btn reset-btn" onclick="resetSelections()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                <path d="M3 3v5h5"></path>
+            </svg>
+            리셋
+        </button>
+    </div>
+    <div class="copy-toast" id="copyToast">복사되었습니다</div>
+
+    <!-- 📌 데이터 파일 (내용 수정 시 이 파일만 수정!) -->
+    <script src="data.js"></script>
+    
+    <!-- 기능 파일 -->
+    <script src="app.js"></script>
+</body>
+</html>

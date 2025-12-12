@@ -1,0 +1,410 @@
+/* ========================================
+   리뷰 도우미 - 스타일시트
+   ======================================== */
+
+/* --- CSS 변수 --- */
+:root {
+    --primary: #334155;
+    --accent: #0d9488;
+    --bg: #f8fafc;
+    --text-main: #1e293b;
+    --border-color: #e2e8f0;
+}
+
+/* --- 기본 스타일 --- */
+body {
+    background: var(--bg);
+    font-family: 'Pretendard', sans-serif;
+    color: var(--text-main);
+    padding-bottom: 80px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.main-container {
+    max-width: 98%;
+    margin: 20px auto;
+    position: relative;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* --- 상단 컨트롤 --- */
+.top-controls {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.btn-control {
+    background: white;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.btn-control:active {
+    transform: scale(0.95);
+}
+
+.btn-icon-only {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #fda4af;
+    color: #e11d48;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+/* --- 업로드 카드 --- */
+.upload-card {
+    display: block;
+    max-width: 600px;
+    margin: 60px auto;
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    border: 2px dashed #cbd5e1;
+    cursor: pointer;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+    transition: 0.3s;
+    position: relative;
+}
+
+.upload-card:hover {
+    border-color: var(--accent);
+    background: #f0fdfa;
+    transform: translateY(-2px);
+}
+
+/* --- 네비게이션 탭 --- */
+.nav-pills {
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.nav-pills .nav-link {
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-weight: 700;
+    color: #64748b;
+    background: white;
+    border: 1px solid #e2e8f0;
+    transition: 0.2s;
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* --- 시각화 카드 --- */
+.visual-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-top: 4px solid var(--primary);
+}
+
+.visual-container {
+    max-height: 75vh;
+    overflow: auto;
+    position: relative;
+}
+
+/* --- 시각화 테이블 --- */
+.visual-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.visual-table th {
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid #64748b;
+    padding: 8px 4px;
+    height: 45px;
+    text-align: center;
+    border-right: 1px solid #e2e8f0;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    color: #475569;
+    min-width: 85px;
+}
+
+.visual-table th:first-child,
+.visual-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    width: 80px;
+    min-width: 80px;
+    border-right: 3px solid #94a3b8 !important;
+    background: #fff;
+    text-align: center;
+    font-weight: 700;
+    color: #334155;
+}
+
+.visual-table th:first-child {
+    background: #e2e8f0;
+    z-index: 30;
+}
+
+.visual-table td {
+    vertical-align: middle;
+    padding: 3px 2px;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    min-height: 35px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+/* --- 셀 상태 --- */
+.cell-blocked {
+    background-color: #94a3b8 !important;
+    border: none !important;
+}
+
+.cell-conflict {
+    background: #fee2e2 !important;
+    border: 2px solid #fca5a5 !important;
+}
+
+.group-divider td {
+    border-top: 3px solid #64748b !important;
+}
+
+/* --- 환자 라인 --- */
+.patient-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1px 0;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+    line-height: 1.2;
+}
+
+.txt-code-pre {
+    font-weight: 800;
+    color: var(--accent);
+    margin-right: 2px;
+    font-size: 0.75rem;
+}
+
+.txt-code-suf {
+    font-weight: 800;
+    color: #c2410c;
+    margin-left: 2px;
+    font-size: 0.75rem;
+}
+
+.txt-name {
+    font-weight: 600;
+    color: #334155;
+}
+
+.conflict-text .txt-code-pre,
+.conflict-text .txt-name {
+    color: #dc2626;
+}
+
+/* --- 뱃지 --- */
+.special-badge {
+    font-size: 0.6rem;
+    padding: 0 3px;
+    border-radius: 3px;
+    margin-left: 2px;
+    font-weight: 700;
+    vertical-align: text-top;
+}
+
+.badge-2f {
+    background-color: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #ffedd5;
+}
+
+.time-marker {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 0 3px;
+    border-radius: 3px;
+    margin-left: 2px;
+    font-weight: 600;
+}
+
+/* --- 통계 카드 --- */
+.stats-centered-card {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 600px;
+}
+
+.stats-table th,
+.stats-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+}
+
+.stats-table th {
+    background: #f8fafc;
+    font-weight: 700;
+    color: #64748b;
+}
+
+/* --- 코드 필 --- */
+.code-pill {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #475569;
+    background: white;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+    margin: 2px;
+}
+
+.code-pill.is-nb {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-color: #dbeafe;
+}
+
+/* --- 상태 뱃지 --- */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
+}
+
+.st-pro {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+.st-ok {
+    background-color: #ecfdf5;
+    color: #059669;
+}
+
+.st-short {
+    background-color: #fff1f2;
+    color: #e11d48;
+}
+
+.st-over {
+    background-color: #fffbeb;
+    color: #d97706;
+}
+
+/* --- 충돌 대시보드 --- */
+.conflict-dashboard {
+    background-color: #fff1f2;
+    border-bottom: 1px solid #fecdd3;
+    padding: 12px;
+}
+
+#conflict_list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.conflict-item {
+    background: white;
+    border: 1px solid #fda4af;
+    border-left: 4px solid #e11d48;
+    border-radius: 6px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.suggestion-panel {
+    display: none;
+    margin-top: 6px;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 0 0 6px 6px;
+    font-size: 0.8rem;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.suggestion-panel.show {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+/* --- 로더 --- */
+.loader {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #cbd5e1;
+    border-bottom-color: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+    animation: rot 1s linear infinite;
+}
+
+@keyframes rot {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

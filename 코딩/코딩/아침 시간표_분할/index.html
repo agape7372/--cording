@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>첼 TOP (Morning Only)</title>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --app-bg: #f8fafc;
+            --nav-bg: #ffffff;
+            --primary: #334155;
+            --accent: #0f766e;
+            --text-main: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--app-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 1. 랜딩 페이지 --- */
+        #landing-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #landing-page.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+
+        .intro-logo {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 40px;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 280px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent);
+        }
+
+        .app-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* --- 2. 메인 레이아웃 --- */
+        #app-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            visibility: hidden;
+        }
+
+        #app-layout.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .app-header {
+            background: var(--nav-bg);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .app-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .app-title-area:hover {
+            background: #f1f5f9;
+        }
+
+        .app-brand {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .home-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 탭 컨테이너 제거됨 (단일 앱이므로 불필요) */
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--app-bg);
+        }
+
+        @media (max-width: 600px) {
+            .app-card {
+                width: 100%;
+                max-width: 320px;
+                flex-direction: row;
+                align-items: center;
+                padding: 20px;
+                text-align: left;
+            }
+
+            .card-icon {
+                margin-bottom: 0;
+                margin-right: 20px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="landing-page">
+        <div class="intro-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <h1 class="intro-title">첼 TOP</h1>
+        <div class="card-container">
+            <div class="app-card" onclick="enterApp()">
+                <div class="card-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                <div>
+                    <div class="card-title">아침 시간표</div>
+                    <div class="card-desc">환자별 시간표 생성</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        <header class="app-header">
+            <div class="app-title-area" onclick="goHome()" title="홈으로 이동">
+                <i class="fa-solid fa-layer-group" style="color:var(--primary)"></i>
+                <span class="app-brand ms-2">첼 TOP</span>
+                <span class="home-hint"><i class="fa-solid fa-house ms-1"></i> HOME</span>
+            </div>
+            <div style="font-weight: 600; color: var(--accent); font-size: 0.9rem;">
+                <i class="fa-regular fa-calendar-check me-1"></i> 아침 시간표 생성기
+            </div>
+        </header>
+        <div class="main-content">
+            <iframe id="frame-morning" title="아침 시간표"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // [아침 시간표 소스 코드]
+        row+=\`<td rowspan="2" class="treatment-text" contenteditable="true">\${content}</td><td rowspan="2" contenteditable="true">\${floorContent}</td></tr>\`;row+=\`<tr><td class="col-time row-height">\${slot.times[1]}</td></tr>\`;tbody+=row});return\`<div class="paper-wrapper"><div class="doc-header"><div class="logo-area"><div class="cl-logo"><span class="cl-c">C</span><span class="cl-l">L</span></div></div><div class="main-title">재활치료 시간표</div></div><div class="patient-info"><span class="info-underline" contenteditable="true">\${rNum}</span>호 &nbsp;&nbsp;<span class="info-underline" contenteditable="true">\${pName}</span> 님</div><table class="schedule-table"><thead><tr><th colspan="3">시 간</th><th>치료 항목</th><th>비 고</th></tr></thead><tbody>\${tbody}</tbody></table><div class="doc-footer">건강을 연주하는 첼로병원</div></div>\`}function syncPreviewToPrint(){const cont=getEl('printContainer');cont.innerHTML="";const papers=document.querySelectorAll('#previewList .preview-paper');let pgContent="",cnt=0;papers.forEach((paperEl,i)=>{pgContent+=paperEl.outerHTML.replace('preview-paper','print-half');cnt++;if(cnt===2||i===papers.length-1){const row=document.createElement('div');row.className='print-page-row';row.innerHTML=pgContent;cont.appendChild(row);pgContent="";cnt=0}})}function printWithGuide(){if(!getEl('previewList').innerHTML.trim())return alert("시간표를 먼저 생성해주세요.");syncPreviewToPrint();window.print()}async function setSaveFolder(){try{const result=await parent.selectFolderFromParent();if(result.success){globalDirHandle="PARENT";log("📂 폴더 연결됨: "+result.name);const status=getEl('folderStatus');status.innerText="✅ 연결됨: "+result.name;status.style.display='block';status.style.color='green';alert("성공! [HTML 저장] 시 "+result.name+" 폴더에 자동 저장됩니다.")}else if(result.error&&result.error!=="cancelled"){alert(result.error)}}catch(err){alert("폴더 선택 오류: "+err.message)}}async function saveAsWord(){if(!generatedPatients.length)return alert("먼저 시간표를 생성해주세요.");const papers=document.querySelectorAll('#previewList .preview-paper');if(!papers.length)return alert("생성된 시간표가 없습니다.");const btn=document.querySelector('.btn-word');const orig=btn.innerText;btn.innerText="⚡ 저장 중...";btn.disabled=true;const useFS=!!globalDirHandle;log("🔍 globalDirHandle: "+(globalDirHandle?globalDirHandle.name:"null")+", useFS: "+useFS);let existingFiles={};if(useFS){try{existingFiles=await parent.listFolderFilesFromParent()}catch(e){log("⚠️ 폴더 읽기 오류: "+e.message)}}const total=generatedPatients.length;let saved=0,skipped=0;log("\\n📁 총 "+total+"명 저장 시작...");for(let i=0;i<total;i++){const patient=generatedPatients[i];const paper=papers[i];if(!paper)continue;const pName=patient.name;const pNum=patient.num;const pRoom=patient.room;btn.innerText=\`⚡ \${i+1}/\${total}\`;let targetFileName=patient.name+"-"+patient.num+"-"+patient.room+".html";log("📝 "+pName+" 문서 생성 중...");if(useFS){let existingFile=null;for(const fname in existingFiles){if(fname.includes(patient.name)){targetFileName=fname;existingFile=existingFiles[fname];break}}if(existingFile){const shouldOverwrite=confirm(\`[\${targetFileName}] 파일이 이미 존재합니다.\\n\\n덮어쓰시겠습니까?\`);if(!shouldOverwrite){log("⏭️ 건너뜀: "+targetFileName);skipped++;continue}}}try{const cssStyle=\`<style>:root{--main-color:#00695c}.save-toolbar{position:fixed;top:10px;right:10px;z-index:9999;display:flex;gap:8px}.save-btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.2)}.save-btn.primary{background:#00695c;color:white}.save-btn.secondary{background:#ff5722;color:white}.print-page-row{width:auto;margin:0 auto;padding:20px}.print-half{width:210mm;padding:10mm;margin:0 auto;background:white;box-shadow:0 4px 10px rgba(0,0,0,0.15)}@media print{@page{size:A4 landscape;margin:0}html,body{width:148mm;height:209mm;margin:0!important;padding:0!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.save-toolbar{display:none!important}.print-page-row{width:148mm;height:209mm;margin:0;padding:3mm;box-sizing:border-box}.print-half{zoom:0.63;box-shadow:none}.doc-footer{display:none!important}}body{background:#f5f5f5;padding:10mm;font-family:'Pretendard',sans-serif}.paper-wrapper{width:190mm;margin:0 auto}.doc-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:5px;border-bottom:3px solid var(--main-color);padding-bottom:10px}.cl-logo{font-size:40px;font-weight:bold;font-style:italic;line-height:1}.cl-c{color:#d4a017}.cl-l{color:#006400}.main-title{font-size:34px;font-weight:bold;text-align:center;flex:1;letter-spacing:-1px}.patient-info{margin:15px 0 20px;font-size:22px;font-weight:bold}.info-underline{display:inline-block;border-bottom:2px solid #333;min-width:90px;text-align:center;padding:0 5px;color:var(--main-color)}.schedule-table{width:100%;border-collapse:collapse;border-top:2px solid #000;border-bottom:2px solid #000;margin-top:10px}.schedule-table th,.schedule-table td{border:1px solid #000;text-align:center;vertical-align:middle;padding:0;font-weight:bold}.schedule-table th{background:#e0f2f1;height:38px;font-size:18px;font-weight:bold}.row-height{height:29px}.col-ampm{width:35px;background:#f9f9f9;font-weight:bold;font-size:16px;color:#444;white-space:nowrap}.col-num{width:35px;font-weight:bold;font-size:18px;font-family:"Times New Roman"}.col-time{width:130px;font-weight:bold;font-size:16px;font-family:"Times New Roman";letter-spacing:-0.5px;white-space:nowrap}.treatment-text{width:auto;font-size:28px;font-weight:900;white-space:pre-line;line-height:1.2;color:#000}.row-lunch td{height:45px;background:#eee;font-size:20px;font-weight:bold;color:#555;letter-spacing:5px}.text-vertical{writing-mode:vertical-lr;text-orientation:upright;letter-spacing:5px}.doc-footer{text-align:center;margin-top:20px;font-size:14px;color:#777}</style>\`;const htmlContent=\`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>\${pName} 시간표</title>\${cssStyle}</head><body data-filename="\${targetFileName}"><div class="save-toolbar"><button class="save-btn primary" onclick="alert('Ctrl+S 또는 메뉴 > 다른 이름으로 저장')">💾 저장 (Ctrl+S)</button><button class="save-btn secondary" onclick="window.print()">🖨️ 인쇄</button></div><div class="print-page-row"><div class="print-half">\${paper.innerHTML}</div></div></body></html>\`;const blob=new Blob([htmlContent],{type:'text/html;charset=utf-8'});log("📦 "+pName+" 파일 생성 완료");if(useFS){const saveResult=await parent.saveFileFromParent(targetFileName,blob);if(saveResult.success){log("✅ 저장: "+targetFileName);saved++}else{log("❌ 저장실패: "+saveResult.error)}}else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=targetFileName;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);log("💾 다운로드: "+targetFileName);saved++;await new Promise(r=>setTimeout(r,500))}}catch(err){log("❌ 실패: "+pName+" - "+err.message);console.error(err)}}btn.innerText=orig;btn.disabled=false;alert(\`✅ 완료!\\n저장: \${saved}명\${skipped?("\\n건너뜀: "+skipped+"명"):""}\\n\\n💡 브라우저에서 열어 클릭으로 편집 가능!\`);log("\\n🎉 저장 완료!")}<\/script></body></html>`;
+
+        // 앱 초기 로딩
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('frame-morning').src = 'morning.html';
+        });
+
+        // 앱 진입 (랜딩페이지 -> 메인)
+        function enterApp() {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            const morningFrame = document.getElementById('frame-morning');
+
+            landingPage.classList.add('fade-out');
+            setTimeout(() => {
+                appLayout.classList.add('active');
+                morningFrame.classList.remove('hidden');
+            }, 300);
+        }
+
+        // 부모 페이지에서 폴더 관리 (iframe 보안 우회)
+        let parentDirHandle = null;
+        
+        async function selectFolderFromParent() {
+            if (!window.showDirectoryPicker) {
+                return { success: false, error: 'PC 크롬/엣지에서만 지원됩니다.' };
+            }
+            try {
+                parentDirHandle = await window.showDirectoryPicker({ id: 'cello_save_dir', mode: 'readwrite' });
+                return { success: true, name: parentDirHandle.name };
+            } catch (err) {
+                return { success: false, error: 'cancelled' };
+            }
+        }
+        
+        async function listFolderFilesFromParent() {
+            if (!parentDirHandle) return {};
+            const files = {};
+            try {
+                for await (const entry of parentDirHandle.values()) {
+                    if (entry.kind === 'file' && entry.name.endsWith('.html')) {
+                        files[entry.name] = entry;
+                    }
+                }
+            } catch (e) {}
+            return files;
+        }
+        
+        async function saveFileFromParent(fileName, blob) {
+            if (!parentDirHandle) return { success: false, error: '폴더 미연결' };
+            try {
+                const perm = await parentDirHandle.queryPermission({ mode: 'readwrite' });
+                if (perm !== 'granted') {
+                    const req = await parentDirHandle.requestPermission({ mode: 'readwrite' });
+                    if (req !== 'granted') return { success: false, error: '권한 거부됨' };
+                }
+                const fileHandle = await parentDirHandle.getFileHandle(fileName, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return { success: true };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        }
+
+        function goHome() {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            appLayout.classList.remove('active');
+            setTimeout(() => {
+                landingPage.classList.remove('fade-out');
+            }, 300);
+        }
+    </script>
+</body>
+
+</html>

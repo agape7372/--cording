@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>첼 TOP (Final Fix)</title>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --app-bg: #f8fafc;
+            --nav-bg: #ffffff;
+            --primary: #334155;
+            --accent: #0f766e;
+            --text-main: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--app-bg);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 1. 랜딩 페이지 --- */
+        #landing-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #landing-page.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+
+        .intro-logo {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 40px;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 280px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent);
+        }
+
+        .app-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        /* --- 2. 메인 레이아웃 --- */
+        #app-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            visibility: hidden;
+        }
+
+        #app-layout.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .app-header {
+            background: var(--nav-bg);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .app-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .app-title-area:hover {
+            background: #f1f5f9;
+        }
+
+        .app-brand {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .home-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-container {
+            display: flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 8px;
+            gap: 2px;
+        }
+
+        .tab-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--accent);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--app-bg);
+        }
+
+        .hidden {
+            visibility: hidden;
+            z-index: -1;
+        }
+
+        @media (max-width: 600px) {
+            .app-card {
+                width: 100%;
+                max-width: 320px;
+                flex-direction: row;
+                align-items: center;
+                padding: 20px;
+                text-align: left;
+            }
+
+            .card-icon {
+                margin-bottom: 0;
+                margin-right: 20px;
+                font-size: 2.5rem;
+            }
+
+            .tab-btn span {
+                display: none;
+            }
+
+            .tab-btn {
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="landing-page">
+        <div class="intro-logo"><i class="fa-solid fa-layer-group"></i></div>
+        <h1 class="intro-title">첼 TOP</h1>
+        <div class="card-container">
+            <div class="app-card" onclick="enterApp('review')">
+                <div class="card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <div>
+                    <div class="card-title">리뷰 도우미</div>
+                    <div class="card-desc">스케줄 분석 및 최적화</div>
+                </div>
+            </div>
+            <div class="app-card" onclick="enterApp('morning')">
+                <div class="card-icon"><i class="fa-regular fa-calendar-check"></i></div>
+                <div>
+                    <div class="card-title">아침 시간표</div>
+                    <div class="card-desc">환자별 시간표 생성</div>
+                </div>
+            </div>
+            <div class="app-card" onclick="enterApp('weekend')">
+                <div class="card-icon"><i class="fa-solid fa-calendar-week"></i></div>
+                <div>
+                    <div class="card-title">주말 시간표</div>
+                    <div class="card-desc">토/일 시간표 생성</div>
+                </div>
+            </div>
+            <div class="app-card" onclick="enterApp('guide')">
+                <div class="card-icon"><i class="fa-solid fa-book-open"></i></div>
+                <div>
+                    <div class="card-title">신규 가이드</div>
+                    <div class="card-desc">신규직원 업무 안내</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        <header class="app-header">
+            <div class="app-title-area" onclick="goHome()" title="홈으로 이동">
+                <i class="fa-solid fa-layer-group" style="color:var(--primary)"></i>
+                <span class="app-brand ms-2">첼 TOP</span>
+                <span class="home-hint"><i class="fa-solid fa-house ms-1"></i> HOME</span>
+            </div>
+            <div class="tab-container">
+                <button class="tab-btn" id="btn-review" onclick="switchTab('review')" title="리뷰 도우미">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i>
+                </button>
+                <button class="tab-btn" id="btn-morning" onclick="switchTab('morning')" title="아침 시간표">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </button>
+                <button class="tab-btn" id="btn-weekend" onclick="switchTab('weekend')" title="주말 시간표">
+                    <i class="fa-solid fa-calendar-week"></i>
+                </button>
+                <button class="tab-btn" id="btn-guide" onclick="switchTab('guide')" title="신규 가이드">
+                    <i class="fa-solid fa-book-open"></i>
+                </button>
+            </div>
+        </header>
+        <div class="main-content">
+            <iframe id="frame-review" title="리뷰 도우미"></iframe>
+            <iframe id="frame-morning" class="hidden" title="아침 시간표"></iframe>
+            <iframe id="frame-weekend" class="hidden" title="주말 시간표"></iframe>
+            <iframe id="frame-guide" class="hidden" title="신규 가이드"></iframe>
+        </div>
+    </div>
+
+    <script>
+        // [핵심 수정] Textarea 대신 JS 문자열 변수에 담아 태그 겹침 현상 방지
+        const SRC_REVIEW = `{{REVIEW_PLACEHOLDER}}`;
+
+        const SRC_MORNING = `{{MORNING_PLACEHOLDER}}`;
+
+        const SRC_WEEKEND = `{{WEEKEND_PLACEHOLDER}}`;
+
+        // Base64 → UTF-8 디코딩 → Blob URL
+        const SRC_GUIDE_B64 = "{{GUIDE_PLACEHOLDER}}";
+        const SRC_GUIDE_BYTES = Uint8Array.from(atob(SRC_GUIDE_B64), c => c.charCodeAt(0));
+        const SRC_GUIDE_BLOB = new Blob([SRC_GUIDE_BYTES], {type: 'text/html;charset=utf-8'});
+        const SRC_GUIDE_URL = URL.createObjectURL(SRC_GUIDE_BLOB);
+
+        // 앱 초기 로딩
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('frame-review').srcdoc = SRC_REVIEW;
+            document.getElementById('frame-morning').srcdoc = SRC_MORNING;
+            document.getElementById('frame-weekend').srcdoc = SRC_WEEKEND;
+            // 신규 가이드는 외부 파일로 로드 (같은 폴더에 신규가이드.html 필요)
+            document.getElementById('frame-guide').src = SRC_GUIDE_URL;
+        });
+
+        // 앱 진입 (랜딩페이지 -> 메인)
+        function enterApp(appName) {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            landingPage.classList.add('fade-out');
+            setTimeout(() => {
+                appLayout.classList.add('active');
+                switchTab(appName);
+            }, 300);
+        }
+
+        // 탭 전환 로직 (리팩토링)
+        function switchTab(tabName) {
+            const tabs = ['review', 'morning', 'weekend', 'guide'];
+            tabs.forEach(tab => {
+                document.getElementById(`btn-${tab}`).classList.toggle('active', tab === tabName);
+                document.getElementById(`frame-${tab}`).classList.toggle('hidden', tab !== tabName);
+            });
+        }
+
+        // 부모 페이지에서 폴더 관리 (iframe 보안 우회)
+        let parentDirHandle = null;
+        
+        async function selectFolderFromParent() {
+            if (!window.showDirectoryPicker) {
+                return { success: false, error: 'PC 크롬/엣지에서만 지원됩니다.' };
+            }
+            try {
+                parentDirHandle = await window.showDirectoryPicker({ id: 'cello_save_dir', mode: 'readwrite' });
+                return { success: true, name: parentDirHandle.name };
+            } catch (err) {
+                return { success: false, error: 'cancelled' };
+            }
+        }
+        
+        async function listFolderFilesFromParent() {
+            if (!parentDirHandle) return {};
+            const files = {};
+            try {
+                for await (const entry of parentDirHandle.values()) {
+                    if (entry.kind === 'file' && entry.name.endsWith('.html')) {
+                        files[entry.name] = entry;
+                    }
+                }
+            } catch (e) {}
+            return files;
+        }
+        
+        async function saveFileFromParent(fileName, blob) {
+            if (!parentDirHandle) return { success: false, error: '폴더 미연결' };
+            try {
+                const perm = await parentDirHandle.queryPermission({ mode: 'readwrite' });
+                if (perm !== 'granted') {
+                    const req = await parentDirHandle.requestPermission({ mode: 'readwrite' });
+                    if (req !== 'granted') return { success: false, error: '권한 거부됨' };
+                }
+                const fileHandle = await parentDirHandle.getFileHandle(fileName, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return { success: true };
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        }
+
+        function goHome() {
+            const landingPage = document.getElementById('landing-page');
+            const appLayout = document.getElementById('app-layout');
+            appLayout.classList.remove('active');
+            setTimeout(() => {
+                landingPage.classList.remove('fade-out');
+            }, 300);
+        }
+    </script>
+</body>
+
+</html>

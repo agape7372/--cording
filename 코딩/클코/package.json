@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "pako": "^2.1.0",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\Users\\agape\\Desktop\\코딩\\클코\\시간표\" /s /b)",
+      "Bash(dir \"C:\\Users\\agape\\Desktop\\코딩\\클코\\시간표\\11.17 시간표\" /b)",
+      "Bash(node -e:*)",
+      "Bash(powershell:*)",
+      "Bash(del \"C:\\Users\\agape\\Desktop\\코딩\\클코\\원본\\dist\\temp_weekend.txt\")",
+      "Bash(node:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

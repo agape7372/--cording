@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>첼탑안티</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* 기존 스타일 유지 */
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f7;
+            margin: 0;
+            padding: 0;
+            padding-bottom: 70px; /* 네비게이션 바 공간 */
+            color: #333;
+        }
+
+        /* 상단 헤더 */
+        .header {
+            background-color: white;
+            padding: 15px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* 컨텐츠 영역 */
+        .content {
+            padding: 20px;
+            display: none; /* 탭 전환을 위해 기본 숨김 */
+        }
+        .content.active {
+            display: block;
+        }
+
+        /* 카드 스타일 */
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        /* 입력 폼 스타일 */
+        input[type="number"], input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+        button:active {
+            background-color: #0056b3;
+        }
+        button.secondary {
+            background-color: #e5e5ea;
+            color: #333;
+        }
+
+        /* 결과 표시 영역 */
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007AFF;
+        }
+
+        /* 시간표 스타일 */
+        .schedule-item {
+            border-bottom: 1px solid #eee;
+            padding: 12px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        .time-badge {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 1000;
+        }
+        .nav-item {
+            text-align: center;
+            flex: 1;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: #007AFF;
+            font-weight: bold;
+        }
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="page-title">FIM 계산기</h1>
+    </div>
+
+    <div id="tab-calculator" class="content active">
+        <div class="card">
+            <h3>보행/이동 (L)</h3>
+            <select id="walking_score">
+                <option value="7">7점 - 완전 독립</option>
+                <option value="6">6점 - 수정된 독립 (보조기구)</option>
+                <option value="5">5점 - 감독/준비 (지시 필요)</option>
+                <option value="4">4점 - 최소 보조 (75% 이상)</option>
+                <option value="3">3점 - 중간 보조 (50~74%)</option>
+                <option value="2">2점 - 최대 보조 (25~49%)</option>
+                <option value="1">1점 - 전적인 보조 (25% 미만)</option>
+            </select>
+        </div>
+        <div class="card">
+            <h3>계단 (M)</h3>
+            <select id="stair_score">
+                <option value="7">7점 - 완전 독립</option>
+                <option value="6">6점 - 수정된 독립 (보조기구)</option>
+                <option value="5">5점 - 감독/준비</option>
+                <option value="4">4점 - 최소 보조</option>
+                <option value="3">3점 - 중간 보조</option>
+                <option value="2">2점 - 최대 보조</option>
+                <option value="1">1점 - 전적인 보조</option>
+            </select>
+        </div>
+        <button onclick="calculateFIM()">점수 계산하기</button>
+        <div id="fim-result" class="result-box" style="display:none;"></div>
+    </div>
+
+    <div id="tab-schedule" class="content">
+        <div class="card">
+            <h3>치료 시간표 추출</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:10px;">
+                5층 치료시간표 엑셀 파일을 업로드하면 환자의 시간표를 뽑아줍니다.
+            </p>
+            <input type="file" id="scheduleFile" accept=".xlsx, .xls">
+            <input type="text" id="patientName" placeholder="환자 이름 (예: 신연애)">
+            <button onclick="processScheduleFile()">시간표 검색</button>
+        </div>
+        <div id="schedule-result"></div>
+    </div>
+
+    <div id="tab-meal" class="content">
+        <div class="card">
+            <h3>오늘의 식단</h3>
+            <p style="text-align:center; color:#888; padding:20px;">
+                준비 중인 기능입니다.<br>
+                (이미지나 텍스트 뷰어 연동 가능)
+            </p>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('calculator')">
+            <span class="nav-icon">🧮</span>
+            계산기
+        </div>
+        <div class="nav-item" onclick="switchTab('schedule')">
+            <span class="nav-icon">📅</span>
+            아침시간표
+        </div>
+        <div class="nav-item" onclick="switchTab('meal')">
+            <span class="nav-icon">🍚</span>
+            식단표
+        </div>
+    </div>
+
+    <script>
+        // --- 탭 전환 기능 ---
+        function switchTab(tabName) {
+            // 모든 컨텐츠 숨기기
+            document.querySelectorAll('.content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            // 선택한 탭 보이기
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // 네비게이션 활성화
+            const navIndex = ['calculator', 'schedule', 'meal'].indexOf(tabName);
+            document.querySelectorAll('.nav-item')[navIndex].classList.add('active');
+
+            // 타이틀 변경
+            const titles = {'calculator': 'FIM 계산기', 'schedule': '아침 시간표', 'meal': '식단표'};
+            document.getElementById('page-title').innerText = titles[tabName];
+        }
+
+        // --- 1. FIM 계산기 로직 ---
+        function calculateFIM() {
+            const walk = parseInt(document.getElementById('walking_score').value);
+            const stair = parseInt(document.getElementById('stair_score').value);
+            const sum = walk + stair;
+            
+            const resultDiv = document.getElementById('fim-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<strong>이동 항목 합계: ${sum}점</strong><br>보행: ${walk} / 계단: ${stair}`;
+        }
+
+        // --- 2. 아침 시간표 로직 (수정된 부분) ---
+        const timeSlots = [
+            "07:30", "08:00", "08:30", "09:05", "09:40", 
+            "10:15", "10:50", "11:25", "12:00", "점심", 
+            "13:30", "14:05", "14:40", "15:15", "15:50"
+        ];
+
+        function processScheduleFile() {
+            const fileInput = document.getElementById('scheduleFile');
+            const patientName = document.getElementById('patientName').value.trim();
+            const resultDiv = document.getElementById('schedule-result');
+
+            if (!fileInput.files.length) {
+                alert('엑셀 파일을 선택해주세요.');
+                return;
+            }
+            if (!patientName) {
+                alert('환자 이름을 입력해주세요.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 첫 번째 시트 사용
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // JSON 변환 (헤더 포함, 배열의 배열 형태)
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    let scheduleList = [];
+
+                    // 데이터 순회
+                    jsonData.forEach((row, rowIndex) => {
+                        // ==========================================================
+                        // [수정됨] 치료사 필터링 로직
+                        // ==========================================================
+                        
+                        // B열(인덱스 1)이 치료사 이름 칸입니다.
+                        let therapistName = row[1];
+
+                        // 제외할 키워드 목록 (N, CA, D, C, 추가 등)
+                        // 이 키워드로 시작하거나, B열이 비어있으면 해당 줄은 무시합니다.
+                        const excludeKeywords = ["N", "CA", "D", "C", "추가", "점심", "시간", "치료사"];
+                        
+                        if (!therapistName) {
+                            return; // 이름 없으면 건너뜀
+                        }
+
+                        // therapistName을 문자열로 변환 후 공백제거
+                        let tNameStr = String(therapistName).trim();
+
+                        // 제외 키워드로 시작하는지 검사
+                        // 예: "N신연애" 처럼 적힌 행이나, "추가" 라고 적힌 행 제거
+                        if (excludeKeywords.some(keyword => tNameStr.startsWith(keyword))) {
+                            return; // 건너뜀
+                        }
+                        // ==========================================================
+
+                        // 해당 행에서 환자 이름 찾기
+                        row.forEach((cell, cellIndex) => {
+                            if (cell && String(cell).includes(patientName)) {
+                                // 시간대 인덱스 계산 (C열부터 시간이 시작된다고 가정: 인덱스 2가 07:30 or 08:30)
+                                // 엑셀 파일 구조상 C열(2)이 첫 시간.
+                                // 11.17 파일 기준 C열은 7:30이 아니라 8:30 일 수도 있으니 파일 헤더 참고 필요
+                                // 일단 기존 로직대로 cellIndex - 2 로 매핑
+                                let timeIndex = cellIndex - 2;
+
+                                if (timeIndex >= 0 && timeIndex < timeSlots.length) {
+                                    scheduleList.push({
+                                        time: timeSlots[timeIndex],
+                                        content: String(cell).trim(), // 치료 내용
+                                        therapist: tNameStr // 담당 치료사
+                                    });
+                                }
+                            }
+                        });
+                    });
+
+                    // 시간순 정렬 (timeSlots 순서대로)
+                    scheduleList.sort((a, b) => {
+                        return timeSlots.indexOf(a.time) - timeSlots.indexOf(b.time);
+                    });
+
+                    // 결과 HTML 생성
+                    if (scheduleList.length === 0) {
+                        resultDiv.innerHTML = `<div class="card" style="text-align:center; color:red;">검색 결과가 없습니다.<br>추가치료(N/C/D)만 있거나 이름이 없을 수 있습니다.</div>`;
+                    } else {
+                        let html = `<div class="card"><h3>${patientName}님 시간표</h3>`;
+                        scheduleList.forEach(item => {
+                            html += `
+                                <div class="schedule-item">
+                                    <div>
+                                        <span class="time-badge">${item.time}</span>
+                                        <span>${item.therapist}</span>
+                                    </div>
+                                    <div style="font-size:14px; color:#555;">${item.content}</div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
+                        
+                        // 복사 버튼
+                        html += `<button class="secondary" onclick="copySchedule()">텍스트로 복사</button>`;
+                        
+                        resultDiv.innerHTML = html;
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                    alert('파일 읽기 오류! 엑셀 파일이 맞는지 확인해주세요.');
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function copySchedule() {
+            const resultDiv = document.getElementById('schedule-result');
+            const text = resultDiv.innerText.replace('텍스트로 복사', '').trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('복사되었습니다!');
+            }).catch(err => {
+                alert('복사 실패 (보안 설정 확인 필요)');
+            });
+        }
+
+    </script>
+</body>
+</html>

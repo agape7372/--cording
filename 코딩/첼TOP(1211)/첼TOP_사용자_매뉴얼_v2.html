@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>첼TOP 사용자 매뉴얼</title>
+    <style>
+        @page { size: A4; margin: 15mm 20mm; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #fff;
+            padding: 15mm;
+            max-width: 210mm;
+            margin: 0 auto;
+        }
+
+        /* 제목 스타일 */
+        h1 { font-size: 26px; color: #00695c; border-bottom: 3px solid #00695c; padding-bottom: 10px; margin: 40px 0 20px; }
+        h2 { font-size: 20px; color: #00796b; margin: 30px 0 15px; padding-left: 10px; border-left: 4px solid #00695c; }
+        h3 { font-size: 16px; color: #00897b; margin: 20px 0 10px; }
+
+        /* 표지 */
+        .cover {
+            text-align: center;
+            padding: 60px 0 80px;
+            page-break-after: always;
+        }
+        .cover-icon { font-size: 80px; margin-bottom: 30px; }
+        .cover h1 { font-size: 52px; color: #00695c; border: none; margin: 0 0 10px; }
+        .cover .subtitle { font-size: 18px; color: #666; margin-bottom: 60px; }
+        .cover .version { font-size: 16px; color: #888; margin-top: 80px; }
+        .cover .org { font-size: 14px; color: #999; }
+
+        /* 목차 */
+        .toc { page-break-after: always; }
+        .toc ul { list-style: none; }
+        .toc > ul { padding-left: 0; }
+        .toc li { padding: 10px 0; border-bottom: 1px dotted #ddd; }
+        .toc li ul { padding-left: 25px; }
+        .toc li ul li { border-bottom: none; padding: 5px 0; font-size: 14px; color: #666; }
+
+        /* 테이블 */
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 12px 10px; text-align: center; }
+        th { background: #00695c; color: white; font-weight: bold; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        td:first-child { font-weight: bold; }
+
+        /* 박스 스타일 */
+        .box { padding: 15px 18px; border-radius: 8px; margin: 15px 0; font-size: 14px; }
+        .box-tip { background: #e8f5e9; border-left: 4px solid #4caf50; }
+        .box-warn { background: #fff3e0; border-left: 4px solid #ff9800; }
+        .box-info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+
+        /* 단계 */
+        .steps { margin: 15px 0; }
+        .step { display: flex; align-items: flex-start; margin: 12px 0; }
+        .step-num {
+            background: #00695c; color: white;
+            width: 26px; height: 26px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold;
+            margin-right: 12px; flex-shrink: 0;
+        }
+        .step-text { padding-top: 2px; }
+
+        /* 코드 블록 */
+        .code-block {
+            background: #263238; color: #a5d6a7;
+            padding: 15px 20px; border-radius: 8px;
+            font-family: 'Consolas', monospace; font-size: 13px;
+            margin: 15px 0; line-height: 1.6;
+        }
+
+        /* 기능 카드 */
+        .feature-cards { display: flex; gap: 15px; flex-wrap: wrap; margin: 20px 0; }
+        .feature-card {
+            flex: 1; min-width: 200px;
+            border: 1px solid #ddd; border-radius: 12px;
+            padding: 20px; background: #fafafa;
+        }
+        .feature-card h4 { color: #00695c; margin: 0 0 10px; font-size: 15px; }
+        .feature-card p { font-size: 13px; color: #666; margin: 0; }
+
+        /* 페이지 나누기 */
+        .page-break { page-break-before: always; }
+
+        /* 푸터 */
+        .footer {
+            text-align: center; font-size: 12px; color: #999;
+            margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd;
+        }
+
+        /* 강조 */
+        .highlight { background: #fff59d; padding: 2px 5px; border-radius: 3px; }
+        code { background: #f5f5f5; padding: 3px 8px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 13px; }
+
+        @media print {
+            body { padding: 0; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== 표지 ==================== -->
+<div class="cover">
+    <div class="cover-icon">📋</div>
+    <h1>첼 TOP</h1>
+    <p class="subtitle">Chello Treatment Optimizer & Planner</p>
+    <p style="font-size: 22px; color: #333; margin-top: 20px;">재활치료 시간표 관리 시스템</p>
+    <p class="version">사용자 매뉴얼</p>
+    <p class="org">첼로병원 재활의학과</p>
+    <p style="margin-top: 20px; color: #aaa; font-size: 13px;">2024년 12월</p>
+</div>
+
+<!-- ==================== 목차 ==================== -->
+<div class="toc">
+    <h1>목차</h1>
+    <ul>
+        <li><strong>1. 프로그램 소개</strong>
+            <ul>
+                <li>1.1 첼TOP이란?</li>
+                <li>1.2 주요 기능 요약</li>
+            </ul>
+        </li>
+        <li><strong>2. 리뷰 도우미</strong>
+            <ul>
+                <li>2.1 기능 설명</li>
+                <li>2.2 사용 방법</li>
+            </ul>
+        </li>
+        <li><strong>3. 아침 시간표</strong>
+            <ul>
+                <li>3.1 기능 설명</li>
+                <li>3.2 사용 방법</li>
+                <li>3.3 저장 폴더 연결</li>
+                <li>3.4 자동완성 기능</li>
+                <li>3.5 엑셀 합치기</li>
+                <li>3.6 HTML 편집 및 재저장</li>
+            </ul>
+        </li>
+        <li><strong>4. 신규 가이드</strong>
+            <ul>
+                <li>4.1 기능 설명</li>
+                <li>4.2 사용 방법</li>
+            </ul>
+        </li>
+        <li><strong>5. 처방 코드 목록</strong></li>
+        <li><strong>6. 자주 묻는 질문 (FAQ)</strong></li>
+    </ul>
+</div>
+
+<!-- ==================== 1. 프로그램 소개 ==================== -->
+<div class="page-break">
+    <h1>1. 프로그램 소개</h1>
+
+    <h2>1.1 첼TOP이란?</h2>
+    <p><strong>첼TOP</strong>(Chello Treatment Optimizer & Planner)은 재활의학과 치료 시간표 관리를 위한 웹 기반 애플리케이션입니다.</p>
+
+    <div class="box box-info">
+        <strong>왜 필요한가요?</strong><br>
+        재활의학과에서는 매일 수십 명의 환자에게 다양한 치료를 제공합니다.
+        복잡한 일정을 수기로 관리하면 충돌, 누락, 비효율적인 동선 등의 문제가 발생합니다.
+        첼TOP은 이러한 문제를 해결합니다.
+    </div>
+
+    <h3>시스템 요구사항</h3>
+    <table>
+        <tr><th>항목</th><th>권장 사양</th></tr>
+        <tr><td>브라우저</td><td>Chrome, Edge (최신 버전)</td></tr>
+        <tr><td>운영체제</td><td>Windows, macOS, Android, iOS</td></tr>
+        <tr><td>인터넷</td><td>최초 로딩 시에만 필요</td></tr>
+    </table>
+
+    <h2>1.2 주요 기능 요약</h2>
+    <p>첼TOP은 세 가지 핵심 기능을 제공합니다.</p>
+
+    <div class="feature-cards">
+        <div class="feature-card">
+            <h4>📊 리뷰 도우미</h4>
+            <p>시간표를 분석하여 치료사/환자 충돌을 감지하고 통계를 제공합니다.</p>
+        </div>
+        <div class="feature-card">
+            <h4>📅 아침 시간표</h4>
+            <p>환자별 맞춤 시간표를 자동 생성하고 HTML로 저장합니다.</p>
+        </div>
+        <div class="feature-card">
+            <h4>📖 신규 가이드</h4>
+            <p>신규 직원을 위한 재활센터 업무 매뉴얼입니다.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== 2. 리뷰 도우미 ==================== -->
+<div class="page-break">
+    <h1>2. 리뷰 도우미</h1>
+
+    <h2>2.1 기능 설명</h2>
+    <p>치료 시간표를 분석하여 문제점을 사전에 파악하는 기능입니다.</p>
+
+    <table>
+        <tr><th>기능</th><th>설명</th></tr>
+        <tr><td>시간표 분석</td><td>엑셀 파일에서 치료사별 일정 추출</td></tr>
+        <tr><td>충돌 감지</td><td>동일 시간대에 같은 치료사/환자 중복 배정 경고</td></tr>
+        <tr><td>치료사 통계</td><td>PT/OT별 치료 건수 집계</td></tr>
+        <tr><td>시간대별 현황</td><td>각 시간대별 가용/바쁜 치료사 표시</td></tr>
+    </table>
+
+    <h2>2.2 사용 방법</h2>
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">시작 화면에서 '리뷰 도우미' 카드를 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">시간표 엑셀 파일(.xlsx)을 업로드합니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">분석 결과를 확인합니다.</span></div>
+    </div>
+
+    <div class="box box-tip">
+        <strong>💡 팁</strong><br>
+        충돌이 감지되면 해당 시간대와 관련 치료사/환자가 빨간색으로 표시됩니다.
+    </div>
+</div>
+
+<!-- ==================== 3. 아침 시간표 ==================== -->
+<div class="page-break">
+    <h1>3. 아침 시간표</h1>
+
+    <h2>3.1 기능 설명</h2>
+    <p>환자별 맞춤 시간표를 자동으로 생성하고 저장하는 핵심 기능입니다.</p>
+
+    <table>
+        <tr><th>기능</th><th>설명</th></tr>
+        <tr><td>환자 검색</td><td>이름 입력 시 모든 시간표 파일에서 일정 추출</td></tr>
+        <tr><td>시간표 생성</td><td>08:30~17:00 시간대별 치료 항목 자동 배치</td></tr>
+        <tr><td>처방 해석</td><td>RM, W, P 등 처방 코드를 한글 치료명으로 변환</td></tr>
+        <tr><td>층 이동 표시</td><td>2층/지하1층 이동 필요 치료에 <span style="color:red;">↓↑</span> 표시</td></tr>
+        <tr><td>HTML 저장</td><td>브라우저에서 편집 가능한 HTML로 저장</td></tr>
+        <tr><td>엑셀 합치기</td><td>여러 시간표 파일을 하나로 병합</td></tr>
+        <tr><td>자동완성</td><td>기존 파일에서 차트번호/호실 자동 인식</td></tr>
+    </table>
+
+    <h2>3.2 사용 방법</h2>
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">시작 화면에서 '아침 시간표' 카드를 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">층별 시간표 엑셀 파일(최대 3개)을 업로드합니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">'환자 목록 입력' 칸에 환자 정보를 입력합니다.</span></div>
+        <div class="step"><span class="step-num">4</span><span class="step-text">'🚀 시간표 생성하기' 버튼을 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">5</span><span class="step-text">생성된 시간표를 확인하고 '💾 HTML 저장' 버튼으로 저장합니다.</span></div>
+    </div>
+
+    <h3>환자 정보 입력 방법</h3>
+    <div class="code-block">
+입력 형식: 이름 차트번호 호실 (공백으로 구분)<br><br>
+홍길동 111111 501<br>
+김영희 222222 302<br>
+박철수
+    </div>
+    <div class="box box-info">
+        차트번호나 호실 없이 이름만 입력해도 됩니다. 폴더 연결 시 기존 파일에서 자동완성됩니다.
+    </div>
+</div>
+
+<div class="page-break">
+    <h2>3.3 저장 폴더 연결 (PC 전용)</h2>
+    <p>저장 폴더를 미리 연결하면 매번 위치를 선택하지 않아도 됩니다.</p>
+
+    <table>
+        <tr><th>연결 상태</th><th>저장 위치</th></tr>
+        <tr><td>연결 O</td><td>지정한 폴더에 <strong>자동 저장</strong></td></tr>
+        <tr><td>연결 X</td><td>기본 다운로드 폴더에 저장</td></tr>
+    </table>
+
+    <h3>폴더 연결 방법</h3>
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">'📂 저장 폴더 미리 연결하기' 버튼을 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">파일을 저장할 폴더를 선택합니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">"✅ 연결됨: [폴더명]" 메시지가 표시되면 완료!</span></div>
+    </div>
+
+    <div class="box box-warn">
+        <strong>⚠️ 주의</strong><br>
+        • 폴더 연결은 <strong>PC(Chrome/Edge)</strong>에서만 지원됩니다.<br>
+        • 브라우저 탭을 닫으면 연결이 해제됩니다.
+    </div>
+
+    <h2>3.4 자동완성 기능</h2>
+    <p>폴더 연결 시 기존 파일에서 차트번호와 호실을 자동으로 가져옵니다.</p>
+
+    <table>
+        <tr><th>기존 파일</th><th>입력</th><th>결과 파일명</th></tr>
+        <tr><td>(파일 없음)</td><td>홍길동</td><td>홍길동-______-____</td></tr>
+        <tr><td>홍길동-111111</td><td>홍길동</td><td>홍길동-111111-____</td></tr>
+        <tr><td>홍길동-501</td><td>홍길동</td><td>홍길동-______-501</td></tr>
+        <tr><td style="color:#1565C0;">홍길동-111111-501</td><td>홍길동</td><td style="color:#1565C0;">홍길동-111111-501 ✨</td></tr>
+    </table>
+
+    <div class="box box-tip">
+        <strong>💡 팁</strong><br>
+        이름만 입력해도 기존 파일에서 차트번호, 호실을 가져와요!
+    </div>
+</div>
+
+<div class="page-break">
+    <h2>3.5 엑셀 합치기</h2>
+    <p>여러 개의 시간표 엑셀 파일을 하나의 파일로 합칠 수 있습니다.</p>
+
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">2개 이상의 엑셀 파일을 업로드합니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">헤더에 <code>📑 합치기</code> 버튼이 나타납니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">버튼을 클릭하면 '합본_MMDD.xlsx' 파일이 다운로드됩니다.</span></div>
+    </div>
+
+    <div class="box box-info">
+        합쳐진 파일은 각 원본 파일의 시트명을 유지하며, <strong>서식/스타일/숨겨진 행도 모두 보존</strong>됩니다.
+    </div>
+
+    <h2>3.6 HTML 편집 및 재저장</h2>
+    <p>저장된 HTML 파일은 브라우저에서 직접 열어 편집하고 다시 저장할 수 있습니다.</p>
+
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">저장된 HTML 파일을 더블클릭하여 브라우저에서 엽니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">시간표 셀을 클릭하면 편집 모드로 진입합니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">내용을 수정합니다.</span></div>
+        <div class="step"><span class="step-num">4</span><span class="step-text">우측 상단의 <code>💾 저장</code> 버튼을 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">5</span><span class="step-text"><code>🖨️ 인쇄</code> 버튼으로 바로 인쇄할 수 있습니다.</span></div>
+    </div>
+
+    <div class="box box-tip">
+        <strong>💡 팁</strong><br>
+        첫 저장 시 위치 선택 후, 이후 저장은 같은 위치에 자동으로 덮어씁니다.
+    </div>
+</div>
+
+<!-- ==================== 4. 신규 가이드 ==================== -->
+<div class="page-break">
+    <h1>4. 신규 가이드</h1>
+
+    <h2>4.1 기능 설명</h2>
+    <p>신규 직원을 위한 재활센터 업무 매뉴얼입니다. 치료 관련 정보와 업무 프로세스를 한눈에 확인할 수 있습니다.</p>
+
+    <table>
+        <tr><th>기능</th><th>설명</th></tr>
+        <tr><td>검색 기능</td><td>키워드로 필요한 정보를 빠르게 검색</td></tr>
+        <tr><td>글자 크기 조절</td><td>가독성에 맞게 글자 크기 조절 가능</td></tr>
+        <tr><td>카테고리 분류</td><td>치료 종류별, 업무별로 분류된 정보</td></tr>
+        <tr><td>차팅 내용 복사</td><td>자주 쓰는 차팅 문구를 클릭 한 번으로 복사</td></tr>
+    </table>
+
+    <h3>디자인 특징</h3>
+    <table>
+        <tr><th>요소</th><th>설명</th></tr>
+        <tr><td>2026 팬톤 올해의 컬러</td><td>눈의 피로를 줄이는 파스텔 톤 색상 테마 적용</td></tr>
+        <tr><td>듀오톤 아이콘</td><td>카테고리별 자체 디자인 아이콘으로 직관적 구분</td></tr>
+    </table>
+
+    <h2>4.2 사용 방법</h2>
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">시작 화면에서 '신규 가이드' 카드를 클릭합니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">상단 검색창에서 원하는 키워드를 검색합니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">카테고리를 클릭하여 세부 내용을 확인합니다.</span></div>
+    </div>
+
+    <h3>차팅 내용 복사 기능</h3>
+    <p>자주 사용하는 차팅 문구를 클릭 한 번으로 클립보드에 복사할 수 있습니다.</p>
+    <div class="steps">
+        <div class="step"><span class="step-num">1</span><span class="step-text">원하는 차팅 문구 영역을 찾습니다.</span></div>
+        <div class="step"><span class="step-num">2</span><span class="step-text">문구를 클릭하면 자동으로 복사됩니다.</span></div>
+        <div class="step"><span class="step-num">3</span><span class="step-text">EMR 등 원하는 곳에 붙여넣기(Ctrl+V) 합니다.</span></div>
+    </div>
+
+    <div class="box box-tip">
+        <strong>💡 팁</strong><br>
+        복사 완료 시 화면에 "복사됨!" 알림이 표시됩니다.
+    </div>
+
+    <div class="box box-info">
+        신규 가이드는 오프라인에서도 사용 가능합니다. 한 번 로딩 후에는 인터넷 연결 없이도 볼 수 있습니다.
+    </div>
+</div>
+
+<!-- ==================== 5. 처방 코드 목록 ==================== -->
+<div class="page-break">
+    <h1>5. 처방 코드 목록</h1>
+    <p>아침 시간표에서 사용되는 처방 코드와 변환 결과입니다.</p>
+
+    <h3>재활치료</h3>
+    <table>
+        <tr><th>코드</th><th>출력명</th><th>층이동</th></tr>
+        <tr><td>RM, RN, RG, RA, RS</td><td>1:1 재활치료</td><td>-</td></tr>
+        <tr><td>RD, V</td><td>1:1 재활치료(연하)</td><td>-</td></tr>
+        <tr><td>산재재활-상지/하지</td><td>1:1 재활치료</td><td>2층</td></tr>
+        <tr><td>S (접두)</td><td>1:1 재활치료</td><td>-</td></tr>
+        <tr><td>S (접미)</td><td>운동치료Ⅱ</td><td>-</td></tr>
+    </table>
+
+    <h3>운동/도수치료</h3>
+    <table>
+        <tr><th>코드</th><th>출력명</th><th>층이동</th></tr>
+        <tr><td>N</td><td>운동치료Ⅰ</td><td>-</td></tr>
+        <tr><td>M, MM, CPM, Tt, T</td><td>운동치료Ⅱ</td><td>-</td></tr>
+        <tr><td>N7, O7, M15</td><td>도수치료</td><td>-</td></tr>
+    </table>
+
+    <h3>특수치료 (층 이동 필요)</h3>
+    <table>
+        <tr><th>코드</th><th>출력명</th><th>층이동</th></tr>
+        <tr><td>W, 산재로봇, RG...R</td><td>로봇보행치료</td><td>2층</td></tr>
+        <tr><td>H7</td><td>상지로봇치료</td><td>2층</td></tr>
+        <tr><td>rTMs</td><td>rTMs</td><td>2층</td></tr>
+        <tr><td>*, TH, TI</td><td>통증치료</td><td>2층</td></tr>
+        <tr><td>Y</td><td>바이오피드백</td><td>2층</td></tr>
+        <tr><td>P, RP</td><td>수중치료</td><td>지하1층</td></tr>
+        <tr><td>L, L7, RL</td><td>언어치료</td><td>당일 결정</td></tr>
+    </table>
+
+    <h3>기타 치료</h3>
+    <table>
+        <tr><th>코드</th><th>출력명</th><th>층이동</th></tr>
+        <tr><td>CA, C</td><td>작업치료</td><td>-</td></tr>
+        <tr><td>D</td><td>연하치료</td><td>-</td></tr>
+        <tr><td>F</td><td>기능적전기자극치료</td><td>-</td></tr>
+        <tr><td>H</td><td>호흡치료</td><td>-</td></tr>
+        <tr><td>ESWT</td><td>충격파 치료</td><td>-</td></tr>
+    </table>
+
+    <h3>요일 그룹</h3>
+    <table style="width: 50%;">
+        <tr><th>그룹 코드</th><th>표시</th></tr>
+        <tr><td>A</td><td>(월,수,금)</td></tr>
+        <tr><td>B</td><td>(화,목)</td></tr>
+    </table>
+</div>
+
+<!-- ==================== 6. FAQ ==================== -->
+<div class="page-break">
+    <h1>6. 자주 묻는 질문 (FAQ)</h1>
+
+    <h3>Q. 모바일에서도 사용할 수 있나요?</h3>
+    <p>네, 기본 기능은 모바일에서도 사용 가능합니다. 단, '폴더 연결' 기능은 PC(Chrome/Edge)에서만 지원됩니다.</p>
+
+    <h3>Q. 인터넷 연결이 필요한가요?</h3>
+    <p>최초 로딩 시에만 필요합니다. 이후에는 오프라인에서도 사용 가능합니다.</p>
+
+    <h3>Q. 엑셀 파일이 읽히지 않아요.</h3>
+    <p>.xlsx 또는 .xls 형식인지 확인해주세요. 비밀번호가 걸린 파일은 지원되지 않습니다.</p>
+
+    <h3>Q. 저장한 HTML 파일을 다른 PC에서 열 수 있나요?</h3>
+    <p>네, HTML 파일은 어떤 PC의 브라우저에서든 열 수 있습니다. 편집과 재저장도 가능합니다.</p>
+
+    <h3>Q. 합치기한 엑셀 파일의 서식이 깨져요.</h3>
+    <p>합치기 기능은 서식을 최대한 보존하지만, 일부 복잡한 서식은 완벽히 복사되지 않을 수 있습니다.</p>
+
+    <h3>Q. 처방 코드가 인식되지 않아요.</h3>
+    <p>지원되지 않는 처방 코드일 수 있습니다. 로그 창에서 '미인식 데이터'를 확인해주세요.</p>
+</div>
+
+<div class="footer">
+    첼 TOP | 첼로병원 재활의학과 | 2024
+</div>
+
+</body>
+</html>

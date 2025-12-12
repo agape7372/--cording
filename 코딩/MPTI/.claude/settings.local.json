@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter create:*)",
+      "Bash(where:*)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx serve dist -l 3000)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
