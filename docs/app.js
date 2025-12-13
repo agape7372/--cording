@@ -421,25 +421,15 @@ function renderMasList() {
         const valueR = state.masValues[keyR];
         const valueL = state.masValues[keyL];
 
-        // 좌우 비교 - 차이 표시
-        const gradeToNum = (g) => {
-            if (!g) return -1;
-            const idx = MAS_GRADES.findIndex(m => m.value === g);
-            return idx >= 0 ? idx : -1;
-        };
-        const diff = Math.abs(gradeToNum(valueR) - gradeToNum(valueL));
-        const hasDiff = valueR && valueL && diff >= 2;
-
         const getGradeColor = (val) => {
             const grade = MAS_GRADES.find(g => g.value === val);
             return grade ? grade.color : '#9CA3AF';
         };
 
         return `
-            <div class="assessment-item ${hasDiff ? 'has-diff' : ''}">
+            <div class="assessment-item">
                 <div class="assessment-item-header">
                     <strong>${muscle.name}</strong>
-                    ${hasDiff ? '<span class="diff-badge">⚠️ 좌우차이</span>' : ''}
                 </div>
                 <div class="bilateral-row">
                     <div class="side-group">
@@ -448,8 +438,7 @@ function renderMasList() {
                             ${MAS_GRADES.map(grade => `
                                 <button class="grade-btn-new ${valueR === grade.value ? 'selected' : ''}"
                                         style="${valueR === grade.value ? `background:${grade.color};color:white;` : ''}"
-                                        onclick="setMasGrade('${keyR}', '${grade.value}')"
-                                        title="${grade.detail}">${grade.label}</button>
+                                        onclick="setMasGrade('${keyR}', '${grade.value}')">${grade.label}</button>
                             `).join('')}
                         </div>
                         <span class="grade-display" style="color:${getGradeColor(valueR)}">${valueR || '-'}</span>
@@ -460,8 +449,7 @@ function renderMasList() {
                             ${MAS_GRADES.map(grade => `
                                 <button class="grade-btn-new ${valueL === grade.value ? 'selected' : ''}"
                                         style="${valueL === grade.value ? `background:${grade.color};color:white;` : ''}"
-                                        onclick="setMasGrade('${keyL}', '${grade.value}')"
-                                        title="${grade.detail}">${grade.label}</button>
+                                        onclick="setMasGrade('${keyL}', '${grade.value}')">${grade.label}</button>
                             `).join('')}
                         </div>
                         <span class="grade-display" style="color:${getGradeColor(valueL)}">${valueL || '-'}</span>
@@ -535,17 +523,10 @@ function renderMmtList() {
         const valueR = state.mmtValues[keyR];
         const valueL = state.mmtValues[keyL];
 
-        // 좌우 비교
-        const levelR = valueR ? MMT_GRADE_INFO[valueR]?.level : -1;
-        const levelL = valueL ? MMT_GRADE_INFO[valueL]?.level : -1;
-        const diff = Math.abs(levelR - levelL);
-        const hasDiff = valueR && valueL && diff >= 3;
-
         return `
-            <div class="assessment-item ${hasDiff ? 'has-diff' : ''}">
+            <div class="assessment-item">
                 <div class="assessment-item-header">
                     <strong>${muscle.name}</strong>
-                    ${hasDiff ? `<span class="diff-badge">⚠️ Δ${diff}단계</span>` : ''}
                 </div>
                 <div class="bilateral-row mmt">
                     <div class="side-group mmt">
