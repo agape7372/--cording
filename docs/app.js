@@ -29,6 +29,7 @@ const state = {
 
     // ROM
     romSide: 'R',
+    currentJoint: 'shoulder',
     currentRomMovement: '어깨 굴곡',
     romValues: {},
     romWnl: {},
@@ -40,12 +41,37 @@ const state = {
 // ============================================
 // Constants - 한글화
 // ============================================
-const CHIEF_COMPLAINTS = [
-    '보행 장애', '균형 저하', '경직', '근력 약화',
-    '통증', '저림/감각이상', '어지러움', '떨림', '협응 문제',
-    'ADL 어려움', '이동 어려움', '침상 이동 어려움',
-    '어깨 통증', '허리 통증', '목 통증', '무릎 통증',
-    '관절 강직', '부종', '피로감', 'ROM 제한'
+const CC_CATEGORIES = [
+    {
+        id: 'function',
+        name: '기능장애',
+        icon: '🚶',
+        items: ['보행 장애', '균형 저하', 'ADL 어려움', '이동 어려움', '침상 이동 어려움']
+    },
+    {
+        id: 'neuro',
+        name: '신경증상',
+        icon: '🧠',
+        items: ['경직', '저림/감각이상', '어지러움', '떨림', '협응 문제']
+    },
+    {
+        id: 'musculo',
+        name: '근골격',
+        icon: '💪',
+        items: ['근력 약화', '관절 강직', 'ROM 제한', '부종']
+    },
+    {
+        id: 'pain',
+        name: '통증',
+        icon: '⚡',
+        items: ['어깨 통증', '허리 통증', '목 통증', '무릎 통증', '전신 통증']
+    },
+    {
+        id: 'general',
+        name: '전신증상',
+        icon: '😓',
+        items: ['피로감', '수면장애', '식욕저하']
+    }
 ];
 
 const CONDITIONS = [
@@ -167,13 +193,30 @@ function setGender(gender) {
 }
 
 // ============================================
-// Chief Complaints
+// Chief Complaints (카테고리별)
 // ============================================
 function initChiefComplaints() {
-    const container = document.getElementById('cc-chips');
-    container.innerHTML = CHIEF_COMPLAINTS.map(complaint =>
-        `<button class="chip" onclick="toggleComplaint('${complaint}')">${complaint}</button>`
-    ).join('');
+    const container = document.getElementById('cc-categories');
+
+    container.innerHTML = CC_CATEGORIES.map(cat => `
+        <div class="category-section" data-cat="${cat.id}">
+            <button class="category-header" onclick="toggleCategory('${cat.id}')">
+                <span><span class="cat-icon">${cat.icon}</span>${cat.name}</span>
+                <span class="cat-count" id="cat-count-${cat.id}"></span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="category-chips">
+                ${cat.items.map(item =>
+                    `<button class="chip" onclick="toggleComplaint('${item}')">${item}</button>`
+                ).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleCategory(catId) {
+    const section = document.querySelector(`.category-section[data-cat="${catId}"]`);
+    section.classList.toggle('open');
 }
 
 function toggleComplaint(complaint) {
@@ -182,14 +225,23 @@ function toggleComplaint(complaint) {
     } else {
         state.selectedComplaints.add(complaint);
     }
+    updateComplaintUI();
+}
 
-    // Update UI
-    const chips = document.querySelectorAll('#cc-chips .chip');
-    chips.forEach(chip => {
+function updateComplaintUI() {
+    // Update chip styles
+    document.querySelectorAll('#cc-categories .chip').forEach(chip => {
         chip.classList.toggle('selected', state.selectedComplaints.has(chip.textContent));
     });
 
-    // Update selected count
+    // Update category counts
+    CC_CATEGORIES.forEach(cat => {
+        const count = cat.items.filter(item => state.selectedComplaints.has(item)).length;
+        const countEl = document.getElementById(`cat-count-${cat.id}`);
+        countEl.textContent = count > 0 ? count : '';
+    });
+
+    // Update total count
     const selectedInfo = document.getElementById('cc-selected');
     const count = state.selectedComplaints.size;
     if (count > 0) {
@@ -459,39 +511,54 @@ function clearAllMmt() {
 // ROM Tab
 // ============================================
 function initRomTab() {
-    renderRomMovementChips();
-    selectRomMovement(ROM_MOVEMENTS[0]);
+    renderRomMovements();
+    const firstMov = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint)[0];
+    if (firstMov) selectRomMovement(firstMov);
 }
 
 function setRomSide(side) {
     state.romSide = side;
     document.getElementById('rom-side-r').classList.toggle('active', side === 'R');
     document.getElementById('rom-side-l').classList.toggle('active', side === 'L');
-    renderRomMovementChips();
+    renderRomMovements();
     updateRomCard();
 }
 
-function renderRomMovementChips() {
+function selectRomJoint(joint) {
+    state.currentJoint = joint;
+    const movements = ROM_MOVEMENTS.filter(m => m.joint === joint);
+    if (movements.length > 0) {
+        state.currentRomMovement = movements[0].name;
+    }
+    renderRomMovements();
+    updateRomCard();
+}
+
+function renderRomMovements() {
     const container = document.getElementById('rom-movement-list');
     const side = state.romSide;
+    const movements = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint);
 
-    container.innerHTML = ROM_MOVEMENTS.map(mov => {
+    container.innerHTML = movements.map(mov => {
         const key = `${side}.${mov.name}`;
         const isActive = state.currentRomMovement === mov.name;
         const isWnl = state.romWnl[key];
+        const value = state.romValues[key];
+        const displayValue = isWnl ? 'WNL' : (value ? `${value}°` : '-');
 
         return `
-            <button class="movement-chip ${isActive ? 'active' : ''} ${isWnl ? 'wnl' : ''}"
-                    onclick="selectRomMovement(ROM_MOVEMENTS.find(m => m.name === '${mov.name}'))">
-                ${mov.short}
-            </button>
+            <div class="movement-item ${isActive ? 'active' : ''} ${isWnl ? 'wnl' : ''}"
+                 onclick="selectRomMovement(ROM_MOVEMENTS.find(m => m.name === '${mov.name}'))">
+                <span class="mov-name">${mov.short}</span>
+                <span class="mov-value">${displayValue}</span>
+            </div>
         `;
     }).join('');
 }
 
 function selectRomMovement(movement) {
     state.currentRomMovement = movement.name;
-    renderRomMovementChips();
+    renderRomMovements();
     updateRomCard();
 }
 
@@ -533,20 +600,21 @@ function toggleRomWnl() {
         state.romValues[key] = movement.max;
     }
 
-    renderRomMovementChips();
+    renderRomMovements();
     updateRomCard();
 }
 
 function setAllRomWnl() {
     const side = state.romSide;
-    ROM_MOVEMENTS.forEach(mov => {
+    // 현재 선택된 관절의 모든 동작만 WNL로 설정
+    ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint).forEach(mov => {
         const key = `${side}.${mov.name}`;
         state.romWnl[key] = true;
         state.romValues[key] = mov.max;
     });
-    renderRomMovementChips();
+    renderRomMovements();
     updateRomCard();
-    showToast('모든 ROM이 정상범위로 설정되었습니다');
+    showToast('해당 관절 ROM 전체 WNL 설정');
 }
 
 function updateRomAngle(value) {
@@ -556,6 +624,7 @@ function updateRomAngle(value) {
     const key = `${side}.${movement.name}`;
 
     state.romValues[key] = angle;
+    renderRomMovements();
 
     // Update angle display
     document.getElementById('angle-value').textContent = `${angle}°`;

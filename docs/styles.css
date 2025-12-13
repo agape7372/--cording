@@ -429,15 +429,15 @@ html, body {
 .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 6px;
 }
 
 .chip {
-    padding: 12px 18px;
+    padding: 8px 12px;
     background: var(--surface-white);
-    border: 2px solid var(--card-grey);
-    border-radius: 25px;
-    font-size: 14px;
+    border: 1.5px solid var(--card-grey);
+    border-radius: 16px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -457,18 +457,93 @@ html, body {
 .selected-info {
     background: var(--mint-green-light);
     border: 1px solid var(--mint-green);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-top: 16px;
-    display: flex;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     color: var(--mint-green-dark);
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 13px;
 }
 
 .selected-info .icon {
     color: var(--mint-green);
+}
+
+/* ============================================
+   Category List (Collapsible)
+   ============================================ */
+.category-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.category-section {
+    background: var(--background-grey);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.category-header .cat-icon {
+    margin-right: 6px;
+}
+
+.category-header .cat-count {
+    background: var(--primary-blue);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+.category-header .cat-count:empty {
+    display: none;
+}
+
+.category-header .arrow {
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.category-section.open .category-header .arrow {
+    transform: rotate(180deg);
+}
+
+.category-chips {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 10px 10px 10px;
+}
+
+.category-section.open .category-chips {
+    display: flex;
+}
+
+.category-chips .chip {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 12px;
 }
 
 /* ============================================
@@ -781,37 +856,114 @@ html, body {
 /* ============================================
    ROM Tab
    ============================================ */
-.rom-movements {
-    margin-bottom: 16px;
-}
-
-.movement-chips {
+.rom-controls {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    background: var(--surface-white);
+    padding: 10px 12px;
+    border-radius: 12px;
 }
 
-.movement-chip {
-    padding: 10px 16px;
-    background: var(--surface-white);
-    border: 2px solid var(--card-grey);
-    border-radius: 20px;
+.rom-selectors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.joint-select {
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 2px solid var(--primary-blue);
+    border-radius: 10px;
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+    cursor: pointer;
+    outline: none;
+}
+
+.side-toggle-inline {
+    display: flex;
+    gap: 4px;
+}
+
+.side-btn-sm {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
+    background: var(--card-grey);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.side-btn-sm.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.wnl-all-btn {
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--mint-green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.rom-movement-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.movement-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--surface-white);
+    border-radius: 10px;
+    border: 2px solid transparent;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.movement-chip.active {
-    background: var(--primary-blue);
+.movement-item.active {
     border-color: var(--primary-blue);
-    color: white;
+    background: var(--primary-blue-light);
 }
 
-.movement-chip.wnl {
+.movement-item.wnl {
     background: var(--mint-green-light);
-    border-color: var(--mint-green);
+}
+
+.movement-item .mov-name {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.movement-item .mov-value {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.movement-item.wnl .mov-value {
     color: var(--mint-green-dark);
+}
+
+.movement-item.active .mov-value {
+    color: var(--primary-blue);
 }
 
 .rom-card {
