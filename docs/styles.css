@@ -1620,6 +1620,237 @@ html, body {
 }
 
 /* ============================================
+   Patients Management Screen
+   ============================================ */
+.patients-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.patients-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.header-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.header-add-btn:active {
+    background: var(--primary-blue-dark);
+}
+
+.header-add-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.patients-search {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.patients-search .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.patients-search .search-input {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+}
+
+.patients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 100px;
+}
+
+.patient-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    transition: all 0.15s ease;
+}
+
+.patient-item:active {
+    background: #F9FAFB;
+}
+
+.patient-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-blue-light) 0%, rgba(46, 92, 255, 0.2) 100%);
+    color: var(--primary-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.patient-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-item .patient-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.patient-item .patient-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-date {
+    font-size: 12px;
+    color: #9CA3AF;
+}
+
+.patient-menu-btn {
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.patient-menu-btn:active {
+    background: #F3F4F6;
+}
+
+.patient-menu-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #9CA3AF;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    z-index: 200;
+    min-width: 140px;
+}
+
+.dropdown-menu.hidden {
+    display: none;
+}
+
+.dropdown-menu button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 14px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.dropdown-menu button:active {
+    background: #F3F4F6;
+}
+
+.dropdown-menu button svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary);
+}
+
+.dropdown-menu button.danger {
+    color: #EF4444;
+}
+
+.dropdown-menu button.danger svg {
+    color: #EF4444;
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(46, 92, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 90;
+}
+
+.fab:active {
+    transform: scale(0.95);
+    background: var(--primary-blue-dark);
+}
+
+.fab svg {
+    width: 28px;
+    height: 28px;
+    color: white;
+}
+
+/* ============================================
    Bottom Navigation
    ============================================ */
 .bottom-nav {
@@ -1630,8 +1861,8 @@ html, body {
     background: var(--surface-white);
     display: flex;
     justify-content: space-around;
-    padding: 8px 0;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    padding: 6px 0;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
     box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
     z-index: 100;
     max-width: 500px;
@@ -1643,12 +1874,12 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 0;
+    gap: 2px;
+    padding: 6px 0;
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;

@@ -137,6 +137,111 @@
                 </div>
             </section>
 
+            <!-- Patients Management Screen -->
+            <section id="screen-patients" class="screen">
+                <!-- Header -->
+                <div class="patients-header">
+                    <h2>환자 관리</h2>
+                    <button class="header-add-btn" onclick="openAddPatientModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        환자 추가
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="patients-search">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="patients-search-input" class="search-input" placeholder="이름 또는 등록번호 검색" oninput="filterPatients(this.value)">
+                </div>
+
+                <!-- Patient List -->
+                <div class="patients-list" id="patients-list">
+                    <!-- Dummy Data -->
+                    <div class="patient-item" data-id="p1">
+                        <div class="patient-avatar">김</div>
+                        <div class="patient-details">
+                            <div class="patient-name">김철수</div>
+                            <div class="patient-info">M/65 · Stroke (Lt. hemiplegia)</div>
+                            <div class="patient-date">등록: 2024.12.10</div>
+                        </div>
+                        <button class="patient-menu-btn" onclick="openPatientMenu('p1', event)">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="patient-item" data-id="p2">
+                        <div class="patient-avatar">이</div>
+                        <div class="patient-details">
+                            <div class="patient-name">이영희</div>
+                            <div class="patient-info">F/72 · Parkinson's disease</div>
+                            <div class="patient-date">등록: 2024.12.09</div>
+                        </div>
+                        <button class="patient-menu-btn" onclick="openPatientMenu('p2', event)">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="patient-item" data-id="p3">
+                        <div class="patient-avatar">박</div>
+                        <div class="patient-details">
+                            <div class="patient-name">박민수</div>
+                            <div class="patient-info">M/45 · LBP (Disc herniation L4-5)</div>
+                            <div class="patient-date">등록: 2024.12.08</div>
+                        </div>
+                        <button class="patient-menu-btn" onclick="openPatientMenu('p3', event)">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="patient-item" data-id="p4">
+                        <div class="patient-avatar">최</div>
+                        <div class="patient-details">
+                            <div class="patient-name">최수진</div>
+                            <div class="patient-info">F/58 · Rotator cuff tear (Rt.)</div>
+                            <div class="patient-date">등록: 2024.12.05</div>
+                        </div>
+                        <button class="patient-menu-btn" onclick="openPatientMenu('p4', event)">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="patient-item" data-id="p5">
+                        <div class="patient-avatar">정</div>
+                        <div class="patient-details">
+                            <div class="patient-name">정현우</div>
+                            <div class="patient-info">M/32 · ACL reconstruction (Lt.)</div>
+                            <div class="patient-date">등록: 2024.12.01</div>
+                        </div>
+                        <button class="patient-menu-btn" onclick="openPatientMenu('p5', event)">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FAB -->
+                <button class="fab" onclick="openAddPatientModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </section>
+
+            <!-- Patient Menu Dropdown -->
+            <div id="patient-menu" class="dropdown-menu hidden">
+                <button onclick="editPatient()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    수정
+                </button>
+                <button class="danger" onclick="deletePatient()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    삭제
+                </button>
+            </div>
+
             <!-- Subjective Screen -->
             <section id="screen-subjective" class="screen">
                 <div class="card">
@@ -431,6 +536,10 @@
                 <span class="nav-icon">🏠</span>
                 <span>홈</span>
             </button>
+            <button class="nav-item" onclick="navigateTo('patients')">
+                <span class="nav-icon">👥</span>
+                <span>환자</span>
+            </button>
             <button class="nav-item" onclick="navigateTo('subjective')">
                 <span class="nav-icon">👤</span>
                 <span>주관적</span>
@@ -441,7 +550,7 @@
             </button>
             <button class="nav-item" onclick="navigateTo('cdss')">
                 <span class="nav-icon">🧠</span>
-                <span>AI 지원</span>
+                <span>AI</span>
             </button>
         </nav>
     </div>

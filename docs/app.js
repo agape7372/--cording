@@ -222,6 +222,7 @@ function navigateTo(screen) {
     // Update header title
     const titles = {
         home: '알고PT Pro',
+        patients: '환자 관리',
         subjective: '주관적 평가',
         objective: '객관적 평가',
         cdss: 'AI 임상 지원'
@@ -244,6 +245,68 @@ function showHistory() {
 
 function showSettings() {
     showToast('설정 (개발중)');
+}
+
+// ============================================
+// Patient Management
+// ============================================
+let selectedPatientId = null;
+
+function filterPatients(query) {
+    const items = document.querySelectorAll('.patient-item');
+    const q = query.toLowerCase().trim();
+
+    items.forEach(item => {
+        const name = item.querySelector('.patient-name').textContent.toLowerCase();
+        const info = item.querySelector('.patient-info').textContent.toLowerCase();
+        const visible = name.includes(q) || info.includes(q);
+        item.style.display = visible ? 'flex' : 'none';
+    });
+}
+
+function openPatientMenu(patientId, event) {
+    event.stopPropagation();
+    selectedPatientId = patientId;
+
+    const menu = document.getElementById('patient-menu');
+    const btn = event.currentTarget;
+    const rect = btn.getBoundingClientRect();
+
+    menu.style.top = `${rect.bottom + 8}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+    menu.style.left = 'auto';
+    menu.classList.remove('hidden');
+
+    // Close on outside click
+    setTimeout(() => {
+        document.addEventListener('click', closePatientMenu);
+    }, 0);
+}
+
+function closePatientMenu() {
+    document.getElementById('patient-menu').classList.add('hidden');
+    document.removeEventListener('click', closePatientMenu);
+}
+
+function editPatient() {
+    closePatientMenu();
+    showToast('환자 수정 (개발중)');
+}
+
+function deletePatient() {
+    closePatientMenu();
+    if (confirm('이 환자를 삭제하시겠습니까?')) {
+        const item = document.querySelector(`.patient-item[data-id="${selectedPatientId}"]`);
+        if (item) {
+            item.remove();
+            showToast('환자가 삭제되었습니다');
+        }
+    }
+}
+
+function openAddPatientModal() {
+    showToast('환자 추가 (개발중)');
+    navigateTo('subjective');
 }
 
 // ============================================
