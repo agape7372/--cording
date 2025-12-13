@@ -3,6 +3,7 @@ import { AssessmentProvider } from './context/AssessmentContext';
 import LandingPage from './pages/LandingPage';
 import PatientListPage from './pages/PatientListPage';
 import AssessmentPage from './pages/AssessmentPage';
+import QuickToolsPage from './pages/QuickToolsPage';
 import './styles/global.css';
 
 function App() {
@@ -237,6 +238,12 @@ function App() {
               onBack={handleBackToList}
             />
           </AssessmentProvider>
+        );
+      case 'tools':
+        return (
+          <QuickToolsPage
+            onBack={() => handleNavigate('landing')}
+          />
         );
       default:
         return <LandingPage onNavigate={handleNavigate} />;
