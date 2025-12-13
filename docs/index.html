@@ -1,38 +1,403 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="/--cording/">
-
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
-
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="algopt_pro">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>algopt_pro</title>
-  <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2E5CFF">
+    <title>알고PT Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+    <!-- Splash Screen -->
+    <div id="splash" class="splash">
+        <div class="splash-content">
+            <div class="splash-icon">
+                <svg viewBox="0 0 24 24" fill="white" width="64" height="64">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+                </svg>
+            </div>
+            <h1 class="splash-title">알고PT Pro</h1>
+            <p class="splash-subtitle">AI Clinical Partner for Therapists</p>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
+            </div>
+            <p class="splash-loading">임상 데이터를 분석 중입니다...</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="app hidden">
+        <!-- Header -->
+        <header id="header" class="header">
+            <h1 id="header-title">알고PT Pro</h1>
+        </header>
+
+        <!-- Screens Container -->
+        <main id="screens" class="screens">
+            <!-- Home Screen -->
+            <section id="screen-home" class="screen active">
+                <div class="home-hero">
+                    <h2>알고PT Pro</h2>
+                    <p>AI Clinical Partner</p>
+                </div>
+                <div class="card">
+                    <h3><span class="icon">⚡</span> Quick Start</h3>
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="navigateTo('subjective')">
+                            <span class="quick-icon">➕</span>
+                            <span>New<br>Assessment</span>
+                        </button>
+                        <button class="quick-btn green" onclick="navigateTo('cdss')">
+                            <span class="quick-icon">🔍</span>
+                            <span>AI<br>Search</span>
+                        </button>
+                        <button class="quick-btn orange" onclick="navigateTo('objective')">
+                            <span class="quick-icon">🦾</span>
+                            <span>ROM<br>Test</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3><span class="icon">📋</span> Assessment Workflow</h3>
+                    <div class="workflow">
+                        <div class="workflow-step active">
+                            <div class="step-num">1</div>
+                            <div class="step-info">
+                                <strong>Subjective</strong>
+                                <small>Patient info, C.C, Pain</small>
+                            </div>
+                            <span class="step-badge">Start</span>
+                        </div>
+                        <div class="workflow-line"></div>
+                        <div class="workflow-step">
+                            <div class="step-num">2</div>
+                            <div class="step-info">
+                                <strong>Objective</strong>
+                                <small>MAS, MMT, ROM</small>
+                            </div>
+                        </div>
+                        <div class="workflow-line"></div>
+                        <div class="workflow-step">
+                            <div class="step-num">3</div>
+                            <div class="step-info">
+                                <strong>Assessment</strong>
+                                <small>AI clinical reasoning</small>
+                            </div>
+                        </div>
+                        <div class="workflow-line"></div>
+                        <div class="workflow-step">
+                            <div class="step-num">4</div>
+                            <div class="step-info">
+                                <strong>Plan</strong>
+                                <small>SOAP note for EMR</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Subjective Screen -->
+            <section id="screen-subjective" class="screen">
+                <div class="card">
+                    <h3><span class="icon">👤</span> Patient Information</h3>
+                    <div class="form-row">
+                        <label>Age</label>
+                        <div class="age-picker">
+                            <button class="age-btn" onclick="changeAge(-1)">−</button>
+                            <span id="age-value" class="age-value">50 yrs</span>
+                            <button class="age-btn" onclick="changeAge(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>Gender</label>
+                        <div class="gender-picker">
+                            <button id="gender-m" class="gender-btn" onclick="setGender('M')">
+                                <span>♂</span> Male
+                            </button>
+                            <button id="gender-f" class="gender-btn" onclick="setGender('F')">
+                                <span>♀</span> Female
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">🏥</span> Chief Complaints (C.C)</h3>
+                    <p class="hint">Select symptoms (tap to toggle)</p>
+                    <div id="cc-chips" class="chips">
+                        <!-- Generated by JS -->
+                    </div>
+                    <div id="cc-selected" class="selected-info hidden">
+                        <span class="icon">✓</span> <span id="cc-count">0</span> symptom(s) selected
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">💊</span> Pain Assessment (VAS)</h3>
+                    <p class="hint">Tap body part, then set pain level</p>
+                    <div class="pain-container">
+                        <div class="body-map-container">
+                            <svg id="body-map" viewBox="0 0 200 400" class="body-map">
+                                <!-- Body outline -->
+                                <ellipse cx="100" cy="30" rx="25" ry="28" class="body-part" data-part="Head"/>
+                                <rect x="90" y="55" width="20" height="15" class="body-part" data-part="Neck"/>
+                                <path d="M60 75 L140 75 L135 160 L65 160 Z" class="body-part" data-part="Chest"/>
+                                <ellipse cx="50" cy="85" rx="12" ry="15" class="body-part" data-part="R.Shoulder"/>
+                                <ellipse cx="150" cy="85" rx="12" ry="15" class="body-part" data-part="L.Shoulder"/>
+                                <rect x="35" y="95" width="18" height="50" rx="5" class="body-part" data-part="R.Elbow"/>
+                                <rect x="147" y="95" width="18" height="50" rx="5" class="body-part" data-part="L.Elbow"/>
+                                <rect x="25" y="145" width="15" height="45" rx="4" class="body-part" data-part="R.Wrist"/>
+                                <rect x="160" y="145" width="15" height="45" rx="4" class="body-part" data-part="L.Wrist"/>
+                                <ellipse cx="32" cy="200" rx="12" ry="15" class="body-part" data-part="R.Hand"/>
+                                <ellipse cx="168" cy="200" rx="12" ry="15" class="body-part" data-part="L.Hand"/>
+                                <path d="M65 165 L135 165 L125 210 L75 210 Z" class="body-part" data-part="Lower Back"/>
+                                <ellipse cx="82" cy="225" rx="18" ry="20" class="body-part" data-part="R.Hip"/>
+                                <ellipse cx="118" cy="225" rx="18" ry="20" class="body-part" data-part="L.Hip"/>
+                                <rect x="70" y="245" width="22" height="70" rx="8" class="body-part" data-part="R.Knee"/>
+                                <rect x="108" y="245" width="22" height="70" rx="8" class="body-part" data-part="L.Knee"/>
+                                <rect x="72" y="320" width="18" height="50" rx="6" class="body-part" data-part="R.Ankle"/>
+                                <rect x="110" y="320" width="18" height="50" rx="6" class="body-part" data-part="L.Ankle"/>
+                                <ellipse cx="81" cy="380" rx="14" ry="10" class="body-part" data-part="R.Foot"/>
+                                <ellipse cx="119" cy="380" rx="14" ry="10" class="body-part" data-part="L.Foot"/>
+                            </svg>
+                        </div>
+                        <div class="pain-list">
+                            <h4>Pain Locations</h4>
+                            <div id="pain-locations">
+                                <p class="empty-hint">Tap on body to add</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Objective Screen -->
+            <section id="screen-objective" class="screen">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchObjectiveTab('mas')">MAS</button>
+                    <button class="tab" onclick="switchObjectiveTab('mmt')">MMT</button>
+                    <button class="tab" onclick="switchObjectiveTab('rom')">ROM</button>
+                </div>
+
+                <!-- MAS Tab -->
+                <div id="tab-mas" class="tab-content active">
+                    <div class="side-selector">
+                        <span>Side:</span>
+                        <button id="mas-side-r" class="side-btn active" onclick="setMasSide('R')">Right</button>
+                        <button id="mas-side-l" class="side-btn" onclick="setMasSide('L')">Left</button>
+                    </div>
+                    <div class="info-card">
+                        <h4>Modified Ashworth Scale (MAS)</h4>
+                        <div class="grade-legend">
+                            <span class="grade-item"><b>G0</b> No increase</span>
+                            <span class="grade-item"><b>G1</b> Slight</span>
+                            <span class="grade-item"><b>G1+</b> Catch</span>
+                            <span class="grade-item"><b>G2</b> Marked</span>
+                            <span class="grade-item"><b>G3</b> Considerable</span>
+                            <span class="grade-item"><b>G4</b> Rigid</span>
+                        </div>
+                    </div>
+                    <div id="mas-list" class="assessment-list">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <!-- MMT Tab -->
+                <div id="tab-mmt" class="tab-content">
+                    <div class="quick-action-bar">
+                        <button class="action-btn green" onclick="setAllMmtNormal()">✓ All Normal</button>
+                        <button class="action-btn gray" onclick="clearAllMmt()">Clear All</button>
+                    </div>
+                    <div class="side-selector">
+                        <span>Side:</span>
+                        <button id="mmt-side-r" class="side-btn active" onclick="setMmtSide('R')">Right</button>
+                        <button id="mmt-side-l" class="side-btn" onclick="setMmtSide('L')">Left</button>
+                    </div>
+                    <div id="mmt-list" class="assessment-list">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <!-- ROM Tab -->
+                <div id="tab-rom" class="tab-content">
+                    <div class="quick-action-bar">
+                        <button class="action-btn green" onclick="setAllRomWnl()">✓ All WNL</button>
+                        <div class="side-toggle">
+                            <button id="rom-side-r" class="side-btn active" onclick="setRomSide('R')">Right</button>
+                            <button id="rom-side-l" class="side-btn" onclick="setRomSide('L')">Left</button>
+                        </div>
+                    </div>
+                    <div class="rom-movements">
+                        <div id="rom-movement-list" class="movement-chips">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                    <div class="card rom-card">
+                        <h3 id="rom-movement-title">Shoulder Flexion</h3>
+                        <p id="rom-normal-range" class="hint">Normal: 0° - 180°</p>
+                        <button id="rom-wnl-btn" class="wnl-btn" onclick="toggleRomWnl()">
+                            <span class="wnl-check">○</span> WNL (Within Normal Limits)
+                        </button>
+                        <div id="rom-slider-container" class="rom-slider-container">
+                            <div class="rom-display">
+                                <div class="mannequin-container">
+                                    <svg id="rom-mannequin" viewBox="0 0 200 300" class="mannequin">
+                                        <!-- Head -->
+                                        <ellipse cx="100" cy="25" rx="18" ry="22" fill="#2E5CFF" opacity="0.8"/>
+                                        <!-- Neck -->
+                                        <rect x="92" y="45" width="16" height="12" fill="#2E5CFF" opacity="0.8"/>
+                                        <!-- Torso -->
+                                        <path d="M65 60 L135 60 L130 140 L70 140 Z" fill="#2E5CFF" opacity="0.8"/>
+                                        <!-- Left Arm (static) -->
+                                        <g id="left-arm-group">
+                                            <rect x="135" y="65" width="14" height="45" rx="5" fill="#2E5CFF" opacity="0.6"/>
+                                            <rect x="138" y="110" width="12" height="40" rx="4" fill="#2E5CFF" opacity="0.6"/>
+                                        </g>
+                                        <!-- Right Arm (animated) -->
+                                        <g id="right-arm-group" transform-origin="65 70">
+                                            <rect x="51" y="65" width="14" height="45" rx="5" fill="#00C896"/>
+                                            <circle cx="58" cy="110" r="6" fill="#009670"/>
+                                            <rect id="right-forearm" x="52" y="110" width="12" height="40" rx="4" fill="#00C896"/>
+                                        </g>
+                                        <!-- Pelvis -->
+                                        <path d="M70 145 L130 145 L120 175 L80 175 Z" fill="#2E5CFF" opacity="0.8"/>
+                                        <!-- Legs -->
+                                        <rect x="75" y="180" width="18" height="60" rx="6" fill="#2E5CFF" opacity="0.8"/>
+                                        <rect x="107" y="180" width="18" height="60" rx="6" fill="#2E5CFF" opacity="0.8"/>
+                                        <rect x="77" y="245" width="14" height="45" rx="5" fill="#2E5CFF" opacity="0.8"/>
+                                        <rect x="109" y="245" width="14" height="45" rx="5" fill="#2E5CFF" opacity="0.8"/>
+                                    </svg>
+                                </div>
+                                <div class="angle-control">
+                                    <div class="angle-dial">
+                                        <svg viewBox="0 0 150 150" class="dial-svg">
+                                            <circle cx="75" cy="75" r="60" fill="none" stroke="#E8ECF2" stroke-width="10"/>
+                                            <circle id="dial-progress" cx="75" cy="75" r="60" fill="none" stroke="#00C896" stroke-width="10"
+                                                stroke-dasharray="377" stroke-dashoffset="377" stroke-linecap="round"
+                                                transform="rotate(-90 75 75)"/>
+                                            <circle id="dial-thumb" cx="75" cy="15" r="12" fill="white" stroke="#00C896" stroke-width="3" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2))"/>
+                                        </svg>
+                                        <div id="angle-value" class="angle-value">0°</div>
+                                    </div>
+                                    <input type="range" id="rom-slider" class="rom-range" min="0" max="180" value="0"
+                                        oninput="updateRomAngle(this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CDSS Screen -->
+            <section id="screen-cdss" class="screen">
+                <div class="card">
+                    <div class="cdss-header">
+                        <div class="cdss-icon">🧠</div>
+                        <div>
+                            <h3>Evidence-Based Search</h3>
+                            <p class="hint">Find clinical guidelines & interventions</p>
+                        </div>
+                    </div>
+                    <button class="primary-btn full-width" onclick="searchInterventions()">
+                        🔍 Search Interventions for This Case
+                    </button>
+                </div>
+
+                <div class="card">
+                    <h3><span class="icon">⚡</span> Quick Search by Condition</h3>
+                    <div id="condition-chips" class="chips">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <div id="cdss-loading" class="card hidden">
+                    <div class="loading-spinner"></div>
+                    <p class="loading-text">임상 데이터를 분석 중입니다...</p>
+                    <p class="loading-sub">Searching clinical guidelines...</p>
+                </div>
+
+                <div id="cdss-result" class="card hidden">
+                    <h3><span class="icon">📄</span> Clinical Recommendations</h3>
+                    <div id="result-content" class="result-content"></div>
+                    <button class="secondary-btn full-width" onclick="generateSoapNote()">
+                        📝 Generate SOAP Note
+                    </button>
+                </div>
+
+                <div id="soap-note" class="card hidden">
+                    <div class="soap-header">
+                        <h3><span class="icon">📋</span> SOAP Note</h3>
+                        <button class="copy-btn" onclick="copySoapNote()">
+                            📋 Copy for EMR
+                        </button>
+                    </div>
+                    <pre id="soap-content" class="soap-content"></pre>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="navigateTo('home')">
+                <span class="nav-icon">🏠</span>
+                <span>Home</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('subjective')">
+                <span class="nav-icon">👤</span>
+                <span>Subjective</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('objective')">
+                <span class="nav-icon">📊</span>
+                <span>Objective</span>
+            </button>
+            <button class="nav-item" onclick="navigateTo('cdss')">
+                <span class="nav-icon">🧠</span>
+                <span>AI Support</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- VAS Modal -->
+    <div id="vas-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-handle"></div>
+            <h3 id="vas-part-name">Body Part</h3>
+            <p class="hint">Set Pain Level (VAS)</p>
+            <div class="vas-slider-container">
+                <svg viewBox="0 0 220 120" class="vas-arc">
+                    <defs>
+                        <linearGradient id="vas-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#4CAF50"/>
+                            <stop offset="50%" style="stop-color:#FFEB3B"/>
+                            <stop offset="100%" style="stop-color:#FF5722"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M 20 100 A 90 90 0 0 1 200 100" fill="none" stroke="#E8ECF2" stroke-width="16" stroke-linecap="round"/>
+                    <path id="vas-arc-progress" d="M 20 100 A 90 90 0 0 1 200 100" fill="none" stroke="url(#vas-gradient)" stroke-width="16" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283"/>
+                    <circle id="vas-thumb" cx="20" cy="100" r="14" fill="white" stroke="#4CAF50" stroke-width="3" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3))"/>
+                </svg>
+                <div id="vas-value" class="vas-value">0</div>
+            </div>
+            <input type="range" id="vas-range" class="vas-range" min="0" max="10" value="0" oninput="updateVasValue(this.value)">
+            <div class="vas-labels">
+                <span class="vas-low">No Pain</span>
+                <span class="vas-high">Worst Pain</span>
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="removeVasPain()">Remove</button>
+                <button class="primary-btn" onclick="saveVasPain()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
 </body>
 </html>
