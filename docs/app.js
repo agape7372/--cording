@@ -34,6 +34,9 @@ const state = {
     romValues: {},
     romWnl: {},
 
+    // BBS
+    bbsValues: {},
+
     // Current screen
     currentScreen: 'home'
 };
@@ -135,6 +138,46 @@ const ROM_MOVEMENTS = [
     { name: '발목 저측굴곡', min: 0, max: 50, joint: 'ankle', type: 'plantarflexion', short: '발목PF' }
 ];
 
+// BBS (Berg Balance Scale) - 14 items, 0-4 points each, total 56 points
+// Reference: Berg et al. 1992, K-BBS (한글판) Jung et al. 2006
+const BBS_ITEMS = [
+    { id: 1, name: '앉은자세에서 일어서기', short: '앉→서기', category: 'dynamic',
+      desc: ['중등도 이상 도움 필요', '최소 도움으로 기립', '손 사용 여러 번 시도 후 기립', '손 사용하여 독립적 기립', '손 사용 없이 독립적 기립'] },
+    { id: 2, name: '지지 없이 서있기', short: '서기유지', category: 'standing',
+      desc: ['도움 없이 10초 불가', '여러 번 시도로 10초', '30초 유지', '감독하에 2분', '안전하게 2분'] },
+    { id: 3, name: '등받이 없이 앉아있기', short: '앉기유지', category: 'sitting',
+      desc: ['도움 없이 10초 불가', '10초 유지', '30초 유지', '감독하에 2분', '안전하게 2분'] },
+    { id: 4, name: '선자세에서 앉기', short: '서→앉기', category: 'dynamic',
+      desc: ['앉는데 도움 필요', '조절 안 되는 하강', '다리 뒤로 의자 확인 후 하강', '손으로 조절하며 하강', '손 최소 사용으로 안전 착석'] },
+    { id: 5, name: '이동하기', short: '이동', category: 'dynamic',
+      desc: ['2인 도움/감독 필요', '1인 도움 필요', '언어적 지시/감독 필요', '손 확실히 사용하여 안전 이동', '손 약간 사용하여 안전 이동'] },
+    { id: 6, name: '눈 감고 서있기', short: '눈감고서기', category: 'standing',
+      desc: ['넘어지지 않게 도움 필요', '3초 못 버팀, 안전 유지', '3초 유지', '감독하에 10초', '안전하게 10초'] },
+    { id: 7, name: '두 발 모으고 서있기', short: '발모아서기', category: 'standing',
+      desc: ['자세 잡는데 도움, 15초 불가', '자세 도움 필요, 15초 유지', '독립적 자세, 30초 불가', '독립적 자세, 감독하에 1분', '독립적으로 1분'] },
+    { id: 8, name: '팔 뻗어 앞으로 내밀기', short: '팔뻗기', category: 'standing',
+      desc: ['균형 잃음/외부 지지 필요', '앞으로 뻗지만 감독 필요', '5cm 앞으로 뻗기', '12cm 앞으로 뻗기', '자신있게 25cm 앞으로 뻗기'] },
+    { id: 9, name: '바닥에서 물건 집어올리기', short: '물건줍기', category: 'dynamic',
+      desc: ['시도 불가/넘어지지 않게 도움', '시도하나 감독 필요', '물건 2-5cm 앞, 독립적 균형', '감독하에 물건 집기', '쉽고 안전하게 물건 집기'] },
+    { id: 10, name: '뒤돌아보기 (좌/우)', short: '뒤돌아보기', category: 'standing',
+      desc: ['균형 유지/넘어지지 않게 도움', '돌아볼 때 감독 필요', '옆으로만 돌림, 균형 유지', '한쪽만 잘됨, 체중이동 적음', '양쪽 뒤돌아보기, 체중이동 좋음'] },
+    { id: 11, name: '360도 회전', short: '360회전', category: 'dynamic',
+      desc: ['돌 때 도움 필요', '가까운 감독/언어 지시 필요', '360도 안전하나 느림', '한쪽만 4초 이내 안전', '양쪽 4초 이내 안전'] },
+    { id: 12, name: '발 교대로 스툴에 올리기', short: '발올리기', category: 'dynamic',
+      desc: ['넘어지지 않게 도움/시도 불가', '최소 도움으로 2회 이상', '감독하에 4회', '독립적 8회, 20초 초과', '독립적 8회, 20초 이내'] },
+    { id: 13, name: '일렬로 서기 (탠덤)', short: '탠덤서기', category: 'standing',
+      desc: ['발 디딜 때 균형 잃음', '도움 필요, 15초 유지', '작은 발걸음, 30초 유지', '독립적 발 앞에, 30초', '독립적 탠덤, 30초'] },
+    { id: 14, name: '한 발로 서기', short: '한발서기', category: 'standing',
+      desc: ['시도 불가/넘어지지 않게 도움', '시도하나 3초 불가, 독립 유지', '3초 이상', '5-10초', '10초 이상'] }
+];
+
+// BBS score interpretation
+const BBS_INTERPRETATION = [
+    { min: 0, max: 20, level: 'high', label: '휠체어 의존', color: '#DC2626', fallRisk: '높음' },
+    { min: 21, max: 40, level: 'medium', label: '보조기구 보행', color: '#F59E0B', fallRisk: '중등도' },
+    { min: 41, max: 56, level: 'low', label: '독립적', color: '#10B981', fallRisk: '낮음' }
+];
+
 // ============================================
 // Initialization
 // ============================================
@@ -156,6 +199,7 @@ function initApp() {
     initMasTab();
     initMmtTab();
     initRomTab();
+    initBbsTab();
 }
 
 // ============================================
@@ -853,6 +897,83 @@ function updateMannequin(movement, angle) {
             rightForearm.setAttribute('transform', `rotate(${-angle} 58 110)`);
         }
     }
+}
+
+// ============================================
+// BBS Tab (Berg Balance Scale)
+// ============================================
+function initBbsTab() {
+    renderBbsList();
+}
+
+function renderBbsList() {
+    const container = document.getElementById('bbs-list');
+    if (!container) return;
+
+    container.innerHTML = BBS_ITEMS.map(item => {
+        const value = state.bbsValues[item.id];
+        const hasValue = value !== undefined;
+
+        return `
+            <div class="bbs-item">
+                <div class="bbs-item-header">
+                    <span class="bbs-num">${item.id}</span>
+                    <strong>${item.name}</strong>
+                </div>
+                <div class="bbs-buttons">
+                    ${[0, 1, 2, 3, 4].map(score => `
+                        <button class="bbs-btn ${value === score ? 'selected' : ''}"
+                                style="${value === score ? `background:${getScoreColor(score)};color:white;border-color:${getScoreColor(score)};` : ''}"
+                                onclick="setBbsScore(${item.id}, ${score})"
+                                title="${item.desc[score]}">
+                            ${score}
+                        </button>
+                    `).join('')}
+                </div>
+                ${hasValue ? `<div class="bbs-desc">${item.desc[value]}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    updateBbsTotal();
+}
+
+function getScoreColor(score) {
+    const colors = ['#DC2626', '#F59E0B', '#FBBF24', '#34D399', '#10B981'];
+    return colors[score];
+}
+
+function setBbsScore(itemId, score) {
+    state.bbsValues[itemId] = score;
+    renderBbsList();
+}
+
+function updateBbsTotal() {
+    const totalEl = document.getElementById('bbs-total');
+    const interpretEl = document.getElementById('bbs-interpret');
+    if (!totalEl) return;
+
+    const values = Object.values(state.bbsValues);
+    const total = values.reduce((sum, v) => sum + v, 0);
+    const count = values.length;
+
+    totalEl.textContent = `${total}/56`;
+
+    // Find interpretation
+    const interp = BBS_INTERPRETATION.find(i => total >= i.min && total <= i.max);
+    if (interp && interpretEl) {
+        interpretEl.innerHTML = `
+            <span class="bbs-level" style="background:${interp.color}">${interp.label}</span>
+            <span class="bbs-fall-risk">낙상위험: ${interp.fallRisk}</span>
+            <span class="bbs-count">(${count}/14 항목)</span>
+        `;
+    }
+}
+
+function clearAllBbs() {
+    state.bbsValues = {};
+    renderBbsList();
+    showToast('BBS 평가가 초기화되었습니다');
 }
 
 // ============================================

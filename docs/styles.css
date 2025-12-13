@@ -1121,6 +1121,170 @@ html, body {
 }
 
 /* ============================================
+   BBS Tab (Berg Balance Scale)
+   ============================================ */
+.bbs-score-card {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
+    color: white;
+    padding: 16px 20px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bbs-total-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.bbs-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.bbs-total {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.bbs-interpret {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.bbs-level {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+}
+
+.bbs-fall-risk {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.bbs-count {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.bbs-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.legend-row {
+    display: flex;
+    justify-content: space-around;
+}
+
+.legend-labels {
+    display: flex;
+    justify-content: space-around;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.bbs-risk-guide {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding-top: 8px;
+    border-top: 1px solid var(--card-grey);
+}
+
+.risk-note {
+    color: #EF4444;
+    font-weight: 500;
+}
+
+.bbs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bbs-item {
+    background: white;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.bbs-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bbs-num {
+    width: 24px;
+    height: 24px;
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.bbs-item-header strong {
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.bbs-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.bbs-btn {
+    flex: 1;
+    height: 40px;
+    border: 2px solid var(--card-grey);
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bbs-btn.selected {
+    color: white;
+    border-color: transparent;
+}
+
+.bbs-btn:active {
+    transform: scale(0.95);
+}
+
+.bbs-desc {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* ============================================
    CDSS Screen
    ============================================ */
 .cdss-header {
