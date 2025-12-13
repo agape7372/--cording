@@ -1752,3 +1752,71 @@ html, body {
     padding-top: 8px;
     border-top: 1px solid #E5E7EB;
 }
+
+/* ============================================
+   Grade Legend Card Styles
+   ============================================ */
+.info-card.legend-card {
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.info-card.legend-card h4 {
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: var(--primary-blue);
+}
+
+.grade-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.grade-legend-grid.mmt {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    background: #F9FAFB;
+    border-radius: 6px;
+}
+
+.legend-badge {
+    min-width: 24px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+    background: #6B7280;
+}
+
+.legend-badge.small {
+    min-width: 22px;
+    height: 18px;
+    font-size: 9px;
+}
+
+.legend-text {
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.2;
+}
+
+@media (max-width: 400px) {
+    .grade-legend-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .grade-legend-grid.mmt {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

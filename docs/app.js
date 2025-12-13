@@ -81,12 +81,12 @@ const CONDITIONS = [
 ];
 
 const MAS_GRADES = [
-    { value: 'G0', label: '0', desc: '정상', color: '#10B981' },
-    { value: 'G1', label: '1', desc: '약간 증가', color: '#34D399' },
-    { value: 'G1+', label: '1+', desc: '걸림', color: '#FBBF24' },
-    { value: 'G2', label: '2', desc: '현저히 증가', color: '#F59E0B' },
-    { value: 'G3', label: '3', desc: '상당히 증가', color: '#EF4444' },
-    { value: 'G4', label: '4', desc: '강직', color: '#DC2626' }
+    { value: 'G0', label: '0', desc: '정상', detail: '근긴장도 증가 없음', color: '#10B981' },
+    { value: 'G1', label: '1', desc: 'ROM 끝 catch', detail: 'ROM 끝에서 걸림(catch) 또는 최소 저항', color: '#34D399' },
+    { value: 'G1+', label: '1+', desc: 'Catch+저항', detail: 'Catch 후 ROM ½ 미만에서 약간의 저항', color: '#FBBF24' },
+    { value: 'G2', label: '2', desc: 'ROM 전반 저항', detail: 'ROM 대부분에서 긴장도↑, 수동운동 가능', color: '#F59E0B' },
+    { value: 'G3', label: '3', desc: '수동운동 곤란', detail: '현저한 긴장도 증가, 수동운동 어려움', color: '#EF4444' },
+    { value: 'G4', label: '4', desc: '강직(Rigid)', detail: '굴곡/신전 고정, 수동운동 불가', color: '#DC2626' }
 ];
 
 const MAS_MUSCLES = [
@@ -449,7 +449,7 @@ function renderMasList() {
                                 <button class="grade-btn-new ${valueR === grade.value ? 'selected' : ''}"
                                         style="${valueR === grade.value ? `background:${grade.color};color:white;` : ''}"
                                         onclick="setMasGrade('${keyR}', '${grade.value}')"
-                                        title="${grade.desc}">${grade.label}</button>
+                                        title="${grade.detail}">${grade.label}</button>
                             `).join('')}
                         </div>
                         <span class="grade-display" style="color:${getGradeColor(valueR)}">${valueR || '-'}</span>
@@ -461,7 +461,7 @@ function renderMasList() {
                                 <button class="grade-btn-new ${valueL === grade.value ? 'selected' : ''}"
                                         style="${valueL === grade.value ? `background:${grade.color};color:white;` : ''}"
                                         onclick="setMasGrade('${keyL}', '${grade.value}')"
-                                        title="${grade.desc}">${grade.label}</button>
+                                        title="${grade.detail}">${grade.label}</button>
                             `).join('')}
                         </div>
                         <span class="grade-display" style="color:${getGradeColor(valueL)}">${valueL || '-'}</span>
@@ -499,18 +499,18 @@ function clearAllMas() {
 // MMT Tab
 // ============================================
 const MMT_GRADE_INFO = {
-    '0': { desc: '근수축 없음', level: 0 },
-    'T': { desc: '미세 수축', level: 1 },
-    'P-': { desc: '중력제거 부분', level: 2 },
-    'P': { desc: '중력제거 완전', level: 3 },
-    'P+': { desc: '중력제거+저항', level: 4 },
-    'F-': { desc: '항중력 부분', level: 5 },
-    'F': { desc: '항중력 완전', level: 6 },
-    'F+': { desc: '항중력+저항', level: 7 },
-    'G-': { desc: '중등도 저항-', level: 8 },
-    'G': { desc: '중등도 저항', level: 9 },
-    'G+': { desc: '중등도 저항+', level: 10 },
-    'N': { desc: '정상', level: 11 }
+    '0': { desc: 'Zero', detail: '근수축 없음 (시진/촉진 불가)', level: 0 },
+    'T': { desc: 'Trace', detail: '촉진 시 수축 감지, 관절움직임 없음', level: 1 },
+    'P-': { desc: 'Poor-', detail: '중력제거 상태에서 부분 ROM', level: 2 },
+    'P': { desc: 'Poor', detail: '중력제거 상태에서 완전 ROM', level: 3 },
+    'P+': { desc: 'Poor+', detail: '중력제거 + 약간의 저항', level: 4 },
+    'F-': { desc: 'Fair-', detail: '중력 저항하여 부분 ROM', level: 5 },
+    'F': { desc: 'Fair', detail: '중력 저항하여 완전 ROM', level: 6 },
+    'F+': { desc: 'Fair+', detail: '중력 + 약간의 저항', level: 7 },
+    'G-': { desc: 'Good-', detail: '중력 + 중등도 저항에서 부분 ROM', level: 8 },
+    'G': { desc: 'Good', detail: '중력 + 중등도 저항에서 완전 ROM', level: 9 },
+    'G+': { desc: 'Good+', detail: '중력 + 중등도 이상 저항', level: 10 },
+    'N': { desc: 'Normal', detail: '중력 + 최대 저항에서 완전 ROM', level: 11 }
 };
 
 function initMmtTab() {
@@ -551,26 +551,26 @@ function renderMmtList() {
                     <div class="side-group">
                         <span class="side-label">우</span>
                         <select class="grade-select" onchange="setMmtGrade('${keyR}', this.value)"
-                                style="border-color:${getColor(valueR)}">
+                                style="border-color:${getColor(valueR)}"
+                                title="${valueR ? MMT_GRADE_INFO[valueR]?.detail : '등급 선택'}">
                             <option value="">-</option>
                             ${MMT_GRADES.map(g => `
-                                <option value="${g}" ${valueR === g ? 'selected' : ''}
-                                        title="${MMT_GRADE_INFO[g]?.desc}">${g}</option>
+                                <option value="${g}" ${valueR === g ? 'selected' : ''}>${g}</option>
                             `).join('')}
                         </select>
-                        <span class="grade-desc">${valueR ? MMT_GRADE_INFO[valueR]?.desc : ''}</span>
+                        <span class="grade-desc">${valueR ? MMT_GRADE_INFO[valueR]?.detail : ''}</span>
                     </div>
                     <div class="side-group">
                         <span class="side-label">좌</span>
                         <select class="grade-select" onchange="setMmtGrade('${keyL}', this.value)"
-                                style="border-color:${getColor(valueL)}">
+                                style="border-color:${getColor(valueL)}"
+                                title="${valueL ? MMT_GRADE_INFO[valueL]?.detail : '등급 선택'}">
                             <option value="">-</option>
                             ${MMT_GRADES.map(g => `
-                                <option value="${g}" ${valueL === g ? 'selected' : ''}
-                                        title="${MMT_GRADE_INFO[g]?.desc}">${g}</option>
+                                <option value="${g}" ${valueL === g ? 'selected' : ''}>${g}</option>
                             `).join('')}
                         </select>
-                        <span class="grade-desc">${valueL ? MMT_GRADE_INFO[valueL]?.desc : ''}</span>
+                        <span class="grade-desc">${valueL ? MMT_GRADE_INFO[valueL]?.detail : ''}</span>
                     </div>
                 </div>
             </div>
