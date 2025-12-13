@@ -138,159 +138,21 @@
 
                 <div class="card">
                     <h3><span class="icon">💊</span> 통증 평가 (VAS)</h3>
-                    <p class="hint">신체 부위를 탭한 후 통증 강도를 설정하세요</p>
+                    <p class="hint">이미지를 탭하여 통증 부위에 마커를 추가하세요</p>
 
-                    <div class="body-views">
-                        <div class="body-view-item">
-                            <span class="view-label">앞면</span>
-                            <svg id="body-front" viewBox="0 0 180 400" class="body-svg">
-                                <!-- Clean anatomical outline - Front view -->
-                                <g class="body-line-art" fill="none" stroke="#1E293B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <!-- Head -->
-                                    <ellipse cx="90" cy="28" rx="20" ry="24"/>
-                                    <path d="M78,18 Q82,8 90,6 Q98,8 102,18"/>
-                                    <!-- Face details -->
-                                    <path d="M82,24 L84,24 M96,24 L98,24"/>
-                                    <path d="M87,32 Q90,35 93,32"/>
-                                    <!-- Neck -->
-                                    <path d="M82,50 L82,58 M98,50 L98,58"/>
-                                    <!-- Shoulders & Torso -->
-                                    <path d="M82,58 Q70,60 55,65 Q40,70 25,75 L18,78"/>
-                                    <path d="M98,58 Q110,60 125,65 Q140,70 155,75 L162,78"/>
-                                    <!-- Chest outline -->
-                                    <path d="M65,75 Q75,72 90,72 Q105,72 115,75"/>
-                                    <path d="M70,85 Q90,90 110,85"/>
-                                    <!-- Torso sides -->
-                                    <path d="M65,75 L62,130 Q60,145 65,160"/>
-                                    <path d="M115,75 L118,130 Q120,145 115,160"/>
-                                    <!-- Arms -->
-                                    <path d="M18,78 Q12,82 8,95 L5,130 Q3,145 8,160 L15,180"/>
-                                    <path d="M162,78 Q168,82 172,95 L175,130 Q177,145 172,160 L165,180"/>
-                                    <!-- Hands -->
-                                    <path d="M15,180 Q10,185 8,195 Q6,208 12,218 Q18,225 25,222 Q30,218 28,208"/>
-                                    <path d="M165,180 Q170,185 172,195 Q174,208 168,218 Q162,225 155,222 Q150,218 152,208"/>
-                                    <!-- Waist -->
-                                    <path d="M65,160 Q90,165 115,160"/>
-                                    <!-- Hip area -->
-                                    <path d="M65,160 Q55,175 58,195"/>
-                                    <path d="M115,160 Q125,175 122,195"/>
-                                    <path d="M58,195 Q90,200 122,195"/>
-                                    <!-- Legs -->
-                                    <path d="M65,200 L62,270 Q60,285 62,300 L65,360 Q68,375 75,385"/>
-                                    <path d="M85,200 L82,270 Q80,285 82,300 L80,360 Q78,375 75,385"/>
-                                    <path d="M95,200 L98,270 Q100,285 98,300 L100,360 Q102,375 105,385"/>
-                                    <path d="M115,200 L118,270 Q120,285 118,300 L115,360 Q112,375 105,385"/>
-                                    <!-- Feet -->
-                                    <path d="M75,385 Q65,388 60,392 L62,398 L85,398 L85,388"/>
-                                    <path d="M105,385 Q115,388 120,392 L118,398 L95,398 L95,388"/>
-                                    <!-- Anatomical details -->
-                                    <path d="M80,100 Q90,108 100,100" stroke-width="0.8"/>
-                                    <ellipse cx="90" cy="140" rx="8" ry="6" stroke-width="0.8"/>
-                                </g>
-                                <!-- Invisible clickable regions -->
-                                <ellipse cx="90" cy="28" rx="22" ry="26" class="body-part" data-part="머리"/>
-                                <rect x="78" y="52" width="24" height="18" class="body-part" data-part="목"/>
-                                <ellipse cx="45" cy="72" rx="20" ry="12" class="body-part" data-part="우측 어깨"/>
-                                <ellipse cx="135" cy="72" rx="20" ry="12" class="body-part" data-part="좌측 어깨"/>
-                                <path d="M62,70 L118,70 L118,100 L62,100 Z" class="body-part" data-part="가슴"/>
-                                <rect x="5" y="78" width="20" height="50" class="body-part" data-part="우측 상완"/>
-                                <rect x="155" y="78" width="20" height="50" class="body-part" data-part="좌측 상완"/>
-                                <ellipse cx="10" cy="140" rx="12" ry="15" class="body-part" data-part="우측 팔꿈치"/>
-                                <ellipse cx="170" cy="140" rx="12" ry="15" class="body-part" data-part="좌측 팔꿈치"/>
-                                <rect x="3" y="150" width="18" height="35" class="body-part" data-part="우측 전완"/>
-                                <rect x="160" y="150" width="18" height="35" class="body-part" data-part="좌측 전완"/>
-                                <ellipse cx="18" cy="205" rx="15" ry="20" class="body-part" data-part="우측 손"/>
-                                <ellipse cx="162" cy="205" rx="15" ry="20" class="body-part" data-part="좌측 손"/>
-                                <path d="M62,102 L118,102 L115,145 L65,145 Z" class="body-part" data-part="복부"/>
-                                <path d="M65,148 L115,148 L118,195 L62,195 Z" class="body-part" data-part="골반"/>
-                                <path d="M60,200 L88,200 L85,280 L62,280 Z" class="body-part" data-part="우측 대퇴"/>
-                                <path d="M92,200 L120,200 L118,280 L95,280 Z" class="body-part" data-part="좌측 대퇴"/>
-                                <ellipse cx="73" cy="295" rx="15" ry="20" class="body-part" data-part="우측 무릎"/>
-                                <ellipse cx="107" cy="295" rx="15" ry="20" class="body-part" data-part="좌측 무릎"/>
-                                <path d="M60,310 L86,310 L82,365 L65,365 Z" class="body-part" data-part="우측 하퇴"/>
-                                <path d="M94,310 L120,310 L115,365 L98,365 Z" class="body-part" data-part="좌측 하퇴"/>
-                                <path d="M58,368 L88,368 L88,400 L58,400 Z" class="body-part" data-part="우측 발"/>
-                                <path d="M92,368 L122,368 L122,400 L92,400 Z" class="body-part" data-part="좌측 발"/>
-                            </svg>
-                        </div>
-                        <div class="body-view-item">
-                            <span class="view-label">뒷면</span>
-                            <svg id="body-back" viewBox="0 0 180 400" class="body-svg">
-                                <!-- Clean anatomical outline - Back view -->
-                                <g class="body-line-art" fill="none" stroke="#1E293B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <!-- Head -->
-                                    <ellipse cx="90" cy="28" rx="20" ry="24"/>
-                                    <path d="M78,20 Q82,10 90,8 Q98,10 102,20"/>
-                                    <!-- Neck -->
-                                    <path d="M82,50 L82,58 M98,50 L98,58"/>
-                                    <!-- Shoulders & Back -->
-                                    <path d="M82,58 Q70,60 55,65 Q40,70 25,75 L18,78"/>
-                                    <path d="M98,58 Q110,60 125,65 Q140,70 155,75 L162,78"/>
-                                    <!-- Back outline -->
-                                    <path d="M65,75 L62,130 Q60,145 65,160"/>
-                                    <path d="M115,75 L118,130 Q120,145 115,160"/>
-                                    <!-- Spine -->
-                                    <path d="M90,58 L90,160" stroke-dasharray="4,3" stroke-width="1"/>
-                                    <!-- Shoulder blades -->
-                                    <path d="M70,85 Q78,95 75,105 Q72,110 68,105" stroke-width="0.8"/>
-                                    <path d="M110,85 Q102,95 105,105 Q108,110 112,105" stroke-width="0.8"/>
-                                    <!-- Arms -->
-                                    <path d="M18,78 Q12,82 8,95 L5,130 Q3,145 8,160 L15,180"/>
-                                    <path d="M162,78 Q168,82 172,95 L175,130 Q177,145 172,160 L165,180"/>
-                                    <!-- Hands -->
-                                    <path d="M15,180 Q10,185 8,195 Q6,208 12,218 Q18,225 25,222 Q30,218 28,208"/>
-                                    <path d="M165,180 Q170,185 172,195 Q174,208 168,218 Q162,225 155,222 Q150,218 152,208"/>
-                                    <!-- Lower back -->
-                                    <path d="M65,160 Q90,165 115,160"/>
-                                    <!-- Buttocks -->
-                                    <path d="M65,160 Q55,175 58,195"/>
-                                    <path d="M115,160 Q125,175 122,195"/>
-                                    <path d="M58,195 Q90,200 122,195"/>
-                                    <path d="M72,175 Q78,190 90,192 Q102,190 108,175" stroke-width="0.8"/>
-                                    <!-- Legs -->
-                                    <path d="M65,200 L62,270 Q60,285 62,300 L65,360 Q68,375 75,385"/>
-                                    <path d="M85,200 L82,270 Q80,285 82,300 L80,360 Q78,375 75,385"/>
-                                    <path d="M95,200 L98,270 Q100,285 98,300 L100,360 Q102,375 105,385"/>
-                                    <path d="M115,200 L118,270 Q120,285 118,300 L115,360 Q112,375 105,385"/>
-                                    <!-- Calves detail -->
-                                    <path d="M68,320 Q73,340 70,355" stroke-width="0.8"/>
-                                    <path d="M112,320 Q107,340 110,355" stroke-width="0.8"/>
-                                    <!-- Feet -->
-                                    <path d="M75,385 Q68,390 70,398 L82,398 L82,388"/>
-                                    <path d="M105,385 Q112,390 110,398 L98,398 L98,388"/>
-                                </g>
-                                <!-- Invisible clickable regions -->
-                                <ellipse cx="90" cy="28" rx="22" ry="26" class="body-part" data-part="머리(후)"/>
-                                <rect x="78" y="52" width="24" height="18" class="body-part" data-part="목(후)"/>
-                                <ellipse cx="45" cy="72" rx="20" ry="12" class="body-part" data-part="우측 어깨(후)"/>
-                                <ellipse cx="135" cy="72" rx="20" ry="12" class="body-part" data-part="좌측 어깨(후)"/>
-                                <path d="M62,70 L118,70 L118,100 L62,100 Z" class="body-part" data-part="등(상부)"/>
-                                <rect x="5" y="78" width="20" height="50" class="body-part" data-part="우측 상완(후)"/>
-                                <rect x="155" y="78" width="20" height="50" class="body-part" data-part="좌측 상완(후)"/>
-                                <ellipse cx="10" cy="140" rx="12" ry="15" class="body-part" data-part="우측 팔꿈치(후)"/>
-                                <ellipse cx="170" cy="140" rx="12" ry="15" class="body-part" data-part="좌측 팔꿈치(후)"/>
-                                <rect x="3" y="150" width="18" height="35" class="body-part" data-part="우측 전완(후)"/>
-                                <rect x="160" y="150" width="18" height="35" class="body-part" data-part="좌측 전완(후)"/>
-                                <ellipse cx="18" cy="205" rx="15" ry="20" class="body-part" data-part="우측 손(후)"/>
-                                <ellipse cx="162" cy="205" rx="15" ry="20" class="body-part" data-part="좌측 손(후)"/>
-                                <path d="M62,102 L118,102 L115,145 L65,145 Z" class="body-part" data-part="허리"/>
-                                <path d="M55,148 L125,148 L125,200 L55,200 Z" class="body-part" data-part="둔부"/>
-                                <path d="M60,202 L88,202 L85,280 L62,280 Z" class="body-part" data-part="우측 햄스트링"/>
-                                <path d="M92,202 L120,202 L118,280 L95,280 Z" class="body-part" data-part="좌측 햄스트링"/>
-                                <ellipse cx="73" cy="295" rx="15" ry="18" class="body-part" data-part="우측 슬와"/>
-                                <ellipse cx="107" cy="295" rx="15" ry="18" class="body-part" data-part="좌측 슬와"/>
-                                <path d="M60,310 L86,310 L82,365 L65,365 Z" class="body-part" data-part="우측 종아리"/>
-                                <path d="M94,310 L120,310 L115,365 L98,365 Z" class="body-part" data-part="좌측 종아리"/>
-                                <ellipse cx="75" cy="392" rx="12" ry="10" class="body-part" data-part="우측 발뒤꿈치"/>
-                                <ellipse cx="105" cy="392" rx="12" ry="10" class="body-part" data-part="좌측 발뒤꿈치"/>
-                            </svg>
-                        </div>
+                    <div class="body-chart-container" id="body-chart-container">
+                        <img src="body-chart.png" alt="Body Chart" class="body-chart-img" id="body-chart-img">
+                        <div class="pain-markers" id="pain-markers"></div>
+                    </div>
+
+                    <div class="marker-controls">
+                        <button class="marker-clear-btn" onclick="clearAllMarkers()">🗑 마커 초기화</button>
                     </div>
 
                     <div class="pain-list-section">
                         <h4>통증 부위 <span id="pain-count" class="pain-count-badge">0</span></h4>
                         <div id="pain-locations">
-                            <p class="empty-hint">신체 부위를 탭하여 추가</p>
+                            <p class="empty-hint">이미지를 탭하여 마커 추가</p>
                         </div>
                     </div>
                 </div>

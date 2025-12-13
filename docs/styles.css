@@ -2220,3 +2220,125 @@ html, body {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ============================================
+   Body Chart - Image-based Pain Marker
+   ============================================ */
+.body-chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--background-grey);
+    touch-action: manipulation;
+}
+
+.body-chart-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.pain-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.pain-marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.pain-marker-dot {
+    width: 100%;
+    height: 100%;
+    background: #EF4444;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+    animation: markerPulse 0.3s ease-out;
+}
+
+.pain-marker.low .pain-marker-dot {
+    background: var(--pain-low);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.5);
+}
+
+.pain-marker.medium .pain-marker-dot {
+    background: #F59E0B;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.5);
+}
+
+.pain-marker.high .pain-marker-dot {
+    background: var(--pain-high);
+    box-shadow: 0 2px 8px rgba(255, 87, 34, 0.5);
+}
+
+.pain-marker-label {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 18px;
+    height: 18px;
+    background: var(--primary-blue);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+@keyframes markerPulse {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.3);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.marker-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.marker-clear-btn {
+    padding: 10px 20px;
+    background: #FEE2E2;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #DC2626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.marker-clear-btn:active {
+    background: #FECACA;
+    transform: scale(0.98);
+}

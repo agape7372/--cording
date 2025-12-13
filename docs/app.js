@@ -296,22 +296,97 @@ function updateComplaintUI() {
 }
 
 // ============================================
-// Body Map & Pain Assessment
+// Body Map & Pain Assessment (Image-based Marker System)
 // ============================================
+let markerIdCounter = 0;
+
 function initBodyMap() {
-    document.querySelectorAll('.body-part').forEach(part => {
-        part.addEventListener('click', () => {
-            const partName = part.getAttribute('data-part');
-            openVasModal(partName);
-        });
-    });
+    const container = document.getElementById('body-chart-container');
+    if (!container) return;
+
+    // Click/Touch event for adding markers
+    container.addEventListener('click', handleBodyChartClick);
+    container.addEventListener('touchend', handleBodyChartTouch);
 }
 
-function openVasModal(partName) {
-    state.currentVasPart = partName;
-    state.currentVasValue = state.painLocations.get(partName) || 0;
+function handleBodyChartClick(e) {
+    // Ignore clicks on existing markers
+    if (e.target.closest('.pain-marker')) return;
 
-    document.getElementById('vas-part-name').textContent = partName;
+    const container = document.getElementById('body-chart-container');
+    const rect = container.getBoundingClientRect();
+
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    addPainMarker(x, y);
+}
+
+function handleBodyChartTouch(e) {
+    // Ignore touches on existing markers
+    if (e.target.closest('.pain-marker')) return;
+
+    e.preventDefault();
+    const container = document.getElementById('body-chart-container');
+    const rect = container.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+    addPainMarker(x, y);
+}
+
+function addPainMarker(x, y) {
+    const markerId = `marker-${++markerIdCounter}`;
+
+    // Store marker data with position
+    state.painLocations.set(markerId, { x, y, vas: 5 });
+    state.currentVasPart = markerId;
+    state.currentVasValue = 5;
+
+    // Render marker and open VAS modal
+    renderPainMarkers();
+    openVasModal(markerId);
+}
+
+function renderPainMarkers() {
+    const markersContainer = document.getElementById('pain-markers');
+    if (!markersContainer) return;
+
+    let html = '';
+    state.painLocations.forEach((data, markerId) => {
+        const level = data.vas <= 3 ? 'low' : data.vas <= 6 ? 'medium' : 'high';
+        html += `
+            <div class="pain-marker ${level}"
+                 id="${markerId}"
+                 style="left: ${data.x}%; top: ${data.y}%;"
+                 onclick="editMarker('${markerId}')">
+                <div class="pain-marker-dot"></div>
+                <span class="pain-marker-label">${data.vas}</span>
+            </div>
+        `;
+    });
+    markersContainer.innerHTML = html;
+
+    updatePainList();
+}
+
+function editMarker(markerId) {
+    const data = state.painLocations.get(markerId);
+    if (!data) return;
+
+    state.currentVasPart = markerId;
+    state.currentVasValue = data.vas;
+    openVasModal(markerId);
+}
+
+function openVasModal(markerId) {
+    const data = state.painLocations.get(markerId);
+    state.currentVasPart = markerId;
+    state.currentVasValue = data ? data.vas : 5;
+
+    document.getElementById('vas-part-name').textContent = `통증 마커 #${markerId.split('-')[1]}`;
     document.getElementById('vas-range').value = state.currentVasValue;
     updateVasValue(state.currentVasValue);
 
@@ -355,21 +430,23 @@ function updateVasValue(value) {
 }
 
 function saveVasPain() {
-    if (state.currentVasValue > 0) {
-        state.painLocations.set(state.currentVasPart, state.currentVasValue);
-    } else {
-        state.painLocations.delete(state.currentVasPart);
+    const markerId = state.currentVasPart;
+    const data = state.painLocations.get(markerId);
+
+    if (data && state.currentVasValue > 0) {
+        data.vas = state.currentVasValue;
+        state.painLocations.set(markerId, data);
+    } else if (state.currentVasValue === 0) {
+        state.painLocations.delete(markerId);
     }
 
-    updatePainList();
-    updateBodyMapColors();
+    renderPainMarkers();
     closeVasModal();
 }
 
 function removeVasPain() {
     state.painLocations.delete(state.currentVasPart);
-    updatePainList();
-    updateBodyMapColors();
+    renderPainMarkers();
     closeVasModal();
 }
 
@@ -384,6 +461,13 @@ document.getElementById('vas-modal')?.addEventListener('click', (e) => {
     }
 });
 
+function clearAllMarkers() {
+    state.painLocations.clear();
+    markerIdCounter = 0;
+    renderPainMarkers();
+    showToast('모든 마커가 초기화되었습니다');
+}
+
 function updatePainList() {
     const container = document.getElementById('pain-locations');
     const countBadge = document.getElementById('pain-count');
@@ -395,46 +479,36 @@ function updatePainList() {
     }
 
     if (state.painLocations.size === 0) {
-        container.innerHTML = '<p class="empty-hint">신체 부위를 탭하여 추가</p>';
+        container.innerHTML = '<p class="empty-hint">이미지를 탭하여 마커 추가</p>';
         return;
     }
 
     let html = '';
-    state.painLocations.forEach((value, part) => {
-        const level = value <= 3 ? 'low' : value <= 6 ? 'medium' : 'high';
+    state.painLocations.forEach((data, markerId) => {
+        const level = data.vas <= 3 ? 'low' : data.vas <= 6 ? 'medium' : 'high';
+        const markerNum = markerId.split('-')[1];
         html += `
-            <div class="pain-item">
+            <div class="pain-item" onclick="editMarker('${markerId}')">
                 <div class="pain-bar ${level}"></div>
                 <div class="pain-item-info">
-                    <strong>${part}</strong>
-                    <small class="${level}">VAS: ${value}/10</small>
+                    <strong>마커 #${markerNum}</strong>
+                    <small class="${level}">VAS: ${data.vas}/10</small>
                 </div>
-                <button class="pain-remove" onclick="removePainItem('${part}')">×</button>
+                <button class="pain-remove" onclick="event.stopPropagation(); removePainItem('${markerId}')">×</button>
             </div>
         `;
     });
     container.innerHTML = html;
 }
 
-function removePainItem(part) {
-    state.painLocations.delete(part);
-    updatePainList();
-    updateBodyMapColors();
+function removePainItem(markerId) {
+    state.painLocations.delete(markerId);
+    renderPainMarkers();
 }
 
 function updateBodyMapColors() {
-    document.querySelectorAll('.body-part').forEach(part => {
-        const partName = part.getAttribute('data-part');
-        const value = state.painLocations.get(partName);
-
-        part.classList.remove('pain-low', 'pain-medium', 'pain-high');
-
-        if (value) {
-            if (value <= 3) part.classList.add('pain-low');
-            else if (value <= 6) part.classList.add('pain-medium');
-            else part.classList.add('pain-high');
-        }
-    });
+    // Legacy function - no longer needed for image-based markers
+    renderPainMarkers();
 }
 
 // ============================================
