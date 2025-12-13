@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 450" style="background:#fff">
+  <!-- Front View -->
+  <g transform="translate(50,20)" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head -->
+    <ellipse cx="75" cy="30" rx="25" ry="30"/>
+    <!-- Neck -->
+    <path d="M65,58 L65,75 M85,58 L85,75"/>
+    <!-- Shoulders & Torso -->
+    <path d="M65,75 Q45,78 20,85 L5,90"/>
+    <path d="M85,75 Q105,78 130,85 L145,90"/>
+    <!-- Chest -->
+    <path d="M45,95 L45,160 Q75,170 105,160 L105,95"/>
+    <!-- Arms -->
+    <path d="M5,90 L-5,140 L0,190 L10,220"/>
+    <path d="M145,90 L155,140 L150,190 L140,220"/>
+    <!-- Hands -->
+    <ellipse cx="10" cy="230" rx="12" ry="18"/>
+    <ellipse cx="140" cy="230" rx="12" ry="18"/>
+    <!-- Waist & Hips -->
+    <path d="M45,160 Q40,180 45,200 L55,210"/>
+    <path d="M105,160 Q110,180 105,200 L95,210"/>
+    <!-- Pelvis -->
+    <path d="M55,210 Q75,220 95,210"/>
+    <!-- Legs -->
+    <path d="M55,210 L50,300 L48,380"/>
+    <path d="M70,215 L68,300 L70,380"/>
+    <path d="M80,215 L82,300 L80,380"/>
+    <path d="M95,210 L100,300 L102,380"/>
+    <!-- Feet -->
+    <ellipse cx="59" cy="395" rx="18" ry="12"/>
+    <ellipse cx="91" cy="395" rx="18" ry="12"/>
+    <!-- Details -->
+    <ellipse cx="75" cy="135" rx="8" ry="6" stroke-width="1"/>
+    <text x="75" y="420" text-anchor="middle" fill="#666" font-size="12" font-family="sans-serif">앞면</text>
+  </g>
+
+  <!-- Back View -->
+  <g transform="translate(250,20)" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Head -->
+    <ellipse cx="75" cy="30" rx="25" ry="30"/>
+    <!-- Neck -->
+    <path d="M65,58 L65,75 M85,58 L85,75"/>
+    <!-- Shoulders & Back -->
+    <path d="M65,75 Q45,78 20,85 L5,90"/>
+    <path d="M85,75 Q105,78 130,85 L145,90"/>
+    <!-- Back outline -->
+    <path d="M45,95 L45,160 Q75,170 105,160 L105,95"/>
+    <!-- Spine -->
+    <path d="M75,75 L75,200" stroke-dasharray="5,3" stroke-width="1"/>
+    <!-- Shoulder blades -->
+    <path d="M55,100 Q60,115 55,125" stroke-width="1"/>
+    <path d="M95,100 Q90,115 95,125" stroke-width="1"/>
+    <!-- Arms -->
+    <path d="M5,90 L-5,140 L0,190 L10,220"/>
+    <path d="M145,90 L155,140 L150,190 L140,220"/>
+    <!-- Hands -->
+    <ellipse cx="10" cy="230" rx="12" ry="18"/>
+    <ellipse cx="140" cy="230" rx="12" ry="18"/>
+    <!-- Lower back & Buttocks -->
+    <path d="M45,160 Q40,180 50,200"/>
+    <path d="M105,160 Q110,180 100,200"/>
+    <path d="M50,200 Q75,215 100,200"/>
+    <path d="M60,185 Q75,200 90,185" stroke-width="1"/>
+    <!-- Legs -->
+    <path d="M55,205 L50,300 L48,380"/>
+    <path d="M70,210 L68,300 L70,380"/>
+    <path d="M80,210 L82,300 L80,380"/>
+    <path d="M95,205 L100,300 L102,380"/>
+    <!-- Calves -->
+    <path d="M55,320 Q58,350 53,370" stroke-width="1"/>
+    <path d="M95,320 Q92,350 97,370" stroke-width="1"/>
+    <!-- Feet -->
+    <ellipse cx="59" cy="395" rx="18" ry="12"/>
+    <ellipse cx="91" cy="395" rx="18" ry="12"/>
+    <text x="75" y="420" text-anchor="middle" fill="#666" font-size="12" font-family="sans-serif">뒷면</text>
+  </g>
+</svg>
