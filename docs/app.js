@@ -588,6 +588,95 @@ function initRomTab() {
     renderRomMovements();
     const firstMov = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint)[0];
     if (firstMov) selectRomMovement(firstMov);
+
+    // Initialize circular dial interaction
+    initDialInteraction();
+}
+
+// Circular dial touch/drag interaction
+function initDialInteraction() {
+    const dialSvg = document.querySelector('.dial-svg');
+    if (!dialSvg) return;
+
+    let isDragging = false;
+
+    const getAngleFromEvent = (e) => {
+        const rect = dialSvg.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+
+        if (angle < 0) angle += 360;
+        if (angle > 360) angle -= 360;
+
+        return angle;
+    };
+
+    const updateFromDial = (e) => {
+        const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
+        if (!movement) return;
+
+        const max = movement.max || 180;
+        let angle = getAngleFromEvent(e);
+
+        // Convert angle to ROM value (0-360 -> 0-max)
+        let value = (angle / 360) * max;
+
+        // Snap to 5-degree increments
+        value = Math.round(value / 5) * 5;
+        value = Math.max(0, Math.min(max, value));
+
+        // Update slider and ROM
+        document.getElementById('rom-slider').value = value;
+        updateRomAngle(value);
+    };
+
+    // Mouse events
+    dialSvg.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateFromDial(e);
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateFromDial(e);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // Touch events
+    dialSvg.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateFromDial(e);
+        e.preventDefault();
+    }, { passive: false });
+
+    dialSvg.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateFromDial(e);
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    dialSvg.addEventListener('touchend', () => {
+        isDragging = false;
+    });
 }
 
 function setRomSide(side) {
@@ -622,8 +711,8 @@ function renderRomMovements() {
         const valueR = state.romValues[keyR];
         const valueL = state.romValues[keyL];
 
-        const displayR = isWnlR ? 'WNL' : (valueR ? `${valueR}°` : '-');
-        const displayL = isWnlL ? 'WNL' : (valueL ? `${valueL}°` : '-');
+        const displayR = isWnlR ? 'Full' : (valueR ? `${valueR}°` : '-');
+        const displayL = isWnlL ? 'Full' : (valueL ? `${valueL}°` : '-');
 
         return `
             <div class="movement-item bilateral ${isActive ? 'active' : ''}"
@@ -696,7 +785,7 @@ function setAllRomWnl() {
     });
     renderRomMovements();
     updateRomCard();
-    showToast('해당 관절 ROM 전체 WNL 설정');
+    showToast('해당 관절 ROM 전체 Full 설정');
 }
 
 function updateRomAngle(value) {
