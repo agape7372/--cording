@@ -789,14 +789,28 @@ function updateRomAngle(value) {
     const key = `${side}.${movement.name}`;
 
     state.romValues[key] = angle;
+
+    // Auto-toggle WNL when reaching max value
+    const min = movement.min;
+    const max = movement.max;
+    if (angle >= max) {
+        state.romWnl[key] = true;
+        // Update WNL button UI
+        const wnlBtn = document.getElementById('rom-wnl-btn');
+        wnlBtn.classList.add('active');
+        wnlBtn.querySelector('.wnl-check').textContent = '✓';
+    } else if (state.romWnl[key]) {
+        state.romWnl[key] = false;
+        // Update WNL button UI
+        const wnlBtn = document.getElementById('rom-wnl-btn');
+        wnlBtn.classList.remove('active');
+        wnlBtn.querySelector('.wnl-check').textContent = '○';
+    }
+
     renderRomMovements();
 
     // Update angle display
     document.getElementById('angle-value').textContent = `${angle}°`;
-
-    // Update dial progress (normalize for negative min values)
-    const min = movement.min;
-    const max = movement.max;
     const range = max - min;
     const normalizedValue = angle - min;
     const progress = range > 0 ? (normalizedValue / range) * 377 : 0;
