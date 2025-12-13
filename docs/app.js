@@ -906,9 +906,6 @@ function initBbsTab() {
     renderBbsList();
 }
 
-// BBS score labels for better readability
-const BBS_SCORE_LABELS = ['불가', '최소', '감독', '거의', '독립'];
-
 function renderBbsList() {
     const container = document.getElementById('bbs-list');
     if (!container) return;
@@ -916,28 +913,30 @@ function renderBbsList() {
     container.innerHTML = BBS_ITEMS.map(item => {
         const value = state.bbsValues[item.id];
         const hasValue = value !== undefined;
-        const scoreColors = ['#DC2626', '#F59E0B', '#EAB308', '#10B981', '#06B6D4'];
 
         return `
             <div class="bbs-item">
                 <div class="bbs-item-header">
                     <span class="bbs-num">${item.id}</span>
                     <strong>${item.name}</strong>
-                    ${hasValue ? `<span class="bbs-score-badge" style="background:${scoreColors[value]}">${value}점</span>` : ''}
+                    ${hasValue ? `<span class="bbs-score-badge">${value}점</span>` : ''}
                 </div>
                 <div class="bbs-buttons">
                     ${[0, 1, 2, 3, 4].map(score => `
-                        <div class="bbs-btn-wrap">
-                            <button class="bbs-btn score-${score} ${value === score ? 'selected' : ''}"
-                                    onclick="setBbsScore(${item.id}, ${score})"
-                                    title="${item.desc[score]}">
-                                ${score}
-                            </button>
-                            <span class="bbs-btn-label">${BBS_SCORE_LABELS[score]}</span>
+                        <button class="bbs-btn ${value === score ? 'selected' : ''}"
+                                onclick="setBbsScore(${item.id}, ${score})">
+                            ${score}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="bbs-desc-list">
+                    ${item.desc.map((desc, idx) => `
+                        <div class="bbs-desc-row ${value === idx ? 'active' : ''}">
+                            <span class="bbs-desc-num">${idx}:</span>
+                            <span>${desc}</span>
                         </div>
                     `).join('')}
                 </div>
-                ${hasValue ? `<div class="bbs-desc">📋 ${item.desc[value]}</div>` : ''}
             </div>
         `;
     }).join('');
