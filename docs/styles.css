@@ -354,40 +354,44 @@ html, body {
     flex-shrink: 0;
 }
 
-/* Age Picker */
-.age-picker {
+/* Age Input */
+.age-input-wrap {
     flex: 1;
     display: flex;
     align-items: center;
     background: var(--card-grey);
     border-radius: 12px;
     height: 56px;
+    padding: 0 16px;
 }
 
-.age-btn {
-    width: 56px;
-    height: 56px;
+.age-input {
+    flex: 1;
     background: none;
     border: none;
-    font-size: 28px;
-    color: var(--primary-blue);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.age-btn:active {
-    background: rgba(46, 92, 255, 0.1);
-    border-radius: 12px;
-}
-
-.age-value {
-    flex: 1;
-    text-align: center;
     font-size: 22px;
     font-weight: 700;
     color: var(--primary-blue);
+    text-align: center;
+    width: 60px;
+    -moz-appearance: textfield;
+}
+
+.age-input::-webkit-outer-spin-button,
+.age-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.age-input:focus {
+    outline: none;
+}
+
+.age-unit {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-left: 4px;
 }
 
 /* Gender Picker */
@@ -964,6 +968,44 @@ html, body {
 
 .movement-item.active .mov-value {
     color: var(--primary-blue);
+}
+
+/* ROM Bilateral Values */
+.movement-item.bilateral {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.movement-item.bilateral .mov-name {
+    text-align: left;
+}
+
+.mov-values {
+    display: flex;
+    gap: 8px;
+}
+
+.mov-val {
+    flex: 1;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #F3F4F6;
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.mov-val.current {
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.mov-val.wnl {
+    background: var(--mint-green-light);
+    color: var(--mint-green-dark);
 }
 
 .rom-card {

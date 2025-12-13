@@ -107,10 +107,12 @@
                     <h3><span class="icon">👤</span> 환자 정보</h3>
                     <div class="form-row">
                         <label>나이</label>
-                        <div class="age-picker">
-                            <button class="age-btn" onclick="changeAge(-1)">−</button>
-                            <span id="age-value" class="age-value">50세</span>
-                            <button class="age-btn" onclick="changeAge(1)">+</button>
+                        <div class="age-input-wrap">
+                            <input type="number" id="age-input" class="age-input"
+                                   value="50" min="1" max="120"
+                                   oninput="updateAge(this.value)"
+                                   inputmode="numeric" pattern="[0-9]*">
+                            <span class="age-unit">세</span>
                         </div>
                     </div>
                     <div class="form-row">

@@ -188,9 +188,10 @@ function navigateTo(screen) {
 // ============================================
 // Patient Information
 // ============================================
-function changeAge(delta) {
-    state.age = Math.max(0, Math.min(120, state.age + delta));
-    document.getElementById('age-value').textContent = `${state.age}세`;
+function updateAge(value) {
+    const age = parseInt(value) || 0;
+    state.age = Math.max(1, Math.min(120, age));
+    document.getElementById('age-input').value = state.age;
 }
 
 function setGender(gender) {
@@ -611,21 +612,29 @@ function selectRomJoint(joint) {
 
 function renderRomMovements() {
     const container = document.getElementById('rom-movement-list');
-    const side = state.romSide;
     const movements = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint);
 
     container.innerHTML = movements.map(mov => {
-        const key = `${side}.${mov.name}`;
+        const keyR = `R.${mov.name}`;
+        const keyL = `L.${mov.name}`;
         const isActive = state.currentRomMovement === mov.name;
-        const isWnl = state.romWnl[key];
-        const value = state.romValues[key];
-        const displayValue = isWnl ? 'WNL' : (value ? `${value}°` : '-');
+
+        const isWnlR = state.romWnl[keyR];
+        const isWnlL = state.romWnl[keyL];
+        const valueR = state.romValues[keyR];
+        const valueL = state.romValues[keyL];
+
+        const displayR = isWnlR ? 'WNL' : (valueR ? `${valueR}°` : '-');
+        const displayL = isWnlL ? 'WNL' : (valueL ? `${valueL}°` : '-');
 
         return `
-            <div class="movement-item ${isActive ? 'active' : ''} ${isWnl ? 'wnl' : ''}"
+            <div class="movement-item bilateral ${isActive ? 'active' : ''}"
                  onclick="selectRomMovement(ROM_MOVEMENTS.find(m => m.name === '${mov.name}'))">
                 <span class="mov-name">${mov.short}</span>
-                <span class="mov-value">${displayValue}</span>
+                <div class="mov-values">
+                    <span class="mov-val ${isWnlR ? 'wnl' : ''} ${state.romSide === 'R' ? 'current' : ''}">우 ${displayR}</span>
+                    <span class="mov-val ${isWnlL ? 'wnl' : ''} ${state.romSide === 'L' ? 'current' : ''}">좌 ${displayL}</span>
+                </div>
             </div>
         `;
     }).join('');
