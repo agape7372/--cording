@@ -164,148 +164,235 @@ html, body {
 }
 
 /* ============================================
-   Home Screen
+   Home Screen - Patient Dashboard
    ============================================ */
-.home-hero {
-    background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
-    color: white;
-    padding: 32px 24px;
-    border-radius: 20px;
-    margin-bottom: 16px;
-    text-align: center;
-}
 
-.home-hero h2 {
-    font-size: 28px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.home-hero p {
-    opacity: 0.8;
-    font-size: 14px;
-}
-
-/* Quick Actions */
-.quick-actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+/* Search Bar */
+.dashboard-search {
+    display: flex;
     gap: 12px;
+    margin-bottom: 20px;
 }
 
-.quick-btn {
-    background: var(--primary-blue-light);
-    border: 2px solid rgba(46, 92, 255, 0.2);
-    border-radius: 16px;
-    padding: 16px 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: 100px;
+.search-input-wrap {
+    flex: 1;
+    position: relative;
 }
 
-.quick-btn:active {
-    transform: scale(0.95);
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
+    pointer-events: none;
 }
 
-.quick-btn.green {
-    background: var(--mint-green-light);
-    border-color: rgba(0, 200, 150, 0.3);
+.search-input {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 15px;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.quick-btn.green .quick-icon,
-.quick-btn.green span:last-child {
-    color: var(--mint-green);
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(46, 92, 255, 0.1);
 }
 
-.quick-btn.orange {
-    background: rgba(255, 152, 0, 0.1);
-    border-color: rgba(255, 152, 0, 0.3);
+.search-input::placeholder {
+    color: #9CA3AF;
 }
 
-.quick-btn.orange .quick-icon,
-.quick-btn.orange span:last-child {
-    color: var(--warning);
-}
-
-.quick-icon {
-    font-size: 28px;
-}
-
-.quick-btn span:last-child {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--primary-blue);
-    line-height: 1.3;
-    text-align: center;
-}
-
-/* Workflow */
-.workflow {
-    padding: 8px 0;
-}
-
-.workflow-step {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 8px 0;
-}
-
-.step-num {
-    width: 36px;
-    height: 36px;
-    background: var(--card-grey);
-    border-radius: 50%;
+.add-patient-btn {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background 0.2s;
     flex-shrink: 0;
 }
 
-.workflow-step.active .step-num {
-    background: var(--primary-blue);
+.add-patient-btn:active {
+    background: var(--primary-blue-dark);
+}
+
+.add-patient-btn svg {
+    width: 24px;
+    height: 24px;
     color: white;
 }
 
-.step-info {
-    flex: 1;
+/* Dashboard Sections */
+.dashboard-section {
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
 }
 
-.step-info strong {
-    display: block;
-    font-size: 16px;
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-header h3 {
+    font-size: 15px;
+    font-weight: 600;
     color: var(--text-primary);
+    margin: 0;
 }
 
-.workflow-step.active .step-info strong {
-    color: var(--primary-blue);
+.section-count {
+    background: var(--primary-blue);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
 }
 
-.step-info small {
+/* Patient List */
+.patient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.patient-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.patient-card:active {
+    background: #F3F4F6;
+    transform: scale(0.99);
+}
+
+.patient-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.patient-meta {
     font-size: 13px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.patient-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.status-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.status-badge.progress {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.status-badge.complete {
+    background: #D1FAE5;
+    color: #059669;
+}
+
+.arrow-icon {
+    width: 20px;
+    height: 20px;
+    color: #9CA3AF;
+}
+
+/* Quick Tools Grid */
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 12px;
+    background: #F9FAFB;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tool-btn:active {
+    background: #F3F4F6;
+    transform: scale(0.98);
+}
+
+.tool-btn svg {
+    width: 28px;
+    height: 28px;
     color: var(--text-secondary);
 }
 
-.step-badge {
-    background: var(--mint-green-light);
-    color: var(--mint-green);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 12px;
+.tool-btn span {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
 }
 
-.workflow-line {
-    width: 2px;
-    height: 20px;
-    background: var(--card-grey);
-    margin-left: 17px;
+.tool-btn.primary {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+}
+
+.tool-btn.primary:active {
+    background: var(--primary-blue-dark);
+}
+
+.tool-btn.primary svg {
+    color: white;
+}
+
+.tool-btn.primary span {
+    color: white;
 }
 
 /* ============================================

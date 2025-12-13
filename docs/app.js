@@ -230,6 +230,23 @@ function navigateTo(screen) {
 }
 
 // ============================================
+// Dashboard Functions
+// ============================================
+function loadPatient(patientId) {
+    // TODO: Load patient data from storage
+    showToast('환자 데이터 불러오기 (개발중)');
+    navigateTo('subjective');
+}
+
+function showHistory() {
+    showToast('평가 기록 (개발중)');
+}
+
+function showSettings() {
+    showToast('설정 (개발중)');
+}
+
+// ============================================
 // Patient Information
 // ============================================
 function updateAge(value) {
