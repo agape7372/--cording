@@ -434,7 +434,7 @@ function renderMasList() {
                 </div>
                 <div class="bilateral-row mas">
                     <div class="side-group mas">
-                        <span class="side-label">우</span>
+                        <span class="side-label">Rt.</span>
                         <div class="grade-buttons mas-grid">
                             ${MAS_GRADES.map(grade => `
                                 <button class="grade-btn-mas ${valueR === grade.value ? 'selected' : ''}"
@@ -444,7 +444,7 @@ function renderMasList() {
                         </div>
                     </div>
                     <div class="side-group mas">
-                        <span class="side-label">좌</span>
+                        <span class="side-label">Lt.</span>
                         <div class="grade-buttons mas-grid">
                             ${MAS_GRADES.map(grade => `
                                 <button class="grade-btn-mas ${valueL === grade.value ? 'selected' : ''}"
@@ -529,7 +529,7 @@ function renderMmtList() {
                 </div>
                 <div class="bilateral-row mmt">
                     <div class="side-group mmt">
-                        <span class="side-label">우</span>
+                        <span class="side-label">Rt.</span>
                         <div class="grade-buttons mmt-grid">
                             ${MMT_GRADES.map(g => `
                                 <button class="grade-btn-mmt ${valueR === g ? 'selected' : ''}"
@@ -539,7 +539,7 @@ function renderMmtList() {
                         </div>
                     </div>
                     <div class="side-group mmt">
-                        <span class="side-label">좌</span>
+                        <span class="side-label">Lt.</span>
                         <div class="grade-buttons mmt-grid">
                             ${MMT_GRADES.map(g => `
                                 <button class="grade-btn-mmt ${valueL === g ? 'selected' : ''}"
@@ -630,8 +630,8 @@ function renderRomMovements() {
                  onclick="selectRomMovement(ROM_MOVEMENTS.find(m => m.name === '${mov.name}'))">
                 <span class="mov-name">${mov.short}</span>
                 <div class="mov-values">
-                    <span class="mov-val ${isWnlR ? 'wnl' : ''} ${state.romSide === 'R' ? 'current' : ''}">우 ${displayR}</span>
-                    <span class="mov-val ${isWnlL ? 'wnl' : ''} ${state.romSide === 'L' ? 'current' : ''}">좌 ${displayL}</span>
+                    <span class="mov-val ${isWnlR ? 'wnl' : ''} ${state.romSide === 'R' ? 'current' : ''}">Rt. ${displayR}</span>
+                    <span class="mov-val ${isWnlL ? 'wnl' : ''} ${state.romSide === 'L' ? 'current' : ''}">Lt. ${displayL}</span>
                 </div>
             </div>
         `;
@@ -647,7 +647,7 @@ function selectRomMovement(movement) {
 function updateRomCard() {
     const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
     const side = state.romSide;
-    const sideLabel = side === 'R' ? '우측' : '좌측';
+    const sideLabel = side === 'R' ? 'Rt.' : 'Lt.';
     const key = `${side}.${movement.name}`;
 
     document.getElementById('rom-movement-title').textContent = `${sideLabel} ${movement.name}`;
