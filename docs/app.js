@@ -128,7 +128,7 @@ const ROM_MOVEMENTS = [
     { name: '손목 굴곡', min: 0, max: 80, joint: 'wrist', type: 'flexion', short: '손목굴곡' },
     { name: '손목 신전', min: 0, max: 70, joint: 'wrist', type: 'extension', short: '손목신전' },
     { name: '고관절 굴곡', min: 0, max: 120, joint: 'hip', type: 'flexion', short: '고관절굴곡' },
-    { name: '고관절 신전', min: 0, max: 30, joint: 'hip', type: 'extension', short: '고관절신전' },
+    { name: '고관절 신전', min: 0, max: 20, joint: 'hip', type: 'extension', short: '고관절신전' },
     { name: '무릎 굴곡', min: 0, max: 135, joint: 'knee', type: 'flexion', short: '무릎굴곡' },
     { name: '무릎 신전', min: 0, max: 0, joint: 'knee', type: 'extension', short: '무릎신전' },
     { name: '발목 배측굴곡', min: 0, max: 20, joint: 'ankle', type: 'dorsiflexion', short: '발목DF' },
@@ -249,15 +249,6 @@ function updateComplaintUI() {
         countEl.textContent = count > 0 ? count : '';
     });
 
-    // Update total count
-    const selectedInfo = document.getElementById('cc-selected');
-    const count = state.selectedComplaints.size;
-    if (count > 0) {
-        selectedInfo.classList.remove('hidden');
-        document.getElementById('cc-count').textContent = count;
-    } else {
-        selectedInfo.classList.add('hidden');
-    }
 }
 
 // ============================================
