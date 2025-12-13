@@ -124,13 +124,13 @@ const ROM_MOVEMENTS = [
     { name: '어깨 신전', min: 0, max: 60, joint: 'shoulder', type: 'extension', short: '어깨신전' },
     { name: '어깨 외전', min: 0, max: 180, joint: 'shoulder', type: 'abduction', short: '어깨외전' },
     { name: '팔꿈치 굴곡', min: 0, max: 150, joint: 'elbow', type: 'flexion', short: '팔꿈치굴곡' },
-    { name: '팔꿈치 신전', min: 0, max: 0, joint: 'elbow', type: 'extension', short: '팔꿈치신전' },
+    { name: '팔꿈치 신전', min: -15, max: 0, joint: 'elbow', type: 'extension', short: '팔꿈치신전' },
     { name: '손목 굴곡', min: 0, max: 80, joint: 'wrist', type: 'flexion', short: '손목굴곡' },
     { name: '손목 신전', min: 0, max: 70, joint: 'wrist', type: 'extension', short: '손목신전' },
     { name: '고관절 굴곡', min: 0, max: 120, joint: 'hip', type: 'flexion', short: '고관절굴곡' },
     { name: '고관절 신전', min: 0, max: 20, joint: 'hip', type: 'extension', short: '고관절신전' },
     { name: '무릎 굴곡', min: 0, max: 135, joint: 'knee', type: 'flexion', short: '무릎굴곡' },
-    { name: '무릎 신전', min: 0, max: 0, joint: 'knee', type: 'extension', short: '무릎신전' },
+    { name: '무릎 신전', min: -10, max: 0, joint: 'knee', type: 'extension', short: '무릎신전' },
     { name: '발목 배측굴곡', min: 0, max: 20, joint: 'ankle', type: 'dorsiflexion', short: '발목DF' },
     { name: '발목 저측굴곡', min: 0, max: 50, joint: 'ankle', type: 'plantarflexion', short: '발목PF' }
 ];
@@ -619,15 +619,17 @@ function initDialInteraction() {
         const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
         if (!movement) return;
 
-        const max = movement.max || 180;
+        const min = movement.min;
+        const max = movement.max;
+        const range = max - min;
         let angle = getAngleFromEvent(e);
 
-        // Convert angle to ROM value (0-360 -> 0-max)
-        let value = (angle / 360) * max;
+        // Convert angle to ROM value (0-360 -> min-max)
+        let value = (angle / 360) * range + min;
 
         // Snap to 5-degree increments
         value = Math.round(value / 5) * 5;
-        value = Math.max(0, Math.min(max, value));
+        value = Math.max(min, Math.min(max, value));
 
         // Update slider and ROM
         document.getElementById('rom-slider').value = value;
@@ -741,8 +743,9 @@ function updateRomCard() {
 
     // Update slider
     const slider = document.getElementById('rom-slider');
-    slider.max = movement.max || 180;
-    slider.value = state.romValues[key] || 0;
+    slider.min = movement.min;
+    slider.max = movement.max;
+    slider.value = state.romValues[key] ?? movement.min;
 
     // Update display
     updateRomAngle(slider.value);
@@ -791,13 +794,16 @@ function updateRomAngle(value) {
     // Update angle display
     document.getElementById('angle-value').textContent = `${angle}°`;
 
-    // Update dial progress
-    const max = movement.max || 180;
-    const progress = (angle / max) * 377;
+    // Update dial progress (normalize for negative min values)
+    const min = movement.min;
+    const max = movement.max;
+    const range = max - min;
+    const normalizedValue = angle - min;
+    const progress = range > 0 ? (normalizedValue / range) * 377 : 0;
     document.getElementById('dial-progress').style.strokeDashoffset = 377 - progress;
 
     // Update dial thumb position
-    const thumbAngle = (angle / max) * 360 - 90;
+    const thumbAngle = range > 0 ? (normalizedValue / range) * 360 - 90 : -90;
     const thumbRad = thumbAngle * Math.PI / 180;
     const thumbX = 75 + 60 * Math.cos(thumbRad);
     const thumbY = 75 + 60 * Math.sin(thumbRad);
