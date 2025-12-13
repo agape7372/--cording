@@ -555,26 +555,27 @@ html, body {
    ============================================ */
 .body-views {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     justify-content: center;
     margin-bottom: 16px;
+    padding: 10px 0;
 }
 
 .body-view-item {
     flex: 1;
-    max-width: 140px;
+    max-width: 160px;
     text-align: center;
 }
 
 .view-label {
-    display: block;
-    font-size: 12px;
+    display: inline-block;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
     margin-bottom: 8px;
-    padding: 4px 12px;
+    padding: 4px 14px;
     background: var(--card-grey);
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 .body-svg {
@@ -583,32 +584,37 @@ html, body {
     display: block;
 }
 
+.body-outline {
+    pointer-events: none;
+}
+
 .body-part {
-    fill: #F1F5F9;
-    stroke: #CBD5E1;
-    stroke-width: 0.8;
+    fill: rgba(241, 245, 249, 0.6);
+    stroke: none;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .body-part:active {
-    fill: var(--primary-blue-light);
-    transform: scale(1.02);
+    fill: rgba(46, 92, 255, 0.3);
 }
 
 .body-part.pain-low {
-    fill: #86EFAC;
+    fill: rgba(34, 197, 94, 0.5);
     stroke: #22C55E;
+    stroke-width: 1;
 }
 
 .body-part.pain-medium {
-    fill: #FDE047;
+    fill: rgba(234, 179, 8, 0.5);
     stroke: #EAB308;
+    stroke-width: 1;
 }
 
 .body-part.pain-high {
-    fill: #FCA5A5;
+    fill: rgba(239, 68, 68, 0.5);
     stroke: #EF4444;
+    stroke-width: 1;
 }
 
 .pain-list-section {
