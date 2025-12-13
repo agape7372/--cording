@@ -520,6 +520,15 @@ function initMmtTab() {
 function renderMmtList() {
     const container = document.getElementById('mmt-list');
 
+    const getColor = (val) => {
+        if (!val) return '#9CA3AF';
+        const level = MMT_GRADE_INFO[val]?.level || 0;
+        if (level >= 9) return '#10B981';
+        if (level >= 6) return '#34D399';
+        if (level >= 3) return '#FBBF24';
+        return '#EF4444';
+    };
+
     container.innerHTML = MMT_MUSCLES.map(muscle => {
         const keyR = `R.${muscle.short}`;
         const keyL = `L.${muscle.short}`;
@@ -532,45 +541,32 @@ function renderMmtList() {
         const diff = Math.abs(levelR - levelL);
         const hasDiff = valueR && valueL && diff >= 3;
 
-        const getColor = (val) => {
-            if (!val) return '#9CA3AF';
-            const level = MMT_GRADE_INFO[val]?.level || 0;
-            if (level >= 9) return '#10B981';
-            if (level >= 6) return '#34D399';
-            if (level >= 3) return '#FBBF24';
-            return '#EF4444';
-        };
-
         return `
             <div class="assessment-item ${hasDiff ? 'has-diff' : ''}">
                 <div class="assessment-item-header">
                     <strong>${muscle.name}</strong>
                     ${hasDiff ? `<span class="diff-badge">⚠️ Δ${diff}단계</span>` : ''}
                 </div>
-                <div class="bilateral-row">
-                    <div class="side-group">
+                <div class="bilateral-row mmt">
+                    <div class="side-group mmt">
                         <span class="side-label">우</span>
-                        <select class="grade-select" onchange="setMmtGrade('${keyR}', this.value)"
-                                style="border-color:${getColor(valueR)}"
-                                title="${valueR ? MMT_GRADE_INFO[valueR]?.detail : '등급 선택'}">
-                            <option value="">-</option>
+                        <div class="grade-buttons mmt-grid">
                             ${MMT_GRADES.map(g => `
-                                <option value="${g}" ${valueR === g ? 'selected' : ''}>${g}</option>
+                                <button class="grade-btn-mmt ${valueR === g ? 'selected' : ''}"
+                                        style="${valueR === g ? `background:${getColor(g)};color:white;border-color:${getColor(g)};` : ''}"
+                                        onclick="setMmtGrade('${keyR}', '${g}')">${g}</button>
                             `).join('')}
-                        </select>
-                        <span class="grade-desc">${valueR ? MMT_GRADE_INFO[valueR]?.detail : ''}</span>
+                        </div>
                     </div>
-                    <div class="side-group">
+                    <div class="side-group mmt">
                         <span class="side-label">좌</span>
-                        <select class="grade-select" onchange="setMmtGrade('${keyL}', this.value)"
-                                style="border-color:${getColor(valueL)}"
-                                title="${valueL ? MMT_GRADE_INFO[valueL]?.detail : '등급 선택'}">
-                            <option value="">-</option>
+                        <div class="grade-buttons mmt-grid">
                             ${MMT_GRADES.map(g => `
-                                <option value="${g}" ${valueL === g ? 'selected' : ''}>${g}</option>
+                                <button class="grade-btn-mmt ${valueL === g ? 'selected' : ''}"
+                                        style="${valueL === g ? `background:${getColor(g)};color:white;border-color:${getColor(g)};` : ''}"
+                                        onclick="setMmtGrade('${keyL}', '${g}')">${g}</button>
                             `).join('')}
-                        </select>
-                        <span class="grade-desc">${valueL ? MMT_GRADE_INFO[valueL]?.detail : ''}</span>
+                        </div>
                     </div>
                 </div>
             </div>
