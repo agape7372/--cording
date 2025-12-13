@@ -749,9 +749,6 @@ function updateRomCard() {
 
     // Update display
     updateRomAngle(slider.value);
-
-    // Show/hide slider container based on WNL
-    document.getElementById('rom-slider-container').style.display = isWnl ? 'none' : 'block';
 }
 
 function toggleRomWnl() {
