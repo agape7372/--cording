@@ -1572,6 +1572,47 @@ html, body {
     white-space: nowrap;
 }
 
+/* MAS Button Grid */
+.bilateral-row.mas {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.side-group.mas {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+}
+
+.grade-buttons.mas-grid {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+}
+
+.grade-btn-mas {
+    flex: 1;
+    height: 36px;
+    border: 2px solid #E5E7EB;
+    border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.grade-btn-mas:active {
+    transform: scale(0.95);
+}
+
+.grade-btn-mas.selected {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    font-weight: 700;
+}
+
 /* MMT Button Grid */
 .bilateral-row.mmt {
     flex-direction: column;

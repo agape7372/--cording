@@ -432,28 +432,26 @@ function renderMasList() {
                 <div class="assessment-item-header">
                     <strong>${muscle.name}</strong>
                 </div>
-                <div class="bilateral-row">
-                    <div class="side-group">
+                <div class="bilateral-row mas">
+                    <div class="side-group mas">
                         <span class="side-label">우</span>
-                        <div class="grade-buttons compact">
+                        <div class="grade-buttons mas-grid">
                             ${MAS_GRADES.map(grade => `
-                                <button class="grade-btn-new ${valueR === grade.value ? 'selected' : ''}"
-                                        style="${valueR === grade.value ? `background:${grade.color};color:white;` : ''}"
+                                <button class="grade-btn-mas ${valueR === grade.value ? 'selected' : ''}"
+                                        style="${valueR === grade.value ? `background:${grade.color};color:white;border-color:${grade.color};` : ''}"
                                         onclick="setMasGrade('${keyR}', '${grade.value}')">${grade.label}</button>
                             `).join('')}
                         </div>
-                        <span class="grade-display" style="color:${getGradeColor(valueR)}">${valueR || '-'}</span>
                     </div>
-                    <div class="side-group">
+                    <div class="side-group mas">
                         <span class="side-label">좌</span>
-                        <div class="grade-buttons compact">
+                        <div class="grade-buttons mas-grid">
                             ${MAS_GRADES.map(grade => `
-                                <button class="grade-btn-new ${valueL === grade.value ? 'selected' : ''}"
-                                        style="${valueL === grade.value ? `background:${grade.color};color:white;` : ''}"
+                                <button class="grade-btn-mas ${valueL === grade.value ? 'selected' : ''}"
+                                        style="${valueL === grade.value ? `background:${grade.color};color:white;border-color:${grade.color};` : ''}"
                                         onclick="setMasGrade('${keyL}', '${grade.value}')">${grade.label}</button>
                             `).join('')}
                         </div>
-                        <span class="grade-display" style="color:${getGradeColor(valueL)}">${valueL || '-'}</span>
                     </div>
                 </div>
             </div>
