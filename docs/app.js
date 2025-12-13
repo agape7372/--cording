@@ -386,9 +386,16 @@ document.getElementById('vas-modal')?.addEventListener('click', (e) => {
 
 function updatePainList() {
     const container = document.getElementById('pain-locations');
+    const countBadge = document.getElementById('pain-count');
+
+    // Update count badge
+    if (countBadge) {
+        countBadge.textContent = state.painLocations.size;
+        countBadge.style.display = state.painLocations.size > 0 ? 'inline' : 'none';
+    }
 
     if (state.painLocations.size === 0) {
-        container.innerHTML = '<p class="empty-hint">신체를 탭하여 추가</p>';
+        container.innerHTML = '<p class="empty-hint">신체 부위를 탭하여 추가</p>';
         return;
     }
 

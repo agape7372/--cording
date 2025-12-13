@@ -551,59 +551,87 @@ html, body {
 }
 
 /* ============================================
-   Body Map (Pain Assessment)
+   Body Map (Pain Assessment) - Front/Back View
    ============================================ */
-.pain-container {
+.body-views {
     display: flex;
-    gap: 16px;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 16px;
 }
 
-.body-map-container {
-    flex: 1.2;
+.body-view-item {
+    flex: 1;
+    max-width: 140px;
+    text-align: center;
 }
 
-.body-map {
+.view-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding: 4px 12px;
+    background: var(--card-grey);
+    border-radius: 12px;
+}
+
+.body-svg {
     width: 100%;
-    max-width: 180px;
-    margin: 0 auto;
+    height: auto;
     display: block;
 }
 
 .body-part {
-    fill: var(--card-grey);
+    fill: #F1F5F9;
     stroke: #CBD5E1;
-    stroke-width: 1;
+    stroke-width: 0.8;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
 }
 
-.body-part:hover {
+.body-part:active {
     fill: var(--primary-blue-light);
+    transform: scale(1.02);
 }
 
 .body-part.pain-low {
-    fill: var(--pain-low);
-    stroke: #388E3C;
+    fill: #86EFAC;
+    stroke: #22C55E;
 }
 
 .body-part.pain-medium {
-    fill: var(--pain-medium);
-    stroke: #F9A825;
+    fill: #FDE047;
+    stroke: #EAB308;
 }
 
 .body-part.pain-high {
-    fill: var(--pain-high);
-    stroke: #D84315;
+    fill: #FCA5A5;
+    stroke: #EF4444;
 }
 
-.pain-list {
-    flex: 1;
+.pain-list-section {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 14px;
 }
 
-.pain-list h4 {
-    font-size: 15px;
+.pain-list-section h4 {
+    font-size: 14px;
     font-weight: 600;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pain-count-badge {
+    background: var(--primary-blue);
+    color: white;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
 }
 
 .empty-hint {
