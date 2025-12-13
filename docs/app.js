@@ -80,7 +80,14 @@ const CONDITIONS = [
     '길랭-바레 증후군', '말초신경병증'
 ];
 
-const MAS_GRADES = ['G0', 'G1', 'G1+', 'G2', 'G3', 'G4'];
+const MAS_GRADES = [
+    { value: 'G0', label: '0', desc: '정상', color: '#10B981' },
+    { value: 'G1', label: '1', desc: '약간 증가', color: '#34D399' },
+    { value: 'G1+', label: '1+', desc: '걸림', color: '#FBBF24' },
+    { value: 'G2', label: '2', desc: '현저히 증가', color: '#F59E0B' },
+    { value: 'G3', label: '3', desc: '상당히 증가', color: '#EF4444' },
+    { value: 'G4', label: '4', desc: '강직', color: '#DC2626' }
+];
 
 const MAS_MUSCLES = [
     { name: '팔꿈치 굴곡근', short: 'E.Flx' },
@@ -405,33 +412,60 @@ function initMasTab() {
     renderMasList();
 }
 
-function setMasSide(side) {
-    state.masSide = side;
-    document.getElementById('mas-side-r').classList.toggle('active', side === 'R');
-    document.getElementById('mas-side-l').classList.toggle('active', side === 'L');
-    renderMasList();
-}
-
 function renderMasList() {
     const container = document.getElementById('mas-list');
-    const side = state.masSide;
-    const sideLabel = side === 'R' ? '우' : '좌';
 
     container.innerHTML = MAS_MUSCLES.map(muscle => {
-        const key = `${side}.${muscle.short}`;
-        const currentValue = state.masValues[key];
+        const keyR = `R.${muscle.short}`;
+        const keyL = `L.${muscle.short}`;
+        const valueR = state.masValues[keyR];
+        const valueL = state.masValues[keyL];
+
+        // 좌우 비교 - 차이 표시
+        const gradeToNum = (g) => {
+            if (!g) return -1;
+            const idx = MAS_GRADES.findIndex(m => m.value === g);
+            return idx >= 0 ? idx : -1;
+        };
+        const diff = Math.abs(gradeToNum(valueR) - gradeToNum(valueL));
+        const hasDiff = valueR && valueL && diff >= 2;
+
+        const getGradeColor = (val) => {
+            const grade = MAS_GRADES.find(g => g.value === val);
+            return grade ? grade.color : '#9CA3AF';
+        };
 
         return `
-            <div class="assessment-item">
+            <div class="assessment-item ${hasDiff ? 'has-diff' : ''}">
                 <div class="assessment-item-header">
-                    <strong>${sideLabel}. ${muscle.name}</strong>
-                    <span>${currentValue || '-'}</span>
+                    <strong>${muscle.name}</strong>
+                    ${hasDiff ? '<span class="diff-badge">⚠️ 좌우차이</span>' : ''}
                 </div>
-                <div class="grade-buttons">
-                    ${MAS_GRADES.map(grade => `
-                        <button class="grade-btn ${currentValue === grade ? 'selected' : ''}"
-                                onclick="setMasGrade('${key}', '${grade}')">${grade}</button>
-                    `).join('')}
+                <div class="bilateral-row">
+                    <div class="side-group">
+                        <span class="side-label">우</span>
+                        <div class="grade-buttons compact">
+                            ${MAS_GRADES.map(grade => `
+                                <button class="grade-btn-new ${valueR === grade.value ? 'selected' : ''}"
+                                        style="${valueR === grade.value ? `background:${grade.color};color:white;` : ''}"
+                                        onclick="setMasGrade('${keyR}', '${grade.value}')"
+                                        title="${grade.desc}">${grade.label}</button>
+                            `).join('')}
+                        </div>
+                        <span class="grade-display" style="color:${getGradeColor(valueR)}">${valueR || '-'}</span>
+                    </div>
+                    <div class="side-group">
+                        <span class="side-label">좌</span>
+                        <div class="grade-buttons compact">
+                            ${MAS_GRADES.map(grade => `
+                                <button class="grade-btn-new ${valueL === grade.value ? 'selected' : ''}"
+                                        style="${valueL === grade.value ? `background:${grade.color};color:white;` : ''}"
+                                        onclick="setMasGrade('${keyL}', '${grade.value}')"
+                                        title="${grade.desc}">${grade.label}</button>
+                            `).join('')}
+                        </div>
+                        <span class="grade-display" style="color:${getGradeColor(valueL)}">${valueL || '-'}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -443,40 +477,101 @@ function setMasGrade(key, grade) {
     renderMasList();
 }
 
+function setAllMasNormal() {
+    MAS_MUSCLES.forEach(muscle => {
+        state.masValues[`R.${muscle.short}`] = 'G0';
+        state.masValues[`L.${muscle.short}`] = 'G0';
+    });
+    renderMasList();
+    showToast('모든 근육이 정상(G0)으로 설정되었습니다');
+}
+
+function clearAllMas() {
+    MAS_MUSCLES.forEach(muscle => {
+        delete state.masValues[`R.${muscle.short}`];
+        delete state.masValues[`L.${muscle.short}`];
+    });
+    renderMasList();
+    showToast('MAS 평가가 초기화되었습니다');
+}
+
 // ============================================
 // MMT Tab
 // ============================================
-function initMmtTab() {
-    renderMmtList();
-}
+const MMT_GRADE_INFO = {
+    '0': { desc: '근수축 없음', level: 0 },
+    'T': { desc: '미세 수축', level: 1 },
+    'P-': { desc: '중력제거 부분', level: 2 },
+    'P': { desc: '중력제거 완전', level: 3 },
+    'P+': { desc: '중력제거+저항', level: 4 },
+    'F-': { desc: '항중력 부분', level: 5 },
+    'F': { desc: '항중력 완전', level: 6 },
+    'F+': { desc: '항중력+저항', level: 7 },
+    'G-': { desc: '중등도 저항-', level: 8 },
+    'G': { desc: '중등도 저항', level: 9 },
+    'G+': { desc: '중등도 저항+', level: 10 },
+    'N': { desc: '정상', level: 11 }
+};
 
-function setMmtSide(side) {
-    state.mmtSide = side;
-    document.getElementById('mmt-side-r').classList.toggle('active', side === 'R');
-    document.getElementById('mmt-side-l').classList.toggle('active', side === 'L');
+function initMmtTab() {
     renderMmtList();
 }
 
 function renderMmtList() {
     const container = document.getElementById('mmt-list');
-    const side = state.mmtSide;
-    const sideLabel = side === 'R' ? '우' : '좌';
 
     container.innerHTML = MMT_MUSCLES.map(muscle => {
-        const key = `${side}.${muscle.short}`;
-        const currentValue = state.mmtValues[key];
+        const keyR = `R.${muscle.short}`;
+        const keyL = `L.${muscle.short}`;
+        const valueR = state.mmtValues[keyR];
+        const valueL = state.mmtValues[keyL];
+
+        // 좌우 비교
+        const levelR = valueR ? MMT_GRADE_INFO[valueR]?.level : -1;
+        const levelL = valueL ? MMT_GRADE_INFO[valueL]?.level : -1;
+        const diff = Math.abs(levelR - levelL);
+        const hasDiff = valueR && valueL && diff >= 3;
+
+        const getColor = (val) => {
+            if (!val) return '#9CA3AF';
+            const level = MMT_GRADE_INFO[val]?.level || 0;
+            if (level >= 9) return '#10B981';
+            if (level >= 6) return '#34D399';
+            if (level >= 3) return '#FBBF24';
+            return '#EF4444';
+        };
 
         return `
-            <div class="assessment-item">
+            <div class="assessment-item ${hasDiff ? 'has-diff' : ''}">
                 <div class="assessment-item-header">
-                    <strong>${sideLabel}. ${muscle.name}</strong>
-                    <span>${currentValue || '-'}</span>
+                    <strong>${muscle.name}</strong>
+                    ${hasDiff ? `<span class="diff-badge">⚠️ Δ${diff}단계</span>` : ''}
                 </div>
-                <div class="grade-buttons">
-                    ${MMT_GRADES.map(grade => `
-                        <button class="grade-btn ${currentValue === grade ? 'selected' : ''}"
-                                onclick="setMmtGrade('${key}', '${grade}')">${grade}</button>
-                    `).join('')}
+                <div class="bilateral-row">
+                    <div class="side-group">
+                        <span class="side-label">우</span>
+                        <select class="grade-select" onchange="setMmtGrade('${keyR}', this.value)"
+                                style="border-color:${getColor(valueR)}">
+                            <option value="">-</option>
+                            ${MMT_GRADES.map(g => `
+                                <option value="${g}" ${valueR === g ? 'selected' : ''}
+                                        title="${MMT_GRADE_INFO[g]?.desc}">${g}</option>
+                            `).join('')}
+                        </select>
+                        <span class="grade-desc">${valueR ? MMT_GRADE_INFO[valueR]?.desc : ''}</span>
+                    </div>
+                    <div class="side-group">
+                        <span class="side-label">좌</span>
+                        <select class="grade-select" onchange="setMmtGrade('${keyL}', this.value)"
+                                style="border-color:${getColor(valueL)}">
+                            <option value="">-</option>
+                            ${MMT_GRADES.map(g => `
+                                <option value="${g}" ${valueL === g ? 'selected' : ''}
+                                        title="${MMT_GRADE_INFO[g]?.desc}">${g}</option>
+                            `).join('')}
+                        </select>
+                        <span class="grade-desc">${valueL ? MMT_GRADE_INFO[valueL]?.desc : ''}</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -484,27 +579,30 @@ function renderMmtList() {
 }
 
 function setMmtGrade(key, grade) {
-    state.mmtValues[key] = grade;
+    if (grade) {
+        state.mmtValues[key] = grade;
+    } else {
+        delete state.mmtValues[key];
+    }
     renderMmtList();
 }
 
 function setAllMmtNormal() {
-    const side = state.mmtSide;
     MMT_MUSCLES.forEach(muscle => {
-        const key = `${side}.${muscle.short}`;
-        state.mmtValues[key] = 'N';
+        state.mmtValues[`R.${muscle.short}`] = 'N';
+        state.mmtValues[`L.${muscle.short}`] = 'N';
     });
     renderMmtList();
     showToast('모든 근육이 정상(N)으로 설정되었습니다');
 }
 
 function clearAllMmt() {
-    const side = state.mmtSide;
     MMT_MUSCLES.forEach(muscle => {
-        const key = `${side}.${muscle.short}`;
-        delete state.mmtValues[key];
+        delete state.mmtValues[`R.${muscle.short}`];
+        delete state.mmtValues[`L.${muscle.short}`];
     });
     renderMmtList();
+    showToast('MMT 평가가 초기화되었습니다');
 }
 
 // ============================================
@@ -703,34 +801,94 @@ function searchCondition(condition) {
         document.getElementById('cdss-result').classList.remove('hidden');
 
         document.getElementById('result-content').innerHTML = `
+<div class="ai-disclaimer">
+    ⚠️ <strong>AI 생성 권고</strong> - 임상적 판단의 보조 자료로만 활용하세요. 최종 결정은 담당 임상의의 책임입니다.
+</div>
+
 <strong>질환: ${condition}</strong>
 
-<strong>1. 근거 기반 중재법 (Grade A-B)</strong>
-• 과제 지향적 훈련: 고강도, 반복적 과제 연습 (근거: 강함)
-• 강제유도 운동치료 (CIMT): 상지 편마비 환자에게 권장
-• 체중 지지 트레드밀 훈련: 보행 재활에 권장
-• 신경발달치료 (NDT/Bobath): 운동조절 및 자세 정렬
+<div class="evidence-section">
+    <div class="evidence-header">
+        <strong>1. 근거 기반 중재법</strong>
+        <span class="evidence-badge grade-a">Level A-B</span>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">과제 지향적 훈련</span>
+        <span class="evidence-level level-a">A</span>
+        <p>고강도, 반복적 과제 연습</p>
+        <cite>출처: Stroke Rehab Guidelines (2023) | Cochrane Review</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">강제유도 운동치료 (CIMT)</span>
+        <span class="evidence-level level-a">A</span>
+        <p>상지 편마비 환자에게 권장</p>
+        <cite>출처: APTA CPG (2022) | RCT 메타분석</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">체중 지지 트레드밀 훈련</span>
+        <span class="evidence-level level-b">B</span>
+        <p>보행 재활에 권장</p>
+        <cite>출처: KSNR Guidelines (2023)</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">신경발달치료 (NDT/Bobath)</span>
+        <span class="evidence-level level-c">C</span>
+        <p>운동조절 및 자세 정렬</p>
+        <cite>출처: Expert Consensus (2021)</cite>
+    </div>
+</div>
 
-<strong>2. 권장 평가 도구</strong>
-• 버그 균형 척도 (BBS): 낙상 위험 평가
-• 기능적 독립성 측정 (FIM): ADL 평가
-• 수정 애쉬워스 척도 (MAS): 경직 등급
-• 10m 보행 검사: 보행 속도 평가
+<div class="evidence-section">
+    <strong>2. 권장 평가 도구</strong>
+    <div class="tool-grid">
+        <div class="tool-item">
+            <span class="tool-name">BBS</span>
+            <span class="tool-desc">균형/낙상위험</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">FIM</span>
+            <span class="tool-desc">ADL 독립성</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">MAS</span>
+            <span class="tool-desc">경직 평가</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">10mWT</span>
+            <span class="tool-desc">보행 속도</span>
+        </div>
+    </div>
+</div>
 
-<strong>3. 치료 빈도 가이드라인</strong>
-• 급성기: 1-2회/일, 주 5-7일
-• 아급성기: 1회/일, 주 5일
-• 만성기: 주 2-3회, 유지 치료
+<div class="evidence-section">
+    <strong>3. 치료 빈도 가이드라인</strong>
+    <table class="freq-table">
+        <tr><th>단계</th><th>빈도</th><th>근거</th></tr>
+        <tr><td>급성기</td><td>1-2회/일, 주 5-7일</td><td>Level A</td></tr>
+        <tr><td>아급성기</td><td>1회/일, 주 5일</td><td>Level B</td></tr>
+        <tr><td>만성기</td><td>주 2-3회</td><td>Level C</td></tr>
+    </table>
+</div>
 
-<strong>4. 주요 주의사항</strong>
-• 활동 중 활력징후 모니터링
-• 기립성 저혈압 평가
-• 수동 ROM 시 관절 보호
-• 감각 장애 환자 피부 상태 확인
+<div class="evidence-section warning">
+    <strong>4. 주의사항</strong>
+    <ul>
+        <li>활동 중 활력징후 모니터링</li>
+        <li>기립성 저혈압 평가</li>
+        <li>수동 ROM 시 관절 보호</li>
+        <li>감각 장애 환자 피부 상태 확인</li>
+    </ul>
+</div>
 
-<strong>참고문헌:</strong>
-- 뇌졸중 재활 임상 가이드라인 (2023)
-- Cochrane Systematic Review: 물리치료 중재
+<div class="references">
+    <strong>📚 참고문헌</strong>
+    <ol>
+        <li>대한뇌신경재활학회. 뇌졸중 재활 임상 가이드라인 4판. 2023.</li>
+        <li>Cochrane Database Syst Rev. Physical therapy interventions. 2023.</li>
+        <li>APTA. Clinical Practice Guideline for Stroke Rehabilitation. 2022.</li>
+    </ol>
+    <p class="ref-note">근거수준: A=강한근거(RCT) B=중등도(대조연구) C=전문가합의</p>
+</div>
 `;
     }, 2000);
 }
@@ -807,7 +965,10 @@ function generateSoapNote() {
    • 치료 빈도: 주 3-5회, 45-60분/회
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-알고PT Pro에서 생성됨
+⚠️ AI 초안 - 최종 임상적 판단 및
+   책임은 담당 치료사에게 있습니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+알고PT Pro | ${new Date().toLocaleDateString('ko-KR')}
 `;
 
     // Scroll to SOAP note
