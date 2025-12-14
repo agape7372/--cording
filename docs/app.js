@@ -3918,7 +3918,7 @@ function restartNeglectTest() {
 function startNeglectTest() {
     const starCount = parseInt(document.getElementById('neglect-star-count').value);
     const timeLimit = parseInt(document.getElementById('neglect-time-limit').value);
-    
+
     neglectState.totalStars = starCount;
     neglectState.timeLimit = timeLimit;
     neglectState.timeRemaining = timeLimit;
@@ -3926,8 +3926,8 @@ function startNeglectTest() {
     neglectState.total = { left: 0, right: 0 };
     neglectState.stars = [];
     neglectState.isRunning = true;
-    
-    document.getElementById('neglect-intro').classList.add('hidden');
+
+    document.getElementById('neglect-intro-star').classList.add('hidden');
     document.getElementById('neglect-test-area').classList.remove('hidden');
     document.getElementById('neglect-result').classList.add('hidden');
     
