@@ -2302,7 +2302,7 @@ function showResultSummary() {
         </div>
     `;
     el.resultSummary.classList.remove('hidden');
-    setDtState('result'); // 결과 상태로 변경
+    setDtState('idle'); // idle 상태로 복귀 (setup 영역 표시)
 }
 
 function evaluatePerformance(taskCount, avgTime, totalSeconds) {
