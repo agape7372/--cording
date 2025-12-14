@@ -1563,21 +1563,24 @@ function showStopwatchResult() {
         el.interpretation.className = 'result-interpretation ' + interpClass;
         el.result.classList.remove('hidden');
     } else if (stopwatchState.mode === 'tug') {
-        // TUG 결과 해석 추가
+        // TUG 결과 해석 (CDC STEADI, Shumway-Cook 2000 근거)
         el.gaitSpeed.textContent = seconds.toFixed(2);
 
         let interpretation, interpClass;
         if (seconds < 10) {
-            interpretation = '독립적 이동 가능 (<10초)';
+            interpretation = '정상 - 독립적 이동 (<10초)';
             interpClass = 'good';
-        } else if (seconds < 14) {
-            interpretation = '낙상 위험 낮음 (10-14초)';
+        } else if (seconds < 12) {
+            interpretation = '정상 범위 (10-12초)';
             interpClass = 'moderate';
-        } else if (seconds < 20) {
-            interpretation = '낙상 위험 증가 (14-20초)';
+        } else if (seconds < 13.5) {
+            interpretation = '낙상 위험 경계 (≥12초, CDC)';
             interpClass = 'warning';
+        } else if (seconds < 20) {
+            interpretation = '낙상 고위험 (≥13.5초)';
+            interpClass = 'poor';
         } else {
-            interpretation = '높은 낙상 위험 (≥20초)';
+            interpretation = '심각한 이동 제한 (≥20초)';
             interpClass = 'poor';
         }
         el.interpretation.textContent = interpretation;
@@ -1957,22 +1960,23 @@ function updateCadenceDisplay() {
 }
 
 function updateCadenceInterpretation(spm) {
+    // CADENCE-Adults Study, NHANES 2005-2006 근거
     const el = getCadenceElements();
     if (!el.interpretation) return;
 
     let interpretation, interpClass;
 
-    if (spm >= 110) {
-        interpretation = '정상 보행 속도 (≥110 SPM)';
+    if (spm >= 100) {
+        interpretation = '정상 보행 (≥100 SPM)';
         interpClass = 'good';
-    } else if (spm >= 90) {
-        interpretation = '느린 보행 (90-110 SPM)';
+    } else if (spm >= 80) {
+        interpretation = '느린 보행 / 노인 정상 (80-100 SPM)';
         interpClass = 'moderate';
-    } else if (spm >= 70) {
-        interpretation = '보행 장애 의심 (70-90 SPM)';
+    } else if (spm >= 60) {
+        interpretation = '보행 주의 필요 (60-80 SPM)';
         interpClass = 'warning';
     } else if (spm > 0) {
-        interpretation = '심각한 보행 제한 (<70 SPM)';
+        interpretation = '심각한 보행 제한 (<60 SPM)';
         interpClass = 'poor';
     } else {
         interpretation = '탭하여 측정 시작';
