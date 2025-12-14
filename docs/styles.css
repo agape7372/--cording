@@ -6706,7 +6706,7 @@ html, body {
 }
 
 .nav-item.active .nav-icon.soap-letter {
-    color: var(--primary-blue);
+    color: var(--primary-color);
 }
 
 /* ============================================
@@ -7339,13 +7339,13 @@ html, body {
     background: #fecaca;
 }
 
-/* Responsive adjustments for 7 tabs */
+/* Responsive adjustments for 6 tabs */
 @media (max-width: 400px) {
     .bottom-nav.soap-nav .nav-item span:last-child {
         font-size: 9px;
     }
     .nav-icon.soap-letter {
-        font-size: 18px;
+        font-size: 16px;
     }
 }
 
