@@ -147,6 +147,399 @@ html, body {
     font-weight: 600;
 }
 
+/* ============================================
+   Sticky Patient Header - SOAP 탭에서 고정 표시
+   ============================================ */
+.sticky-patient-header {
+    position: sticky;
+    top: 52px;
+    z-index: 99;
+    background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #90CAF9;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.15);
+}
+
+.sticky-patient-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sticky-patient-icon {
+    font-size: 18px;
+}
+
+.sticky-patient-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1565C0;
+}
+
+.sticky-patient-detail {
+    font-size: 13px;
+    color: #42A5F5;
+}
+
+.sticky-progress-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.progress-step {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    background: #CFD8DC;
+    color: #78909C;
+    transition: all 0.3s ease;
+}
+
+.progress-step.done {
+    background: #4CAF50;
+    color: white;
+}
+
+.progress-step.current {
+    background: var(--primary-blue);
+    color: white;
+    box-shadow: 0 0 0 3px rgba(46, 92, 255, 0.3);
+}
+
+.progress-step.pending {
+    background: #E0E0E0;
+    color: #9E9E9E;
+}
+
+.progress-divider {
+    color: #B0BEC5;
+    font-size: 10px;
+}
+
+.sticky-save-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #78909C;
+}
+
+.sticky-save-status .save-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4CAF50;
+}
+
+.sticky-save-status.saving .save-dot {
+    background: #FF9800;
+    animation: pulse 1s infinite;
+}
+
+.sticky-save-status .save-text {
+    white-space: nowrap;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ============================================
+   Case Screen - 환자 케이스 관리
+   ============================================ */
+.case-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.case-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.case-filter-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 4px;
+    background: var(--card-grey);
+    border-radius: 12px;
+}
+
+.filter-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-tab.active {
+    background: white;
+    color: var(--primary-blue);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.case-search {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.case-search .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--text-secondary);
+}
+
+.case-search .search-input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 1px solid var(--card-grey);
+    border-radius: 12px;
+    font-size: 14px;
+    background: white;
+}
+
+.case-patient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Case Patient Card */
+.case-patient-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.case-patient-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.case-patient-card:active {
+    transform: scale(0.98);
+}
+
+.case-patient-card.selected {
+    border-color: var(--primary-blue);
+    background: linear-gradient(135deg, #F3F4FF 0%, #FFFFFF 100%);
+}
+
+.case-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.case-patient-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+}
+
+.case-patient-avatar.male {
+    background: linear-gradient(135deg, #42A5F5 0%, #1976D2 100%);
+}
+
+.case-patient-avatar.female {
+    background: linear-gradient(135deg, #F48FB1 0%, #E91E63 100%);
+}
+
+.case-patient-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.case-patient-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.case-patient-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.case-status-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.case-status-badge.waiting {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.case-status-badge.ing {
+    background: #E3F2FD;
+    color: #1565C0;
+}
+
+.case-status-badge.done {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.case-patient-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.case-patient-dx {
+    font-size: 13px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.case-card-menu {
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.case-card-menu:hover {
+    background: var(--card-grey);
+}
+
+/* SOAP Progress Bar in Card */
+.case-soap-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-grey);
+}
+
+.soap-step {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.soap-step-letter {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.soap-step-letter.done {
+    background: #4CAF50;
+    color: white;
+}
+
+.soap-step-letter.ing {
+    background: var(--primary-blue);
+    color: white;
+    animation: stepPulse 2s infinite;
+}
+
+.soap-step-letter.pending {
+    background: #E0E0E0;
+    color: #9E9E9E;
+}
+
+@keyframes stepPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(46, 92, 255, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(46, 92, 255, 0); }
+}
+
+.soap-step-connector {
+    width: 16px;
+    height: 2px;
+    background: #E0E0E0;
+}
+
+.soap-step-connector.done {
+    background: #4CAF50;
+}
+
+.case-last-updated {
+    margin-left: auto;
+    font-size: 11px;
+    color: #9E9E9E;
+}
+
+/* Empty State for Case */
+.case-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-secondary);
+}
+
+.case-empty-state svg {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+
+.case-empty-state p {
+    font-size: 15px;
+    margin-bottom: 16px;
+}
+
+.case-empty-state button {
+    padding: 12px 24px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 /* Screens Container */
 .screens {
     flex: 1;

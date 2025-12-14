@@ -223,47 +223,76 @@ function initApp() {
     // Initialize patient management
     initSamplePatients();
     renderPatientList();
+    renderCaseList();
     loadCurrentPatientFromStorage();
     initPatientFormListeners();
+    initAutoSave();
 }
 
-// Initialize sample patients on first run
+// Initialize sample patients on first run - 새 데이터 모델 적용
 function initSamplePatients() {
     const patients = getPatients();
     if (patients.length === 0) {
         const samplePatients = [
             {
                 id: Date.now().toString() + '1',
-                name: '김철수',
+                name: '홍길동',
                 gender: 'male',
                 age: 65,
-                diagnosis: '뇌졸중 (Lt. hemiplegia)',
+                diagnosis: 'Lt. Hemiplegia (Stroke)',
                 memo: '좌측 편마비, 보행 훈련 중',
-                status: 'progress',
+                status: 'ing', // 'waiting', 'ing', 'done'
+                progress: { S: true, O: true, A: false, P: false },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
                 createdAt: new Date().toISOString()
             },
             {
                 id: Date.now().toString() + '2',
-                name: '박영희',
+                name: '김영희',
                 gender: 'female',
                 age: 72,
-                diagnosis: '파킨슨병',
+                diagnosis: "Parkinson's Disease",
                 memo: '균형 훈련 필요',
-                status: 'complete',
+                status: 'waiting',
+                progress: { S: false, O: false, A: false, P: false },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
                 createdAt: new Date().toISOString()
             },
             {
                 id: Date.now().toString() + '3',
-                name: '이민수',
+                name: '박민수',
                 gender: 'male',
                 age: 45,
-                diagnosis: '요추 추간판 탈출증 (L4-5)',
+                diagnosis: 'LBP (L4-5 HIVD)',
                 memo: '통증 관리 및 코어 강화',
-                status: 'progress',
+                status: 'done',
+                progress: { S: true, O: true, A: true, P: true },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
                 createdAt: new Date().toISOString()
             }
         ];
         savePatients(samplePatients);
+    } else {
+        // 기존 환자에 progress 필드가 없으면 추가
+        let updated = false;
+        patients.forEach(p => {
+            if (!p.progress) {
+                p.progress = { S: false, O: false, A: false, P: false };
+                updated = true;
+            }
+            if (!p.soapData) {
+                p.soapData = { S: {}, O: {}, A: {}, P: {} };
+                updated = true;
+            }
+            if (!p.status) {
+                p.status = 'waiting';
+                updated = true;
+            }
+        });
+        if (updated) savePatients(patients);
     }
 }
 
@@ -299,6 +328,415 @@ function updateCurrentPatientDisplay() {
             patientInfoEl.innerHTML = '';
             patientInfoEl.style.display = 'none';
         }
+    }
+}
+
+// ============================================
+// Case Screen - 환자 케이스 관리
+// ============================================
+let caseFilterStatus = 'all';
+let caseSearchQuery = '';
+
+// Render Case Patient List
+function renderCaseList() {
+    const container = document.getElementById('case-patient-list');
+    if (!container) return;
+
+    let patients = getPatients();
+
+    // Apply status filter
+    if (caseFilterStatus !== 'all') {
+        patients = patients.filter(p => p.status === caseFilterStatus);
+    }
+
+    // Apply search filter
+    if (caseSearchQuery) {
+        const query = caseSearchQuery.toLowerCase();
+        patients = patients.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            (p.diagnosis && p.diagnosis.toLowerCase().includes(query))
+        );
+    }
+
+    if (patients.length === 0) {
+        container.innerHTML = `
+            <div class="case-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>등록된 환자가 없습니다</p>
+                <button onclick="openAddPatientModal()">새 환자 등록</button>
+            </div>
+        `;
+        return;
+    }
+
+    const currentPatientId = state.currentPatient?.id;
+
+    container.innerHTML = patients.map(p => {
+        const statusText = { waiting: '대기', ing: '진행중', done: '완료' };
+        const genderClass = p.gender === 'male' ? 'male' : 'female';
+        const firstName = p.name.charAt(0);
+        const isSelected = p.id === currentPatientId;
+        const lastUpdated = p.lastUpdated ? formatTimeAgo(p.lastUpdated) : '';
+
+        return `
+            <div class="case-patient-card ${isSelected ? 'selected' : ''}" data-id="${p.id}" onclick="selectCasePatient('${p.id}')">
+                <div class="case-card-top">
+                    <div class="case-patient-avatar ${genderClass}">${firstName}</div>
+                    <div class="case-patient-main">
+                        <div class="case-patient-name-row">
+                            <span class="case-patient-name">${p.name}</span>
+                            <span class="case-status-badge ${p.status}">${statusText[p.status] || '대기'}</span>
+                        </div>
+                        <div class="case-patient-info">${p.gender === 'male' ? 'M' : 'F'}/${p.age}세</div>
+                        <div class="case-patient-dx">${p.diagnosis || '진단명 없음'}</div>
+                    </div>
+                    <button class="case-card-menu" onclick="openPatientMenu('${p.id}', event)">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="case-soap-progress">
+                    ${renderSoapProgress(p.progress)}
+                    <span class="case-last-updated">${lastUpdated}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render SOAP Progress indicator
+function renderSoapProgress(progress) {
+    const steps = ['S', 'O', 'A', 'P'];
+    let html = '';
+
+    steps.forEach((step, i) => {
+        const status = progress?.[step] ? 'done' : 'pending';
+        html += `<div class="soap-step">
+            <span class="soap-step-letter ${status}">${step}</span>
+        </div>`;
+        if (i < steps.length - 1) {
+            const connectorDone = progress?.[step] ? 'done' : '';
+            html += `<span class="soap-step-connector ${connectorDone}"></span>`;
+        }
+    });
+
+    return html;
+}
+
+// Format time ago
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+}
+
+// Filter Case by Status
+function filterCaseByStatus(status) {
+    caseFilterStatus = status;
+
+    // Update tab UI
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.includes(
+            status === 'all' ? '전체' :
+            status === 'waiting' ? '대기' :
+            status === 'ing' ? '진행중' : '완료'
+        ));
+    });
+
+    renderCaseList();
+}
+
+// Filter Case Patients by search query
+function filterCasePatients(query) {
+    caseSearchQuery = query;
+    renderCaseList();
+}
+
+// Select Case Patient - 환자 선택 후 S 탭으로 이동
+function selectCasePatient(patientId) {
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+
+    if (!patient) {
+        showToast('환자를 찾을 수 없습니다');
+        return;
+    }
+
+    // Set as current patient
+    state.currentPatient = patient;
+    localStorage.setItem(STORAGE_KEYS.CURRENT_PATIENT, patientId);
+
+    // Update status to 'ing' if waiting
+    if (patient.status === 'waiting') {
+        patient.status = 'ing';
+        patient.lastUpdated = new Date().toISOString();
+        updatePatient(patient);
+    }
+
+    // Update UI
+    updateCurrentPatientDisplay();
+    renderCaseList();
+
+    // Navigate to Subjective screen
+    navigateTo('subjective');
+    showToast(`${patient.name} 환자가 선택되었습니다`);
+}
+
+// ============================================
+// Sticky Patient Header - SOAP 탭에서 고정 표시
+// ============================================
+
+// Update Sticky Header
+function updateStickyHeader(currentScreen) {
+    const header = document.getElementById('sticky-patient-header');
+    if (!header) return;
+
+    const soapScreens = ['subjective', 'objective', 'assessment', 'plan'];
+
+    // Only show on SOAP screens when patient is selected
+    if (!soapScreens.includes(currentScreen) || !state.currentPatient) {
+        header.classList.add('hidden');
+        return;
+    }
+
+    header.classList.remove('hidden');
+
+    const patient = state.currentPatient;
+
+    // Update patient info
+    document.getElementById('sticky-patient-name').textContent = patient.name;
+    document.getElementById('sticky-patient-detail').textContent =
+        `(${patient.gender === 'male' ? 'M' : 'F'}/${patient.age})`;
+
+    // Update progress indicators
+    const screenToStep = {
+        subjective: 'S',
+        objective: 'O',
+        assessment: 'A',
+        plan: 'P'
+    };
+    const currentStep = screenToStep[currentScreen];
+
+    document.querySelectorAll('.progress-step').forEach(step => {
+        const stepName = step.dataset.step;
+        step.classList.remove('done', 'current', 'pending');
+
+        if (patient.progress?.[stepName]) {
+            step.classList.add('done');
+        } else if (stepName === currentStep) {
+            step.classList.add('current');
+        } else {
+            step.classList.add('pending');
+        }
+    });
+}
+
+// Update save status in sticky header
+function updateSaveStatus(saving = false) {
+    const statusEl = document.getElementById('sticky-save-status');
+    if (!statusEl) return;
+
+    if (saving) {
+        statusEl.classList.add('saving');
+        statusEl.querySelector('.save-text').textContent = '저장 중...';
+    } else {
+        statusEl.classList.remove('saving');
+        statusEl.querySelector('.save-text').textContent = '자동 저장됨';
+    }
+}
+
+// ============================================
+// Navigation with Patient Check
+// ============================================
+
+// Navigate to SOAP screen - 환자 선택 여부 확인
+function navigateToSoap(screen) {
+    if (!state.currentPatient) {
+        alert('환자를 먼저 선택해주세요.\n\nCase 탭에서 환자를 선택한 후 평가를 시작할 수 있습니다.');
+        navigateTo('case');
+        return;
+    }
+
+    navigateTo(screen);
+}
+
+// ============================================
+// Auto-save Functionality
+// ============================================
+
+// Initialize auto-save event listeners
+function initAutoSave() {
+    // S Screen - Chief complaints, VAS, etc.
+    document.querySelectorAll('#screen-subjective input, #screen-subjective textarea, #screen-subjective select').forEach(el => {
+        el.addEventListener('blur', () => saveCurrentSoapData('S'));
+    });
+
+    // O Screen - MAS, MMT, ROM, BBS
+    document.querySelectorAll('#screen-objective input, #screen-objective select').forEach(el => {
+        el.addEventListener('change', () => saveCurrentSoapData('O'));
+    });
+}
+
+// Save current SOAP data
+function saveCurrentSoapData(step) {
+    if (!state.currentPatient) return;
+
+    updateSaveStatus(true);
+
+    const patient = state.currentPatient;
+
+    // Collect data based on step
+    switch (step) {
+        case 'S':
+            patient.soapData.S = {
+                age: state.age,
+                gender: state.gender,
+                complaints: Array.from(state.selectedComplaints),
+                painLocations: Array.from(state.painLocations.entries()),
+                timestamp: new Date().toISOString()
+            };
+            // Mark as completed if has any data
+            patient.progress.S = state.selectedComplaints.size > 0 || state.painLocations.size > 0;
+            break;
+
+        case 'O':
+            patient.soapData.O = {
+                masValues: { ...state.masValues },
+                mmtValues: { ...state.mmtValues },
+                romValues: { ...state.romValues },
+                bbsValues: { ...state.bbsValues },
+                timestamp: new Date().toISOString()
+            };
+            // Mark as completed if has any data
+            patient.progress.O = Object.keys(state.masValues).length > 0 ||
+                                 Object.keys(state.mmtValues).length > 0 ||
+                                 Object.keys(state.romValues).length > 0 ||
+                                 Object.keys(state.bbsValues).length > 0;
+            break;
+
+        case 'A':
+            patient.soapData.A = {
+                selectedProblems: [...aiState.selectedProblems],
+                selectedSTGs: [...aiState.selectedSTGs],
+                selectedLTGs: [...aiState.selectedLTGs],
+                timestamp: new Date().toISOString()
+            };
+            patient.progress.A = aiState.selectedProblems.length > 0;
+            break;
+
+        case 'P':
+            patient.soapData.P = {
+                treatmentCart: [...aiState.treatmentCart],
+                selectedHEPs: [...aiState.selectedHEPs],
+                selectedEducation: [...aiState.selectedEducation],
+                selectedPrecautions: [...aiState.selectedPrecautions],
+                schedule: { ...aiState.schedule },
+                timestamp: new Date().toISOString()
+            };
+            patient.progress.P = aiState.treatmentCart.length > 0;
+            break;
+    }
+
+    patient.lastUpdated = new Date().toISOString();
+
+    // Update patient status
+    const allDone = patient.progress.S && patient.progress.O && patient.progress.A && patient.progress.P;
+    if (allDone) {
+        patient.status = 'done';
+    } else if (patient.progress.S || patient.progress.O || patient.progress.A || patient.progress.P) {
+        patient.status = 'ing';
+    }
+
+    // Save to storage
+    updatePatient(patient);
+    state.currentPatient = patient;
+
+    // Update UI
+    setTimeout(() => {
+        updateSaveStatus(false);
+        updateStickyHeader(state.currentScreen);
+        renderCaseList();
+    }, 500);
+}
+
+// Load SOAP data for current patient
+function loadPatientSoapData() {
+    if (!state.currentPatient) return;
+
+    const patient = state.currentPatient;
+
+    // Load S data
+    if (patient.soapData?.S) {
+        const sData = patient.soapData.S;
+        if (sData.age) {
+            state.age = sData.age;
+            const ageInput = document.getElementById('age-input');
+            if (ageInput) ageInput.value = sData.age;
+        }
+        if (sData.gender) {
+            state.gender = sData.gender;
+            setGender(sData.gender);
+        }
+        if (sData.complaints) {
+            state.selectedComplaints = new Set(sData.complaints);
+            // Re-render complaints UI
+        }
+        if (sData.painLocations) {
+            state.painLocations = new Map(sData.painLocations);
+            // Re-render pain markers
+        }
+    }
+
+    // Load O data
+    if (patient.soapData?.O) {
+        const oData = patient.soapData.O;
+        if (oData.masValues) state.masValues = oData.masValues;
+        if (oData.mmtValues) state.mmtValues = oData.mmtValues;
+        if (oData.romValues) state.romValues = oData.romValues;
+        if (oData.bbsValues) state.bbsValues = oData.bbsValues;
+    }
+
+    // Load A data
+    if (patient.soapData?.A) {
+        const aData = patient.soapData.A;
+        if (aData.selectedProblems) aiState.selectedProblems = aData.selectedProblems;
+        if (aData.selectedSTGs) aiState.selectedSTGs = aData.selectedSTGs;
+        if (aData.selectedLTGs) aiState.selectedLTGs = aData.selectedLTGs;
+    }
+
+    // Load P data
+    if (patient.soapData?.P) {
+        const pData = patient.soapData.P;
+        if (pData.treatmentCart) aiState.treatmentCart = pData.treatmentCart;
+        if (pData.selectedHEPs) aiState.selectedHEPs = pData.selectedHEPs;
+        if (pData.selectedEducation) aiState.selectedEducation = pData.selectedEducation;
+        if (pData.selectedPrecautions) aiState.selectedPrecautions = pData.selectedPrecautions;
+        if (pData.schedule) aiState.schedule = pData.schedule;
+    }
+}
+
+// Update patient in storage
+function updatePatient(patient) {
+    const patients = getPatients();
+    const index = patients.findIndex(p => p.id === patient.id);
+    if (index >= 0) {
+        patients[index] = patient;
+        savePatients(patients);
     }
 }
 
@@ -356,15 +794,20 @@ function navigateTo(screen) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
     // Show target screen
-    document.getElementById(`screen-${screen}`).classList.add('active');
+    const screenEl = document.getElementById(`screen-${screen}`);
+    if (screenEl) {
+        screenEl.classList.add('active');
+    }
 
-    // Update nav items
+    // Update nav items (both navigateTo and navigateToSoap)
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     document.querySelector(`.nav-item[onclick="navigateTo('${screen}')"]`)?.classList.add('active');
+    document.querySelector(`.nav-item[onclick="navigateToSoap('${screen}')"]`)?.classList.add('active');
 
     // Update header title
     const titles = {
         home: '알고PT Pro',
+        case: '환자 케이스',
         patients: '환자 관리',
         subjective: 'S: 주관적 평가',
         objective: 'O: 객관적 평가',
@@ -373,6 +816,15 @@ function navigateTo(screen) {
         cdss: 'AI 임상 지원'
     };
     document.getElementById('header-title').textContent = titles[screen] || '알고PT Pro';
+
+    // Update Sticky Patient Header
+    updateStickyHeader(screen);
+
+    // Load patient SOAP data when entering SOAP screens
+    const soapScreens = ['subjective', 'objective', 'assessment', 'plan'];
+    if (soapScreens.includes(screen) && state.currentPatient) {
+        loadPatientSoapData();
+    }
 
     // Update patient banners on Assessment/Plan screens
     if (screen === 'assessment' || screen === 'plan') {
@@ -387,6 +839,11 @@ function navigateTo(screen) {
     // Initialize Plan screen with treatments
     if (screen === 'plan') {
         initPlanScreen();
+    }
+
+    // Re-render Case list when entering Case screen
+    if (screen === 'case') {
+        renderCaseList();
     }
 }
 
