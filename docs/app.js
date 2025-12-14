@@ -2045,17 +2045,35 @@ const CATEGORY_NAMES = {
     jobs: '직업', bodyParts: '신체부위', cities: '도시'
 };
 
-// 확장된 색상
-const COLORS_DISPLAY = [
+// 난이도별 색상 (스트룹 효과)
+const COLORS_EASY = [
     { name: '빨강', color: '#EF4444' },
     { name: '파랑', color: '#3B82F6' },
     { name: '노랑', color: '#EAB308' },
-    { name: '초록', color: '#22C55E' },
+    { name: '초록', color: '#22C55E' }
+];
+
+const COLORS_NORMAL = [
+    ...COLORS_EASY,
     { name: '보라', color: '#8B5CF6' },
     { name: '주황', color: '#F97316' },
     { name: '분홍', color: '#EC4899' },
     { name: '하늘', color: '#06B6D4' }
 ];
+
+const COLORS_HARD = [
+    ...COLORS_NORMAL,
+    { name: '남색', color: '#4F46E5' },
+    { name: '연두', color: '#84CC16' }
+];
+
+// 초성 리스트 (어려움 모드용)
+const CHOSUNG = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+// 난이도별 카테고리
+const CATEGORIES_EASY = ['animals', 'fruits'];
+const CATEGORIES_NORMAL = ['animals', 'fruits', 'foods', 'bodyParts'];
+const CATEGORIES_HARD = ['animals', 'fruits', 'countries', 'foods', 'jobs', 'bodyParts', 'cities'];
 
 // 난이도별 수학 문제 설정
 const MATH_SETTINGS = {
@@ -2087,11 +2105,23 @@ function getDtElements() {
     return dtElements;
 }
 
-// 모드별 가이드 텍스트
+// 모드별 가이드 텍스트 (컴팩트)
 const MODE_GUIDES = {
-    math: '<strong>산수</strong>: 제시된 숫자에서 빼기 (쉬움 -3 / 보통 -7 / 어려움 -13, 덧셈 혼합)',
-    word: '<strong>단어</strong>: 카테고리에 맞는 단어 말하기 (쉬움: 일반 / 보통: 다양 / 어려움: 빠른 전환)',
-    color: '<strong>색깔</strong>: 글자가 아닌 "색깔"을 말하기 (쉬움: 기본색 / 보통: 9색 / 어려움: 크기 변화)'
+    math: {
+        easy: '50에서 -3씩 빼기',
+        normal: '100에서 -7씩 빼기',
+        hard: '150에서 -13 (덧셈 혼합)'
+    },
+    word: {
+        easy: '동물/과일 이름 말하기',
+        normal: '다양한 카테고리 단어',
+        hard: '초성 제한 단어 말하기'
+    },
+    color: {
+        easy: '4색 중 글자색 말하기',
+        normal: '8색 중 글자색 말하기',
+        hard: '10색 + 크기 변화 + 배경'
+    }
 };
 
 function setDtState(state) {
@@ -2105,8 +2135,9 @@ function openDualTask() {
     setDtState('idle');
     resetDualTaskStats();
     updateGuideText();
-    el.prompt.textContent = '▶ 시작';
+    el.prompt.textContent = '준비';
     el.prompt.style.color = '';
+    el.prompt.style.background = '';
     getAudioContext();
 }
 
@@ -2127,8 +2158,9 @@ function setDualTaskMode(mode) {
 
     updateGuideText();
     resetDualTaskStats();
-    el.prompt.textContent = '▶ 시작';
+    el.prompt.textContent = '준비';
     el.prompt.style.color = '';
+    el.prompt.style.background = '';
 }
 
 function setDualTaskDifficulty(difficulty) {
@@ -2148,7 +2180,9 @@ function setDualTaskDifficulty(difficulty) {
 function updateGuideText() {
     const el = getDtElements();
     if (el.guide) {
-        el.guide.innerHTML = MODE_GUIDES[dualTaskState.mode] || MODE_GUIDES.math;
+        const modeGuide = MODE_GUIDES[dualTaskState.mode];
+        const diffGuide = modeGuide ? modeGuide[dualTaskState.difficulty] : '';
+        el.guide.textContent = diffGuide || '';
     }
 }
 
@@ -2220,8 +2254,9 @@ function stopDualTask() {
     el.playBtn.classList.remove('running');
     if (el.nextBtn) el.nextBtn.classList.add('hidden');
     if (el.progress) el.progress.innerHTML = '';
-    el.prompt.textContent = '▶ 시작';
+    el.prompt.textContent = '준비';
     el.prompt.style.color = '';
+    el.prompt.style.background = '';
 
     // TTS 취소
     if (dualTaskState.speechSynthesis) {
@@ -2239,27 +2274,76 @@ function showResultSummary() {
         ? Math.floor((performance.now() - dualTaskState.sessionStartTime) / 1000)
         : 0;
     const avgTime = sessionSeconds > 0 ? (sessionSeconds / dualTaskState.taskCount).toFixed(1) : 0;
+    const tasksPerMin = sessionSeconds > 0 ? ((dualTaskState.taskCount / sessionSeconds) * 60).toFixed(1) : 0;
+
+    // 수행 평가
+    const { rating, feedback, tip } = evaluatePerformance(dualTaskState.taskCount, avgTime, sessionSeconds);
 
     el.resultSummary.innerHTML = `
-        <div class="result-summary-content">
-            <h4>세션 결과</h4>
-            <div class="result-stats">
-                <div class="result-stat">
-                    <span class="result-stat-value">${dualTaskState.taskCount}</span>
-                    <span class="result-stat-label">총 문제</span>
-                </div>
-                <div class="result-stat">
-                    <span class="result-stat-value">${Math.floor(sessionSeconds / 60)}:${(sessionSeconds % 60).toString().padStart(2, '0')}</span>
-                    <span class="result-stat-label">소요 시간</span>
-                </div>
-                <div class="result-stat">
-                    <span class="result-stat-value">${avgTime}초</span>
-                    <span class="result-stat-label">문제당 평균</span>
-                </div>
+        <h4>📊 세션 결과</h4>
+        <div class="result-stats">
+            <div class="result-stat">
+                <span class="result-stat-value">${dualTaskState.taskCount}</span>
+                <span class="result-stat-label">문제 수</span>
             </div>
+            <div class="result-stat">
+                <span class="result-stat-value">${Math.floor(sessionSeconds / 60)}:${(sessionSeconds % 60).toString().padStart(2, '0')}</span>
+                <span class="result-stat-label">시간</span>
+            </div>
+            <div class="result-stat">
+                <span class="result-stat-value">${tasksPerMin}</span>
+                <span class="result-stat-label">분당</span>
+            </div>
+        </div>
+        <div class="result-feedback">
+            <div class="feedback-rating">${rating}</div>
+            <div class="feedback-text">${feedback}</div>
+            <div class="feedback-tip">💡 ${tip}</div>
         </div>
     `;
     el.resultSummary.classList.remove('hidden');
+}
+
+function evaluatePerformance(taskCount, avgTime, totalSeconds) {
+    const difficulty = dualTaskState.difficulty;
+    const mode = dualTaskState.mode;
+
+    // 기본 평가 기준 (난이도별 조정)
+    const diffMultiplier = difficulty === 'easy' ? 1.2 : difficulty === 'hard' ? 0.8 : 1;
+    const adjustedAvg = avgTime / diffMultiplier;
+
+    let rating, feedback, tip;
+
+    if (totalSeconds < 30) {
+        rating = '⏱️';
+        feedback = '더 오래 연습해보세요';
+        tip = '최소 1분 이상 연습을 권장합니다';
+    } else if (adjustedAvg <= 4) {
+        rating = '🌟 우수';
+        feedback = '빠르고 정확한 수행입니다';
+        tip = difficulty !== 'hard' ? '난이도를 높여보세요' : '꾸준히 유지하세요';
+    } else if (adjustedAvg <= 6) {
+        rating = '✅ 양호';
+        feedback = '적절한 속도로 수행했습니다';
+        tip = '반복 연습으로 속도를 높여보세요';
+    } else if (adjustedAvg <= 8) {
+        rating = '📈 보통';
+        feedback = '조금 더 연습이 필요합니다';
+        tip = difficulty !== 'easy' ? '난이도를 낮춰 연습해보세요' : '집중력을 높여보세요';
+    } else {
+        rating = '🔄 연습 필요';
+        feedback = '천천히 시작하세요';
+        tip = '간격을 늘리고 쉬운 난이도로 시작하세요';
+    }
+
+    // 모드별 추가 팁
+    if (mode === 'word' && difficulty === 'hard') {
+        tip = '초성 연상 훈련은 인지 유연성에 도움됩니다';
+    } else if (mode === 'color') {
+        tip = '스트룹 효과 극복은 전두엽 기능 향상에 효과적';
+    }
+
+    return { rating, feedback, tip };
 }
 
 function hideResultSummary() {
@@ -2331,46 +2415,69 @@ function generateTask() {
             break;
 
         case 'word':
-            // 랜덤 카테고리 (중복 방지)
-            const categories = Object.keys(WORD_CATEGORIES);
+            // 난이도별 카테고리 선택
+            const catList = dualTaskState.difficulty === 'easy' ? CATEGORIES_EASY
+                          : dualTaskState.difficulty === 'normal' ? CATEGORIES_NORMAL
+                          : CATEGORIES_HARD;
             let category, categoryName;
             let attempts = 0;
 
             do {
-                category = categories[Math.floor(Math.random() * categories.length)];
+                category = catList[Math.floor(Math.random() * catList.length)];
                 categoryName = CATEGORY_NAMES[category];
                 attempts++;
-            } while (dualTaskState.usedPrompts.has(category) && attempts < categories.length);
+            } while (dualTaskState.usedPrompts.has(category) && attempts < catList.length);
 
             dualTaskState.usedPrompts.add(category);
-            if (dualTaskState.usedPrompts.size >= categories.length) {
+            if (dualTaskState.usedPrompts.size >= catList.length) {
                 dualTaskState.usedPrompts.clear();
             }
 
-            prompt = `"${categoryName}" 말하기`;
-            speechText = `${categoryName} 이름을 말하세요`;
+            // 어려움 모드: 초성 제한 추가
+            if (dualTaskState.difficulty === 'hard') {
+                const chosung = CHOSUNG[Math.floor(Math.random() * CHOSUNG.length)];
+                prompt = `${chosung}으로 시작하는\n"${categoryName}"`;
+                speechText = `${chosung}으로 시작하는 ${categoryName} 이름을 말하세요`;
+            } else {
+                prompt = `"${categoryName}"`;
+                speechText = `${categoryName} 이름을 말하세요`;
+            }
             el.prompt.style.color = '';
-            el.prompt.style.fontSize = '2rem';
+            el.prompt.style.fontSize = dualTaskState.difficulty === 'hard' ? '1.6rem' : '2rem';
+            el.prompt.style.background = '';
             break;
 
         case 'color':
-            // 스트룹 효과 - 더 다양하게
-            const colorInfo = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
+            // 난이도별 색상 선택
+            const colorList = dualTaskState.difficulty === 'easy' ? COLORS_EASY
+                            : dualTaskState.difficulty === 'normal' ? COLORS_NORMAL
+                            : COLORS_HARD;
+            const colorInfo = colorList[Math.floor(Math.random() * colorList.length)];
             let displayColor;
             do {
-                displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
+                displayColor = colorList[Math.floor(Math.random() * colorList.length)];
             } while (displayColor.name === colorInfo.name);
 
             // 난이도에 따라 글자 크기 변화
             const fontSizes = dualTaskState.difficulty === 'hard'
-                ? ['2rem', '2.5rem', '3rem', '1.5rem']
-                : ['2.5rem'];
+                ? ['1.8rem', '2.2rem', '2.8rem', '1.4rem']
+                : ['2.2rem'];
             const fontSize = fontSizes[Math.floor(Math.random() * fontSizes.length)];
 
             prompt = colorInfo.name;
             speechText = `이 글자의 색깔을 말하세요`;
             el.prompt.style.color = displayColor.color;
             el.prompt.style.fontSize = fontSize;
+
+            // 어려움 모드: 배경색 추가로 혼란 가중
+            if (dualTaskState.difficulty === 'hard') {
+                const bgColors = ['rgba(239,68,68,0.15)', 'rgba(59,130,246,0.15)', 'rgba(234,179,8,0.15)', 'rgba(34,197,94,0.15)'];
+                el.prompt.style.background = bgColors[Math.floor(Math.random() * bgColors.length)];
+                el.prompt.style.padding = '8px 16px';
+                el.prompt.style.borderRadius = '8px';
+            } else {
+                el.prompt.style.background = '';
+            }
             break;
     }
 

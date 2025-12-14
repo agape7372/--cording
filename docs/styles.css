@@ -3584,6 +3584,35 @@ html, body {
     opacity: 0.85;
 }
 
+/* 피드백 영역 */
+.result-feedback {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+}
+
+.feedback-rating {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.feedback-text {
+    font-size: 13px;
+    opacity: 0.95;
+    margin-bottom: 6px;
+}
+
+.feedback-tip {
+    font-size: 11px;
+    opacity: 0.8;
+    background: rgba(255,255,255,0.1);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
 /* 상태별 표시/숨김 */
 #dualtask-modal[data-state="running"] .dt-setup {
     display: none;
