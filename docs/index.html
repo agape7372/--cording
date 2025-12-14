@@ -508,7 +508,7 @@
                 </div>
             </section>
 
-            <!-- Assessment Screen (A) -->
+            <!-- Assessment Screen (A) - AI-Driven -->
             <section id="screen-assessment" class="screen">
                 <!-- Current Patient Banner -->
                 <div id="assessment-patient-banner" class="patient-banner">
@@ -518,168 +518,111 @@
                     </div>
                 </div>
 
-                <!-- Problem List / PT Diagnosis -->
-                <div class="card assessment-card">
-                    <div class="card-header-row">
-                        <h3><span class="icon">🔍</span> 문제 목록 / PT 진단</h3>
-                        <button class="info-btn" onclick="showAssessmentGuide('problem')">?</button>
+                <!-- AI Analysis Loading -->
+                <div id="ai-analysis-loading" class="ai-loading-card">
+                    <div class="ai-loading-content">
+                        <div class="ai-loading-spinner"></div>
+                        <p class="ai-loading-text">S/O 데이터를 분석 중입니다...</p>
+                        <p class="ai-loading-sub">AI가 문제점과 목표를 추천합니다</p>
                     </div>
-                    <p class="card-hint">ICF 모델 기반 기능적 문제 및 제한사항</p>
+                </div>
 
-                    <div class="problem-list" id="problem-list">
-                        <div class="problem-item">
-                            <span class="problem-number">1</span>
-                            <input type="text" class="problem-input" placeholder="예: Lt. hemiplegia로 인한 보행 장애" data-problem="1">
-                        </div>
-                        <div class="problem-item">
-                            <span class="problem-number">2</span>
-                            <input type="text" class="problem-input" placeholder="예: 좌측 상지 ROM 제한" data-problem="2">
-                        </div>
-                        <div class="problem-item">
-                            <span class="problem-number">3</span>
-                            <input type="text" class="problem-input" placeholder="예: 균형 능력 저하" data-problem="3">
-                        </div>
+                <!-- AI Detected Problems -->
+                <div id="ai-problems-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="ai-sparkle">✨</span> AI 감지된 문제점</h3>
+                        <span class="ai-badge">AI 분석</span>
                     </div>
-                    <button class="add-item-btn" onclick="addProblemItem()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                    <p class="card-hint">탭하여 선택 · 선택된 항목이 Assessment에 포함됩니다</p>
+
+                    <div class="ai-problem-cards" id="ai-problem-cards">
+                        <!-- AI가 생성한 문제점 카드들 -->
+                    </div>
+
+                    <button class="add-custom-btn" onclick="showCustomProblemInput()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        문제 추가
+                        직접 입력
                     </button>
                 </div>
 
-                <!-- Clinical Reasoning -->
-                <div class="card assessment-card">
+                <!-- AI Recommended STG -->
+                <div id="ai-stg-section" class="card ai-card hidden">
                     <div class="card-header-row">
-                        <h3><span class="icon">💭</span> 임상적 판단</h3>
-                    </div>
-                    <p class="card-hint">S/O 데이터 종합 분석 및 치료 근거</p>
-                    <textarea id="clinical-reasoning" class="assessment-textarea" placeholder="주관적/객관적 평가 결과를 종합하여 임상적 판단을 기술합니다.
-
-예시:
-- 환자의 주호소인 보행 시 통증(VAS 6/10)은 좌측 고관절 굴곡근의 근력 약화(MMT 3/5)와 관련됨
-- ROM 평가 상 고관절 굴곡 85° 제한이 보행 시 stride length 감소의 원인으로 판단
-- BBS 42점으로 낙상 위험 중등도이며, 보행 보조도구 사용 권장"></textarea>
-                </div>
-
-                <!-- Prognosis / Rehab Potential -->
-                <div class="card assessment-card">
-                    <div class="card-header-row">
-                        <h3><span class="icon">📈</span> 예후 및 재활 가능성</h3>
-                    </div>
-                    <div class="prognosis-section">
-                        <div class="prognosis-select-group">
-                            <label>예후</label>
-                            <div class="prognosis-options">
-                                <button class="prognosis-btn" data-value="excellent" onclick="selectPrognosis(this)">우수</button>
-                                <button class="prognosis-btn" data-value="good" onclick="selectPrognosis(this)">양호</button>
-                                <button class="prognosis-btn active" data-value="fair" onclick="selectPrognosis(this)">보통</button>
-                                <button class="prognosis-btn" data-value="guarded" onclick="selectPrognosis(this)">주의</button>
-                                <button class="prognosis-btn" data-value="poor" onclick="selectPrognosis(this)">불량</button>
-                            </div>
-                        </div>
-                        <div class="prognosis-reason">
-                            <label>근거</label>
-                            <input type="text" id="prognosis-reason" class="form-input" placeholder="예: 환자 협조도 양호, 인지기능 정상, 발병 3주 이내">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STG (Short-Term Goals) -->
-                <div class="card assessment-card goals-card">
-                    <div class="card-header-row">
-                        <h3><span class="icon">🎯</span> 단기 목표 (STG)</h3>
+                        <h3><span class="ai-sparkle">✨</span> AI 추천 단기 목표</h3>
                         <span class="goal-period">2-4주</span>
                     </div>
-                    <p class="card-hint">SMART 원칙: 구체적, 측정가능, 달성가능, 관련성, 기한</p>
+                    <p class="card-hint">체크하여 목표 선택 · SMART 원칙 기반</p>
 
-                    <div class="goals-list" id="stg-list">
-                        <div class="goal-item" data-goal="stg-1">
-                            <div class="goal-header">
-                                <span class="goal-label">STG 1</span>
-                                <button class="goal-template-btn" onclick="showGoalTemplates('stg', 1)">템플릿</button>
-                            </div>
-                            <textarea class="goal-textarea" placeholder="예: 환자는 2주 내 보조도구 없이 10m 독립 보행 가능"></textarea>
-                            <div class="goal-meta">
-                                <div class="goal-meta-item">
-                                    <label>목표일</label>
-                                    <input type="date" class="goal-date">
-                                </div>
-                                <div class="goal-meta-item">
-                                    <label>달성률</label>
-                                    <select class="goal-progress">
-                                        <option value="0">0%</option>
-                                        <option value="25">25%</option>
-                                        <option value="50">50%</option>
-                                        <option value="75">75%</option>
-                                        <option value="100">100% (달성)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="ai-goal-list" id="ai-stg-list">
+                        <!-- AI가 생성한 STG 체크박스들 -->
                     </div>
-                    <button class="add-item-btn" onclick="addGoalItem('stg')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+
+                    <button class="add-custom-btn" onclick="showCustomGoalInput('stg')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        단기 목표 추가
+                        직접 입력
                     </button>
                 </div>
 
-                <!-- LTG (Long-Term Goals) -->
-                <div class="card assessment-card goals-card">
+                <!-- AI Recommended LTG -->
+                <div id="ai-ltg-section" class="card ai-card hidden">
                     <div class="card-header-row">
-                        <h3><span class="icon">🏆</span> 장기 목표 (LTG)</h3>
+                        <h3><span class="ai-sparkle">✨</span> AI 추천 장기 목표</h3>
                         <span class="goal-period">1-3개월</span>
                     </div>
-                    <p class="card-hint">퇴원 시 또는 치료 종결 시 달성할 기능적 목표</p>
+                    <p class="card-hint">퇴원 시 달성할 기능적 목표</p>
 
-                    <div class="goals-list" id="ltg-list">
-                        <div class="goal-item" data-goal="ltg-1">
-                            <div class="goal-header">
-                                <span class="goal-label">LTG 1</span>
-                                <button class="goal-template-btn" onclick="showGoalTemplates('ltg', 1)">템플릿</button>
-                            </div>
-                            <textarea class="goal-textarea" placeholder="예: 환자는 3개월 내 지역사회 독립 보행 및 계단 오르내리기 독립 수행"></textarea>
-                            <div class="goal-meta">
-                                <div class="goal-meta-item">
-                                    <label>목표일</label>
-                                    <input type="date" class="goal-date">
-                                </div>
-                                <div class="goal-meta-item">
-                                    <label>달성률</label>
-                                    <select class="goal-progress">
-                                        <option value="0">0%</option>
-                                        <option value="25">25%</option>
-                                        <option value="50">50%</option>
-                                        <option value="75">75%</option>
-                                        <option value="100">100% (달성)</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="ai-goal-list" id="ai-ltg-list">
+                        <!-- AI가 생성한 LTG 체크박스들 -->
                     </div>
-                    <button class="add-item-btn" onclick="addGoalItem('ltg')">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+
+                    <button class="add-custom-btn" onclick="showCustomGoalInput('ltg')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
                             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                         </svg>
-                        장기 목표 추가
+                        직접 입력
                     </button>
                 </div>
 
-                <!-- Quick Summary -->
-                <div class="card assessment-summary">
-                    <h3><span class="icon">📋</span> Assessment 요약</h3>
-                    <div id="assessment-summary-content" class="summary-content">
-                        <p class="summary-empty">문제 목록과 목표를 입력하면 자동 요약됩니다</p>
+                <!-- Prognosis (Keep simple) -->
+                <div id="ai-prognosis-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📈</span> 예후</h3>
+                        <span id="ai-prognosis-recommend" class="ai-recommend-badge"></span>
                     </div>
-                    <button class="primary-btn full-width" onclick="copyAssessmentSummary()">
-                        📋 EMR 복사
-                    </button>
+                    <div class="prognosis-options">
+                        <button class="prognosis-btn" data-value="excellent" onclick="selectPrognosis(this)">우수</button>
+                        <button class="prognosis-btn" data-value="good" onclick="selectPrognosis(this)">양호</button>
+                        <button class="prognosis-btn" data-value="fair" onclick="selectPrognosis(this)">보통</button>
+                        <button class="prognosis-btn" data-value="guarded" onclick="selectPrognosis(this)">주의</button>
+                        <button class="prognosis-btn" data-value="poor" onclick="selectPrognosis(this)">불량</button>
+                    </div>
+                </div>
+
+                <!-- Selected Summary -->
+                <div id="assessment-result" class="card result-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📋</span> 선택된 Assessment</h3>
+                        <span id="selected-count" class="selected-count">0개 선택</span>
+                    </div>
+                    <div id="assessment-summary-content" class="summary-content">
+                        <p class="summary-empty">위에서 항목을 선택해주세요</p>
+                    </div>
+                    <div class="result-actions">
+                        <button class="secondary-btn" onclick="navigateTo('plan')">
+                            P: 치료계획 →
+                        </button>
+                        <button class="primary-btn" onclick="copyAssessmentSummary()">
+                            📋 EMR 복사
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            <!-- Plan Screen (P) -->
+            <!-- Plan Screen (P) - Shopping Cart Style -->
             <section id="screen-plan" class="screen">
                 <!-- Current Patient Banner -->
                 <div id="plan-patient-banner" class="patient-banner">
@@ -689,119 +632,75 @@
                     </div>
                 </div>
 
-                <!-- Treatment Plan -->
-                <div class="card plan-card">
-                    <div class="card-header-row">
-                        <h3><span class="icon">💊</span> 치료 계획</h3>
-                    </div>
-
-                    <!-- Frequency & Duration -->
-                    <div class="plan-frequency">
-                        <div class="frequency-item">
-                            <label>치료 빈도</label>
-                            <div class="frequency-select">
-                                <select id="treatment-frequency">
-                                    <option value="1x/week">주 1회</option>
-                                    <option value="2x/week" selected>주 2회</option>
-                                    <option value="3x/week">주 3회</option>
-                                    <option value="5x/week">주 5회 (매일)</option>
-                                    <option value="custom">직접 입력</option>
-                                </select>
+                <!-- Treatment Schedule (Keep simple) -->
+                <div class="card schedule-card">
+                    <h3><span class="icon">📅</span> 치료 일정</h3>
+                    <div class="schedule-chips">
+                        <div class="schedule-group">
+                            <label>빈도</label>
+                            <div class="schedule-options">
+                                <button class="schedule-chip" data-freq="2x" onclick="selectSchedule(this, 'freq')">주2회</button>
+                                <button class="schedule-chip active" data-freq="3x" onclick="selectSchedule(this, 'freq')">주3회</button>
+                                <button class="schedule-chip" data-freq="5x" onclick="selectSchedule(this, 'freq')">주5회</button>
                             </div>
                         </div>
-                        <div class="frequency-item">
-                            <label>치료 기간</label>
-                            <div class="frequency-select">
-                                <select id="treatment-duration">
-                                    <option value="2weeks">2주</option>
-                                    <option value="4weeks" selected>4주</option>
-                                    <option value="6weeks">6주</option>
-                                    <option value="8weeks">8주</option>
-                                    <option value="12weeks">12주</option>
-                                    <option value="custom">직접 입력</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="frequency-item">
-                            <label>세션 시간</label>
-                            <div class="frequency-select">
-                                <select id="session-duration">
-                                    <option value="20min">20분</option>
-                                    <option value="30min" selected>30분</option>
-                                    <option value="45min">45분</option>
-                                    <option value="60min">60분</option>
-                                </select>
+                        <div class="schedule-group">
+                            <label>기간</label>
+                            <div class="schedule-options">
+                                <button class="schedule-chip" data-dur="2w" onclick="selectSchedule(this, 'dur')">2주</button>
+                                <button class="schedule-chip active" data-dur="4w" onclick="selectSchedule(this, 'dur')">4주</button>
+                                <button class="schedule-chip" data-dur="8w" onclick="selectSchedule(this, 'dur')">8주</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Interventions -->
-                <div class="card plan-card">
+                <!-- AI Recommended Interventions - Carousel -->
+                <div class="card ai-card">
                     <div class="card-header-row">
-                        <h3><span class="icon">🏃</span> 중재 계획</h3>
-                        <button class="info-btn" onclick="showInterventionGuide()">?</button>
+                        <h3><span class="ai-sparkle">✨</span> 추천 치료</h3>
+                        <span class="ai-badge">AI 추천</span>
                     </div>
-                    <p class="card-hint">목표 달성을 위한 구체적인 치료 중재</p>
+                    <p class="card-hint">좌우 스크롤 · [+ 담기] 버튼으로 선택</p>
 
-                    <div class="intervention-list" id="intervention-list">
-                        <div class="intervention-item">
-                            <div class="intervention-header">
-                                <select class="intervention-category">
-                                    <option value="">분류 선택</option>
-                                    <option value="therapeutic-exercise">운동치료</option>
-                                    <option value="manual-therapy">도수치료</option>
-                                    <option value="modality">물리적 인자</option>
-                                    <option value="gait-training">보행훈련</option>
-                                    <option value="balance">균형훈련</option>
-                                    <option value="functional">기능훈련</option>
-                                    <option value="neuromuscular">신경근 재교육</option>
-                                </select>
-                                <button class="remove-btn" onclick="removeIntervention(this)">✕</button>
-                            </div>
-                            <input type="text" class="intervention-input" placeholder="예: Quadriceps strengthening (SLR, mini-squat)">
-                            <div class="intervention-params">
-                                <input type="text" class="param-input" placeholder="세트/횟수 (예: 3x10)">
-                                <input type="text" class="param-input" placeholder="강도 (예: 2kg)">
-                            </div>
-                        </div>
-                    </div>
-                    <button class="add-item-btn" onclick="addInterventionItem()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        중재 추가
-                    </button>
-                </div>
-
-                <!-- Home Exercise Program -->
-                <div class="card plan-card">
-                    <div class="card-header-row">
-                        <h3><span class="icon">🏠</span> 가정 운동 프로그램 (HEP)</h3>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="hep-toggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-
-                    <div id="hep-content">
-                        <div class="hep-list" id="hep-list">
-                            <div class="hep-item">
-                                <input type="text" class="hep-input" placeholder="운동명 (예: 스트레칭)">
-                                <input type="text" class="hep-freq" placeholder="빈도 (예: 하루 3회)">
-                            </div>
-                        </div>
-                        <button class="add-item-btn" onclick="addHepItem()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                            </svg>
-                            운동 추가
-                        </button>
+                    <div class="treatment-carousel" id="treatment-carousel">
+                        <!-- AI가 생성한 치료 카드들 (가로 스크롤) -->
                     </div>
                 </div>
 
-                <!-- Patient Education -->
-                <div class="card plan-card">
+                <!-- My Treatment Cart -->
+                <div class="card cart-card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">🛒</span> 나의 치료 계획</h3>
+                        <span id="cart-count" class="cart-count">0개</span>
+                    </div>
+
+                    <div id="my-treatment-cart" class="treatment-cart">
+                        <div class="cart-empty">
+                            <span class="cart-empty-icon">📋</span>
+                            <p>위에서 치료를 담아주세요</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEP Chips -->
+                <div class="card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">🏠</span> 가정운동 (HEP)</h3>
+                    </div>
+                    <p class="card-hint">탭하여 선택</p>
+                    <div class="hep-chips" id="hep-chips">
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="stretching">스트레칭</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="strengthening">근력운동</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="walking">보행연습</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="balance">균형훈련</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="rom">ROM 운동</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="breathing">호흡운동</button>
+                    </div>
+                </div>
+
+                <!-- Education Chips -->
+                <div class="card">
                     <div class="card-header-row">
                         <h3><span class="icon">📚</span> 환자 교육</h3>
                     </div>
@@ -813,13 +712,12 @@
                         <button class="edu-chip" onclick="toggleEducation(this)" data-edu="energy-conservation">에너지 보존</button>
                         <button class="edu-chip" onclick="toggleEducation(this)" data-edu="joint-protection">관절 보호</button>
                     </div>
-                    <textarea id="education-notes" class="education-textarea" placeholder="추가 교육 내용을 입력하세요..."></textarea>
                 </div>
 
-                <!-- Precautions & Contraindications -->
-                <div class="card plan-card">
+                <!-- Precautions Chips -->
+                <div class="card">
                     <div class="card-header-row">
-                        <h3><span class="icon">⚠️</span> 주의사항 및 금기</h3>
+                        <h3><span class="icon">⚠️</span> 주의사항</h3>
                     </div>
                     <div class="precaution-chips" id="precaution-chips">
                         <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="weight-bearing">체중부하 제한</button>
@@ -828,14 +726,15 @@
                         <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="fall-risk">낙상 위험</button>
                         <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="skin">피부 주의</button>
                     </div>
-                    <input type="text" id="precaution-notes" class="form-input" placeholder="기타 주의사항...">
                 </div>
 
                 <!-- Plan Summary -->
-                <div class="card plan-summary">
-                    <h3><span class="icon">📋</span> Plan 요약</h3>
+                <div class="card result-card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📋</span> Plan 요약</h3>
+                    </div>
                     <div id="plan-summary-content" class="summary-content">
-                        <p class="summary-empty">치료 계획을 입력하면 자동 요약됩니다</p>
+                        <p class="summary-empty">치료를 담으면 자동 요약됩니다</p>
                     </div>
                     <button class="primary-btn full-width" onclick="copyPlanSummary()">
                         📋 EMR 복사
