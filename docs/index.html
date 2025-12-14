@@ -803,88 +803,71 @@
     </div>
 
     <!-- Dual Task Generator Modal -->
-    <div id="dualtask-modal" class="tool-modal hidden">
-        <div class="tool-modal-content">
+    <div id="dualtask-modal" class="tool-modal hidden" data-state="idle">
+        <div class="tool-modal-content dt-content">
             <div class="tool-modal-header">
                 <h2>이중과제 생성기</h2>
                 <button class="close-btn" onclick="closeDualTask()">×</button>
             </div>
-            <!-- 모드 선택 (아이콘 추가) -->
-            <div class="dualtask-mode-selector">
-                <button class="dt-mode-btn active" onclick="setDualTaskMode('math')" id="dt-math">
-                    <span class="mode-icon">🔢</span> 산수
-                </button>
-                <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">
-                    <span class="mode-icon">💬</span> 단어
-                </button>
-                <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">
-                    <span class="mode-icon">🎨</span> 색깔
-                </button>
-            </div>
-            <!-- 모드별 안내 -->
-            <div class="dt-instruction" id="dt-instruction">숫자를 빼거나 더한 결과를 말하세요</div>
-            <!-- 난이도 선택 -->
-            <div class="difficulty-selector">
-                <span class="difficulty-label">난이도:</span>
-                <button class="difficulty-btn" data-difficulty="easy" onclick="setDualTaskDifficulty('easy')">쉬움</button>
-                <button class="difficulty-btn active" data-difficulty="normal" onclick="setDualTaskDifficulty('normal')">보통</button>
-                <button class="difficulty-btn" data-difficulty="hard" onclick="setDualTaskDifficulty('hard')">어려움</button>
-            </div>
-            <!-- 프롬프트 표시 영역 -->
-            <div class="dualtask-display" id="task-prompt-container">
-                <div class="task-prompt" id="task-prompt">시작 버튼을 누르세요</div>
-                <div class="dt-countdown" id="dt-countdown"></div>
-            </div>
-            <!-- 결과 요약 (숨김 상태) -->
-            <div class="dt-result-summary hidden" id="dt-result-summary"></div>
-            <!-- 세션 통계 -->
-            <div class="dualtask-stats">
-                <div class="dt-stat">
-                    <span class="dt-stat-value" id="task-counter">0</span>
-                    <span class="dt-stat-label">문제 수</span>
+
+            <!-- 설정 영역 (idle 상태에서만 표시) -->
+            <div class="dt-setup">
+                <div class="dualtask-mode-selector">
+                    <button class="dt-mode-btn active" onclick="setDualTaskMode('math')" id="dt-math">
+                        🔢 산수
+                    </button>
+                    <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">
+                        💬 단어
+                    </button>
+                    <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">
+                        🎨 색깔
+                    </button>
                 </div>
-                <div class="dt-stat">
-                    <span class="dt-stat-value" id="dt-session-time">0:00</span>
-                    <span class="dt-stat-label">시간</span>
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn" data-difficulty="easy" onclick="setDualTaskDifficulty('easy')">쉬움</button>
+                    <button class="difficulty-btn active" data-difficulty="normal" onclick="setDualTaskDifficulty('normal')">보통</button>
+                    <button class="difficulty-btn" data-difficulty="hard" onclick="setDualTaskDifficulty('hard')">어려움</button>
                 </div>
-            </div>
-            <div class="dualtask-settings">
-                <div class="setting-row">
-                    <label>간격 (초)</label>
-                    <div class="interval-control">
-                        <button onclick="adjustInterval(-1)">-</button>
-                        <span id="interval-value">5</span>
-                        <button onclick="adjustInterval(1)">+</button>
+                <div class="dt-settings-row">
+                    <div class="dt-setting">
+                        <span>간격</span>
+                        <div class="interval-control">
+                            <button onclick="adjustInterval(-1)">−</button>
+                            <span id="interval-value">5</span>
+                            <button onclick="adjustInterval(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dt-setting">
+                        <span>음성</span>
+                        <label class="switch">
+                            <input type="checkbox" id="tts-enabled" checked>
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
-                <div class="setting-row">
-                    <label>음성 출력</label>
-                    <label class="switch">
-                        <input type="checkbox" id="tts-enabled" checked>
-                        <span class="slider round"></span>
-                    </label>
+                <div class="dt-guide" id="dt-guide">
+                    <strong>산수</strong>: 제시된 숫자에서 빼기 (쉬움 -3 / 보통 -7 / 어려움 -13, 덧셈 혼합)
                 </div>
             </div>
-            <div class="dualtask-controls">
-                <button class="dt-btn play" id="dt-play" onclick="toggleDualTask()">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    시작
+
+            <!-- 프롬프트 영역 (항상 표시, 내용만 변경) -->
+            <div class="dt-prompt-area" id="task-prompt-container">
+                <div class="task-prompt" id="task-prompt">▶ 시작</div>
+                <div class="dt-progress" id="dt-countdown"></div>
+            </div>
+
+            <!-- 컨트롤 버튼 -->
+            <div class="dt-controls">
+                <button class="dt-btn-main" id="dt-play" onclick="toggleDualTask()">
+                    시작하기
                 </button>
-                <button class="dt-btn pause hidden" id="dt-pause" onclick="pauseDualTask()">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                    일시정지
-                </button>
-                <button class="dt-btn next" onclick="nextTask()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    다음
+                <button class="dt-btn-sub hidden" id="dt-next" onclick="nextTask()">
+                    다음 →
                 </button>
             </div>
-            <div class="dualtask-info">
-                <h4>이중과제 훈련 가이드</h4>
-                <p><strong>산수:</strong> 연속 빼기 (쉬움: -3, 보통: -7, 어려움: -13)<br>
-                <strong>단어:</strong> 카테고리별 단어 말하기<br>
-                <strong>색깔:</strong> 스트룹 효과 테스트</p>
-            </div>
+
+            <!-- 결과 요약 (result 상태에서만 표시) -->
+            <div class="dt-result hidden" id="dt-result-summary"></div>
         </div>
     </div>
 

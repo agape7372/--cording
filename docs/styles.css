@@ -3298,21 +3298,31 @@ html, body {
 }
 
 /* ============================================
-   Dual Task Generator Styles
+   Dual Task Generator Styles (State-based UI)
    ============================================ */
+.dt-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 설정 영역 */
+.dt-setup {
+    transition: all 0.3s ease;
+}
+
 .dualtask-mode-selector {
     display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .dt-mode-btn {
     flex: 1;
-    padding: 12px;
+    padding: 10px 8px;
     border: 2px solid var(--card-grey);
-    border-radius: 10px;
+    border-radius: 8px;
     background: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
@@ -3325,72 +3335,101 @@ html, body {
     color: var(--primary-blue);
 }
 
-.dualtask-display {
-    background: linear-gradient(135deg, #1E3A8A, var(--primary-blue));
-    border-radius: 16px;
-    padding: 40px 24px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.task-prompt {
-    font-size: 32px;
-    font-weight: 700;
-    color: white;
-    line-height: 1.3;
-}
-
-.dualtask-settings {
-    background: var(--background-grey);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-
-.setting-row {
+/* 난이도 + 설정 한 줄로 */
+.difficulty-selector {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
-.setting-row label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
+.difficulty-btn {
+    padding: 6px 14px;
+    border: 2px solid var(--card-grey);
+    border-radius: 16px;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.difficulty-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.difficulty-btn[data-difficulty="easy"].active {
+    border-color: var(--mint-green);
+    background: var(--mint-green-light);
+    color: var(--mint-green-dark);
+}
+
+.difficulty-btn[data-difficulty="hard"].active {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #DC2626;
+}
+
+.dt-settings-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 12px;
+}
+
+.dt-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .interval-control {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .interval-control button {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--primary-blue);
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
 }
 
 .interval-control span {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
-    min-width: 30px;
+    min-width: 24px;
     text-align: center;
+}
+
+/* 가이드 텍스트 */
+.dt-guide {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 8px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    line-height: 1.4;
 }
 
 /* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 28px;
+    width: 44px;
+    height: 24px;
 }
 
 .switch input {
@@ -3411,14 +3450,14 @@ html, body {
 }
 
 .switch .slider.round {
-    border-radius: 28px;
+    border-radius: 24px;
 }
 
 .switch .slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
+    height: 18px;
+    width: 18px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -3432,67 +3471,145 @@ html, body {
 }
 
 .switch input:checked + .slider:before {
-    transform: translateX(22px);
+    transform: translateX(20px);
 }
 
-.dualtask-controls {
+/* 프롬프트 영역 - 고정 높이 */
+.dt-prompt-area {
+    background: linear-gradient(135deg, #1E3A8A, var(--primary-blue));
+    border-radius: 16px;
+    padding: 32px 20px 24px;
+    text-align: center;
+    margin: 16px 0;
+    min-height: 140px;
     display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.dt-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    gap: 8px;
-    padding: 16px;
+    align-items: center;
+}
+
+.task-prompt {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+}
+
+/* 프로그레스 바 */
+.dt-progress {
+    width: 70%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.dt-progress-bar {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+/* 컨트롤 버튼 */
+.dt-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.dt-btn-main {
+    flex: 2;
+    padding: 14px;
     border: none;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    background: var(--mint-green);
+    color: white;
     transition: all 0.2s;
 }
 
-.dt-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.dt-btn.play {
-    background: var(--mint-green);
-    color: white;
-}
-
-.dt-btn.play.playing {
+.dt-btn-main.running {
     background: #EF4444;
 }
 
-.dt-btn.next {
+.dt-btn-sub {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
     background: var(--primary-blue);
     color: white;
 }
 
-.dualtask-info {
-    background: var(--background-grey);
+/* 결과 표시 */
+.dt-result {
+    background: linear-gradient(135deg, var(--mint-green-dark), var(--mint-green));
     border-radius: 12px;
     padding: 16px;
+    margin-bottom: 12px;
+    color: white;
+    text-align: center;
 }
 
-.dualtask-info h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-}
-
-.dualtask-info p {
+.dt-result h4 {
     font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: space-around;
+}
+
+.result-stat {
+    flex: 1;
+}
+
+.result-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    display: block;
+}
+
+.result-stat-label {
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+/* 상태별 표시/숨김 */
+#dualtask-modal[data-state="running"] .dt-setup {
+    display: none;
+}
+
+#dualtask-modal[data-state="idle"] .dt-result {
+    display: none;
+}
+
+#dualtask-modal[data-state="running"] .dt-prompt-area {
+    min-height: 180px;
+}
+
+#dualtask-modal[data-state="running"] .task-prompt {
+    font-size: 36px;
+}
+
+/* 프롬프트 애니메이션 */
+@keyframes promptPop {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.prompt-animate {
+    animation: promptPop 0.25s ease-out;
 }
 
 /* ============================================
@@ -3558,201 +3675,6 @@ html, body {
 .cadence-display .result-interpretation.poor {
     background: rgba(239, 68, 68, 0.3);
     color: #991B1B;
-}
-
-/* 이중과제 난이도 선택기 */
-.difficulty-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 12px 0;
-    padding: 10px;
-    background: var(--background-grey);
-    border-radius: 10px;
-}
-
-.difficulty-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-right: 4px;
-}
-
-.difficulty-btn {
-    padding: 6px 14px;
-    border: 2px solid var(--card-grey);
-    border-radius: 16px;
-    background: white;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.difficulty-btn.active {
-    border-color: var(--primary-blue);
-    background: var(--primary-blue-light);
-    color: var(--primary-blue);
-}
-
-.difficulty-btn[data-difficulty="easy"].active {
-    border-color: var(--mint-green);
-    background: var(--mint-green-light);
-    color: var(--mint-green-dark);
-}
-
-.difficulty-btn[data-difficulty="hard"].active {
-    border-color: #EF4444;
-    background: rgba(239, 68, 68, 0.1);
-    color: #DC2626;
-}
-
-/* 이중과제 통계 */
-.dualtask-stats {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    margin: 16px 0;
-    padding: 12px;
-    background: var(--background-grey);
-    border-radius: 12px;
-}
-
-.dt-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.dt-stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary-blue);
-    font-family: 'SF Mono', Monaco, monospace;
-}
-
-.dt-stat-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-/* 모드 아이콘 */
-.mode-icon {
-    font-size: 16px;
-    margin-right: 4px;
-}
-
-/* 모드별 안내 텍스트 */
-.dt-instruction {
-    text-align: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-    padding: 8px 12px;
-    background: var(--background-grey);
-    border-radius: 8px;
-    border-left: 3px solid var(--primary-blue);
-}
-
-/* 카운트다운 프로그레스 바 */
-.dt-countdown {
-    width: 80%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 2px;
-    margin: 20px auto 0;
-    overflow: hidden;
-}
-
-.dt-countdown-bar {
-    height: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 2px;
-    transition: width 0.1s linear;
-}
-
-/* 실행 중 통계 숨기기 */
-.dualtask-stats.running {
-    display: none;
-}
-
-/* 결과 요약 */
-.dt-result-summary {
-    background: linear-gradient(135deg, var(--mint-green-dark), var(--mint-green));
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-    color: white;
-}
-
-.result-summary-content {
-    text-align: center;
-}
-
-.result-summary-content h4 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    opacity: 0.9;
-}
-
-.result-stats {
-    display: flex;
-    justify-content: space-around;
-    gap: 8px;
-}
-
-.result-stat {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 10px 6px;
-    border-radius: 8px;
-}
-
-.result-stat-value {
-    font-size: 20px;
-    font-weight: 700;
-    display: block;
-    line-height: 1.2;
-}
-
-.result-stat-label {
-    font-size: 10px;
-    opacity: 0.85;
-    white-space: nowrap;
-}
-
-/* 프롬프트 애니메이션 */
-@keyframes promptAnimate {
-    0% {
-        transform: scale(0.8);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.05);
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.prompt-animate {
-    animation: promptAnimate 0.3s ease-out;
-}
-
-/* 일시정지 버튼 스타일 */
-.dt-btn.pause {
-    background: var(--warning);
-    color: white;
-}
-
-.dt-btn.pause:active {
-    background: #E67E00;
 }
 
 /* 탭 영역 터치 피드백 개선 */
