@@ -4,6 +4,15 @@
  */
 
 // ============================================
+// Storage Keys
+// ============================================
+const STORAGE_KEYS = {
+    PATIENTS: 'algopt_patients',
+    MEASUREMENTS: 'algopt_measurements',
+    CURRENT_PATIENT: 'algopt_current_patient'
+};
+
+// ============================================
 // State Management
 // ============================================
 const state = {
@@ -38,7 +47,17 @@ const state = {
     bbsValues: {},
 
     // Current screen
-    currentScreen: 'home'
+    currentScreen: 'home',
+
+    // Current patient
+    currentPatient: null
+};
+
+// Patient form state
+let patientFormState = {
+    editMode: false,
+    editId: null,
+    gender: null
 };
 
 // ============================================
@@ -200,6 +219,89 @@ function initApp() {
     initMmtTab();
     initRomTab();
     initBbsTab();
+
+    // Initialize patient management
+    renderPatientList();
+    loadCurrentPatientFromStorage();
+    initPatientFormListeners();
+}
+
+// Load current patient from storage on startup
+function loadCurrentPatientFromStorage() {
+    const currentPatientId = localStorage.getItem(STORAGE_KEYS.CURRENT_PATIENT);
+    if (currentPatientId) {
+        const patients = getPatients();
+        const patient = patients.find(p => p.id === currentPatientId);
+        if (patient) {
+            state.currentPatient = patient;
+            updateCurrentPatientDisplay();
+        }
+    }
+}
+
+// Update current patient display in header/home
+function updateCurrentPatientDisplay() {
+    const patient = state.currentPatient;
+    const patientInfoEl = document.getElementById('current-patient-info');
+
+    if (patientInfoEl) {
+        if (patient) {
+            patientInfoEl.innerHTML = `
+                <div class="current-patient-badge">
+                    <span class="patient-icon">👤</span>
+                    <span class="patient-name">${patient.name}</span>
+                    <span class="patient-detail">${patient.gender === 'male' ? '남' : '여'} / ${patient.age}세</span>
+                </div>
+            `;
+            patientInfoEl.style.display = 'flex';
+        } else {
+            patientInfoEl.innerHTML = '';
+            patientInfoEl.style.display = 'none';
+        }
+    }
+}
+
+// Initialize patient form event listeners
+function initPatientFormListeners() {
+    // Diagnosis select - show custom input when "기타" selected
+    const diagnosisSelect = document.getElementById('patient-diagnosis');
+    const customDiagnosis = document.getElementById('custom-diagnosis');
+
+    if (diagnosisSelect && customDiagnosis) {
+        diagnosisSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customDiagnosis.style.display = 'block';
+                customDiagnosis.querySelector('input').required = true;
+            } else {
+                customDiagnosis.style.display = 'none';
+                customDiagnosis.querySelector('input').required = false;
+            }
+        });
+    }
+
+    // Memo character counter
+    const memoTextarea = document.getElementById('patient-memo');
+    const charCount = document.querySelector('.char-count');
+
+    if (memoTextarea && charCount) {
+        memoTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = `${count}/200`;
+            if (count > 180) {
+                charCount.style.color = '#ef4444';
+            } else {
+                charCount.style.color = '#94a3b8';
+            }
+        });
+    }
+
+    // Search input for patient filtering
+    const searchInput = document.querySelector('.patient-search input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterPatients(this.value);
+        });
+    }
 }
 
 // ============================================
@@ -234,79 +336,452 @@ function navigateTo(screen) {
 // Dashboard Functions
 // ============================================
 function loadPatient(patientId) {
-    // TODO: Load patient data from storage
-    showToast('환자 데이터 불러오기 (개발중)');
-    navigateTo('subjective');
-}
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
 
-function showHistory() {
-    showToast('평가 기록 (개발중)');
-}
+    if (patient) {
+        state.currentPatient = patient;
+        localStorage.setItem(STORAGE_KEYS.CURRENT_PATIENT, patientId);
 
-function showSettings() {
-    showToast('설정 (개발중)');
-}
+        // 환자 정보를 state에 반영
+        state.age = patient.age || 50;
+        state.gender = patient.gender;
 
-// ============================================
-// Patient Management
-// ============================================
-let selectedPatientId = null;
-
-function filterPatients(query) {
-    const items = document.querySelectorAll('.patient-item');
-    const q = query.toLowerCase().trim();
-
-    items.forEach(item => {
-        const name = item.querySelector('.patient-name').textContent.toLowerCase();
-        const info = item.querySelector('.patient-info').textContent.toLowerCase();
-        const visible = name.includes(q) || info.includes(q);
-        item.style.display = visible ? 'flex' : 'none';
-    });
-}
-
-function openPatientMenu(patientId, event) {
-    event.stopPropagation();
-    selectedPatientId = patientId;
-
-    const menu = document.getElementById('patient-menu');
-    const btn = event.currentTarget;
-    const rect = btn.getBoundingClientRect();
-
-    menu.style.top = `${rect.bottom + 8}px`;
-    menu.style.right = `${window.innerWidth - rect.right}px`;
-    menu.style.left = 'auto';
-    menu.classList.remove('hidden');
-
-    // Close on outside click
-    setTimeout(() => {
-        document.addEventListener('click', closePatientMenu);
-    }, 0);
-}
-
-function closePatientMenu() {
-    document.getElementById('patient-menu').classList.add('hidden');
-    document.removeEventListener('click', closePatientMenu);
-}
-
-function editPatient() {
-    closePatientMenu();
-    showToast('환자 수정 (개발중)');
-}
-
-function deletePatient() {
-    closePatientMenu();
-    if (confirm('이 환자를 삭제하시겠습니까?')) {
-        const item = document.querySelector(`.patient-item[data-id="${selectedPatientId}"]`);
-        if (item) {
-            item.remove();
-            showToast('환자가 삭제되었습니다');
-        }
+        showToast(`${patient.name} 환자 선택됨`);
+        navigateTo('subjective');
+    } else {
+        showToast('환자를 찾을 수 없습니다');
     }
 }
 
+function showHistory() {
+    const modal = document.getElementById('history-modal');
+    const patientInfo = document.getElementById('history-patient-info');
+    const content = document.getElementById('history-content');
+
+    if (state.currentPatient) {
+        patientInfo.innerHTML = `
+            <div class="history-patient-name">${state.currentPatient.name}</div>
+            <div class="history-patient-meta">${state.currentPatient.gender || ''}/${state.currentPatient.age || ''}세 · ${state.currentPatient.diagnosis || ''}</div>
+        `;
+        renderHistoryContent('measurements');
+    } else {
+        patientInfo.innerHTML = `
+            <div class="history-patient-name">환자 미선택</div>
+            <div class="history-patient-meta">환자를 먼저 선택해주세요</div>
+        `;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeHistory() {
+    document.getElementById('history-modal').classList.add('hidden');
+}
+
+function setHistoryTab(tab) {
+    document.querySelectorAll('.history-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    renderHistoryContent(tab);
+}
+
+function renderHistoryContent(tab) {
+    const content = document.getElementById('history-content');
+    const measurements = getMeasurements();
+    const patientMeasurements = state.currentPatient
+        ? measurements.filter(m => m.patientId === state.currentPatient.id)
+        : [];
+
+    if (patientMeasurements.length === 0) {
+        content.innerHTML = `
+            <div class="history-empty">
+                <span class="history-empty-icon">📋</span>
+                <p>기록이 없습니다</p>
+                <p class="history-empty-sub">도구를 사용하면 자동으로 기록됩니다</p>
+            </div>
+        `;
+        return;
+    }
+
+    const sortedMeasurements = patientMeasurements.sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    content.innerHTML = sortedMeasurements.map(m => `
+        <div class="history-item">
+            <div class="history-item-header">
+                <span class="history-item-type">${m.type}</span>
+                <span class="history-item-date">${formatDate(m.timestamp)}</span>
+            </div>
+            <div class="history-item-value">${m.value}</div>
+            ${m.detail ? `<div class="history-item-detail">${m.detail}</div>` : ''}
+        </div>
+    `).join('');
+}
+
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${month}/${day} ${hours}:${minutes}`;
+}
+
+function showSettings() {
+    const modal = document.getElementById('settings-modal');
+    const patientCount = document.getElementById('settings-patient-count');
+    const patients = getPatients();
+    patientCount.textContent = `${patients.length}명`;
+    modal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settings-modal').classList.add('hidden');
+}
+
+// ============================================
+// Patient Management - LocalStorage
+// ============================================
+function getPatients() {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.PATIENTS);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function savePatients(patients) {
+    localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(patients));
+}
+
+function getMeasurements() {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.MEASUREMENTS);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveMeasurement(type, value, detail = '') {
+    if (!state.currentPatient) return;
+
+    const measurements = getMeasurements();
+    measurements.push({
+        id: Date.now().toString(),
+        patientId: state.currentPatient.id,
+        type,
+        value,
+        detail,
+        timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(STORAGE_KEYS.MEASUREMENTS, JSON.stringify(measurements));
+}
+
+// ============================================
+// Patient Modal Functions
+// ============================================
+let selectedPatientId = null;
+
 function openAddPatientModal() {
-    showToast('환자 추가 (개발중)');
-    navigateTo('subjective');
+    patientFormState = { editMode: false, editId: null, gender: null };
+
+    document.getElementById('patient-modal-title').textContent = '새 환자 등록';
+    document.getElementById('patient-save-btn').textContent = '등록';
+    document.getElementById('patient-form').reset();
+    document.getElementById('patient-edit-id').value = '';
+    document.getElementById('memo-char-count').textContent = '0';
+    document.getElementById('patient-diagnosis-custom').classList.add('hidden');
+
+    document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById('patient-modal').classList.remove('hidden');
+}
+
+function closePatientModal() {
+    document.getElementById('patient-modal').classList.add('hidden');
+}
+
+function selectGender(gender) {
+    patientFormState.gender = gender;
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === gender);
+    });
+}
+
+function savePatient(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('patient-name-input').value.trim();
+    const age = parseInt(document.getElementById('patient-age-input').value) || null;
+    const diagnosisSelect = document.getElementById('patient-diagnosis-select').value;
+    const diagnosisCustom = document.getElementById('patient-diagnosis-custom').value.trim();
+    const diagnosis = diagnosisSelect === 'Other' ? diagnosisCustom : diagnosisSelect;
+    const memo = document.getElementById('patient-memo-input').value.trim();
+
+    if (!name) {
+        showToast('이름을 입력해주세요');
+        return;
+    }
+
+    const patients = getPatients();
+
+    if (patientFormState.editMode && patientFormState.editId) {
+        // 수정 모드
+        const index = patients.findIndex(p => p.id === patientFormState.editId);
+        if (index !== -1) {
+            patients[index] = {
+                ...patients[index],
+                name,
+                gender: patientFormState.gender,
+                age,
+                diagnosis,
+                memo,
+                updatedAt: new Date().toISOString()
+            };
+            showToast('환자 정보가 수정되었습니다');
+        }
+    } else {
+        // 새 환자 추가
+        const newPatient = {
+            id: Date.now().toString(),
+            name,
+            gender: patientFormState.gender,
+            age,
+            diagnosis,
+            memo,
+            status: 'progress',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        patients.unshift(newPatient);
+        showToast('새 환자가 등록되었습니다');
+    }
+
+    savePatients(patients);
+    closePatientModal();
+    renderPatientList();
+}
+
+function editPatient(patientId) {
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+
+    if (!patient) {
+        showToast('환자를 찾을 수 없습니다');
+        return;
+    }
+
+    patientFormState = {
+        editMode: true,
+        editId: patientId,
+        gender: patient.gender
+    };
+
+    document.getElementById('patient-modal-title').textContent = '환자 정보 수정';
+    document.getElementById('patient-save-btn').textContent = '저장';
+    document.getElementById('patient-name-input').value = patient.name || '';
+    document.getElementById('patient-age-input').value = patient.age || '';
+    document.getElementById('patient-memo-input').value = patient.memo || '';
+    document.getElementById('memo-char-count').textContent = (patient.memo || '').length;
+
+    // 진단명 설정
+    const selectEl = document.getElementById('patient-diagnosis-select');
+    const customEl = document.getElementById('patient-diagnosis-custom');
+    const optionExists = Array.from(selectEl.options).some(opt => opt.value === patient.diagnosis);
+
+    if (optionExists) {
+        selectEl.value = patient.diagnosis || '';
+        customEl.classList.add('hidden');
+    } else if (patient.diagnosis) {
+        selectEl.value = 'Other';
+        customEl.value = patient.diagnosis;
+        customEl.classList.remove('hidden');
+    }
+
+    // 성별 설정
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === patient.gender);
+    });
+
+    document.getElementById('patient-modal').classList.remove('hidden');
+}
+
+function deletePatient(patientId) {
+    if (!confirm('이 환자를 삭제하시겠습니까?\n관련된 모든 기록도 함께 삭제됩니다.')) {
+        return;
+    }
+
+    let patients = getPatients();
+    patients = patients.filter(p => p.id !== patientId);
+    savePatients(patients);
+
+    // 관련 측정 기록도 삭제
+    let measurements = getMeasurements();
+    measurements = measurements.filter(m => m.patientId !== patientId);
+    localStorage.setItem(STORAGE_KEYS.MEASUREMENTS, JSON.stringify(measurements));
+
+    // 현재 환자였다면 초기화
+    if (state.currentPatient && state.currentPatient.id === patientId) {
+        state.currentPatient = null;
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_PATIENT);
+    }
+
+    showToast('환자가 삭제되었습니다');
+    renderPatientList();
+}
+
+function renderPatientList() {
+    const container = document.getElementById('recent-patients');
+    const countEl = document.getElementById('recent-count');
+    const patients = getPatients();
+
+    countEl.textContent = patients.length;
+
+    if (patients.length === 0) {
+        container.innerHTML = `
+            <div class="patient-list-empty">
+                <div class="patient-list-empty-icon">👤</div>
+                <p>등록된 환자가 없습니다</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = patients.slice(0, 10).map(patient => `
+        <div class="patient-card" onclick="loadPatient('${patient.id}')">
+            <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-meta">${patient.gender || ''}${patient.gender && patient.age ? '/' : ''}${patient.age ? patient.age + '세' : ''} ${patient.diagnosis ? '· ' + patient.diagnosis : ''}</div>
+            </div>
+            <div class="patient-status">
+                <span class="status-badge ${patient.status || 'progress'}">${patient.status === 'complete' ? '완료' : '작성중'}</span>
+                <button class="patient-menu-btn" onclick="event.stopPropagation(); showPatientActions('${patient.id}')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                        <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showPatientActions(patientId) {
+    const actions = [
+        { label: '정보 수정', action: () => editPatient(patientId) },
+        { label: '기록 보기', action: () => {
+            const patients = getPatients();
+            state.currentPatient = patients.find(p => p.id === patientId);
+            showHistory();
+        }},
+        { label: '삭제', action: () => deletePatient(patientId), danger: true }
+    ];
+
+    // 간단한 액션 시트 표시 (confirm 대신 커스텀 UI 사용 가능)
+    const selected = confirm('환자 메뉴\n\n1. 정보 수정 - 확인\n2. 삭제 - 취소 후 다시 클릭');
+    if (selected) {
+        editPatient(patientId);
+    }
+}
+
+// ============================================
+// Settings Functions
+// ============================================
+function exportData() {
+    const data = {
+        patients: getPatients(),
+        measurements: getMeasurements(),
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `algopt-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('데이터가 저장되었습니다');
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            if (!data.patients || !Array.isArray(data.patients)) {
+                throw new Error('잘못된 파일 형식');
+            }
+
+            if (!confirm(`${data.patients.length}명의 환자 데이터를 가져오시겠습니까?\n기존 데이터와 병합됩니다.`)) {
+                return;
+            }
+
+            // 기존 데이터와 병합 (ID 중복 방지)
+            const existingPatients = getPatients();
+            const existingIds = new Set(existingPatients.map(p => p.id));
+            const newPatients = data.patients.filter(p => !existingIds.has(p.id));
+
+            savePatients([...newPatients, ...existingPatients]);
+
+            if (data.measurements) {
+                const existingMeasurements = getMeasurements();
+                const existingMIds = new Set(existingMeasurements.map(m => m.id));
+                const newMeasurements = data.measurements.filter(m => !existingMIds.has(m.id));
+                localStorage.setItem(STORAGE_KEYS.MEASUREMENTS,
+                    JSON.stringify([...newMeasurements, ...existingMeasurements]));
+            }
+
+            renderPatientList();
+            showToast(`${newPatients.length}명의 환자 데이터를 가져왔습니다`);
+        } catch (err) {
+            showToast('파일을 읽을 수 없습니다');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function confirmClearData() {
+    if (!confirm('정말 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+        return;
+    }
+
+    if (!confirm('마지막 확인입니다.\n모든 환자 데이터와 측정 기록이 삭제됩니다.')) {
+        return;
+    }
+
+    localStorage.removeItem(STORAGE_KEYS.PATIENTS);
+    localStorage.removeItem(STORAGE_KEYS.MEASUREMENTS);
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_PATIENT);
+    state.currentPatient = null;
+
+    renderPatientList();
+    closeSettings();
+    showToast('모든 데이터가 삭제되었습니다');
+}
+
+function filterPatients(query) {
+    const cards = document.querySelectorAll('.patient-card');
+    const q = query.toLowerCase().trim();
+
+    cards.forEach(card => {
+        const name = card.querySelector('.patient-name').textContent.toLowerCase();
+        const meta = card.querySelector('.patient-meta').textContent.toLowerCase();
+        const visible = !q || name.includes(q) || meta.includes(q);
+        card.style.display = visible ? 'flex' : 'none';
+    });
 }
 
 // ============================================

@@ -5666,3 +5666,620 @@ html, body {
         height: 120px;
     }
 }
+
+/* =====================================================
+   Patient Management Modal Styles
+   ===================================================== */
+.patient-modal-content {
+    max-width: 420px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.form-label .required {
+    color: #ef4444;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--text-primary);
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(46, 92, 255, 0.1);
+}
+
+.form-input::placeholder {
+    color: #94a3b8;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--text-primary);
+    background: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(46, 92, 255, 0.1);
+}
+
+.form-textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    color: var(--text-primary);
+    background: white;
+    resize: none;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(46, 92, 255, 0.1);
+}
+
+.char-count {
+    text-align: right;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.mt-8 {
+    margin-top: 8px;
+}
+
+.gender-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.gender-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: white;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gender-btn.active {
+    border-color: var(--primary-blue);
+    background: rgba(46, 92, 255, 0.08);
+    color: var(--primary-blue);
+}
+
+.age-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.age-input-wrap .form-input {
+    flex: 1;
+}
+
+.age-suffix {
+    font-size: 15px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.btn-secondary {
+    flex: 1;
+    padding: 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:active {
+    background: #f1f5f9;
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary-blue);
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:active {
+    background: var(--primary-blue-dark);
+    transform: scale(0.98);
+}
+
+/* =====================================================
+   Settings Modal Styles
+   ===================================================== */
+.settings-modal-content {
+    max-width: 400px;
+    padding: 20px;
+}
+
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-item:active {
+    background: #f1f5f9;
+    transform: scale(0.99);
+}
+
+.settings-item.no-action {
+    cursor: default;
+}
+
+.settings-item.no-action:active {
+    transform: none;
+}
+
+.settings-item.danger {
+    background: #fef2f2;
+}
+
+.settings-item.danger .settings-item-title {
+    color: #dc2626;
+}
+
+.settings-item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-item-icon {
+    font-size: 20px;
+}
+
+.settings-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.settings-item-desc {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.settings-arrow {
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+}
+
+.settings-arrow-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-arrow-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+}
+
+.settings-footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 20px;
+}
+
+.settings-footer p {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.settings-footer-sub {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+}
+
+/* =====================================================
+   History Modal Styles
+   ===================================================== */
+.history-modal-content {
+    max-width: 440px;
+    max-height: 85vh;
+}
+
+.history-patient-info {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.history-patient-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.history-patient-meta {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.history-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.history-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-tab.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.history-content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+}
+
+.history-empty-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+}
+
+.history-empty p {
+    font-size: 15px;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.history-empty-sub {
+    font-size: 13px !important;
+    color: #94a3b8 !important;
+    margin-top: 4px !important;
+}
+
+.history-item {
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.history-item-type {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+.history-item-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.history-item-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.history-item-detail {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* Patient card styles for dynamic rendering */
+.patient-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.patient-card:active {
+    background: #f8fafc;
+    transform: scale(0.99);
+}
+
+.patient-card .patient-info {
+    flex: 1;
+}
+
+.patient-card .patient-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.patient-card .patient-meta {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.patient-card .patient-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.patient-card .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.patient-card .status-badge.progress {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.patient-card .status-badge.complete {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.patient-card .arrow-icon {
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+}
+
+.patient-list-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+}
+
+.patient-list-empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+
+.patient-list-empty p {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Current Patient Info in Header */
+.current-patient-info {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.current-patient-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+}
+
+.current-patient-badge .patient-icon {
+    font-size: 14px;
+}
+
+.current-patient-badge .patient-name {
+    font-weight: 600;
+    color: #fff;
+}
+
+.current-patient-badge .patient-detail {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+}
+
+/* Patient Menu Button */
+.patient-menu-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.2s ease;
+}
+
+.patient-menu-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #64748b;
+}
+
+.patient-menu-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Patient Actions Dropdown */
+.patient-actions {
+    position: absolute;
+    top: 40px;
+    right: 8px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px;
+    min-width: 120px;
+    z-index: 100;
+    display: none;
+}
+
+.patient-actions.show {
+    display: block;
+}
+
+.patient-actions button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #334155;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.patient-actions button:hover {
+    background: #f1f5f9;
+}
+
+.patient-actions button.delete {
+    color: #ef4444;
+}
+
+.patient-actions button.delete:hover {
+    background: #fef2f2;
+}
+
+/* Settings Import/Export Buttons */
+.settings-btn-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.settings-btn-group .btn {
+    flex: 1;
+}
