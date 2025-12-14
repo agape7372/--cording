@@ -867,3 +867,380 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('SW registration failed'));
     });
 }
+
+// ============================================
+// Clinical Tools
+// ============================================
+let currentTool = null;
+
+function openTool(tool) {
+    currentTool = tool;
+    document.getElementById(`tool-${tool}`).classList.remove('hidden');
+
+    // Reset tool state when opening
+    if (tool === 'stopwatch') resetStopwatch();
+    if (tool === 'cadence') resetCadence();
+    if (tool === 'dualtask') resetDualTask();
+}
+
+function closeTool() {
+    if (currentTool) {
+        document.getElementById(`tool-${currentTool}`).classList.add('hidden');
+
+        // Stop any running timers
+        if (currentTool === 'stopwatch') stopStopwatch();
+        if (currentTool === 'metronome') stopMetronome();
+        if (currentTool === 'dualtask') stopDualTask();
+
+        currentTool = null;
+    }
+}
+
+// ============================================
+// Stopwatch Tool
+// ============================================
+let stopwatchInterval = null;
+let stopwatchMs = 0;
+let stopwatchMode = 0; // 0: 10MWT, 1: TUG
+let stopwatchRunning = false;
+
+function setStopwatchMode(mode) {
+    stopwatchMode = mode;
+    document.querySelectorAll('#tool-stopwatch .mode-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === mode);
+    });
+    resetStopwatch();
+}
+
+function startStopwatch() {
+    if (!stopwatchRunning) {
+        stopwatchRunning = true;
+        stopwatchInterval = setInterval(() => {
+            stopwatchMs += 10;
+            updateStopwatchDisplay();
+        }, 10);
+
+        document.getElementById('stopwatch-start-controls').classList.add('hidden');
+        document.getElementById('stopwatch-paused-controls').classList.add('hidden');
+        document.getElementById('stopwatch-running-controls').classList.remove('hidden');
+    }
+}
+
+function stopStopwatch() {
+    if (stopwatchRunning) {
+        clearInterval(stopwatchInterval);
+        stopwatchRunning = false;
+
+        document.getElementById('stopwatch-running-controls').classList.add('hidden');
+        document.getElementById('stopwatch-paused-controls').classList.remove('hidden');
+
+        // Show results for 10MWT
+        if (stopwatchMode === 0 && stopwatchMs > 0) {
+            const speed = 10 / (stopwatchMs / 1000);
+            document.getElementById('stopwatch-speed').textContent = speed.toFixed(2) + ' m/s';
+
+            let badge = document.getElementById('stopwatch-badge');
+            if (speed >= 1.2) {
+                badge.textContent = '정상 (Community Ambulator)';
+                badge.className = 'tool-result-badge success';
+            } else if (speed >= 0.8) {
+                badge.textContent = '제한적 지역사회 보행';
+                badge.className = 'tool-result-badge warning';
+            } else if (speed >= 0.4) {
+                badge.textContent = '가정 내 보행';
+                badge.className = 'tool-result-badge error';
+            } else {
+                badge.textContent = '심각한 보행 장애';
+                badge.className = 'tool-result-badge error';
+            }
+
+            document.getElementById('stopwatch-result').classList.remove('hidden');
+        }
+    }
+}
+
+function resetStopwatch() {
+    clearInterval(stopwatchInterval);
+    stopwatchRunning = false;
+    stopwatchMs = 0;
+    updateStopwatchDisplay();
+
+    document.getElementById('stopwatch-result').classList.add('hidden');
+    document.getElementById('stopwatch-running-controls').classList.add('hidden');
+    document.getElementById('stopwatch-paused-controls').classList.add('hidden');
+    document.getElementById('stopwatch-start-controls').classList.remove('hidden');
+}
+
+function saveStopwatch() {
+    showToast('✓ 결과가 저장되었습니다');
+    resetStopwatch();
+}
+
+function updateStopwatchDisplay() {
+    const min = Math.floor(stopwatchMs / 60000).toString().padStart(2, '0');
+    const sec = Math.floor((stopwatchMs % 60000) / 1000).toString().padStart(2, '0');
+    const ms = Math.floor((stopwatchMs % 1000) / 10).toString().padStart(2, '0');
+    document.getElementById('stopwatch-timer').textContent = `${min}:${sec}.${ms}`;
+}
+
+// ============================================
+// Metronome Tool
+// ============================================
+let metronomeBpm = 60;
+let metronomeInterval = null;
+let metronomeRunning = false;
+let audioContext = null;
+
+function changeBpm(delta) {
+    setBpm(metronomeBpm + delta);
+}
+
+function setBpm(value) {
+    metronomeBpm = Math.max(20, Math.min(240, parseInt(value)));
+    document.getElementById('metronome-bpm').textContent = metronomeBpm;
+    document.getElementById('bpm-slider').value = metronomeBpm;
+
+    // Restart if running
+    if (metronomeRunning) {
+        stopMetronome();
+        startMetronome();
+    }
+}
+
+function toggleMetronome() {
+    if (metronomeRunning) {
+        stopMetronome();
+    } else {
+        startMetronome();
+    }
+}
+
+function startMetronome() {
+    metronomeRunning = true;
+    document.getElementById('metronome-btn').textContent = '⏹  정지';
+    document.getElementById('metronome-btn').classList.remove('start');
+    document.getElementById('metronome-btn').classList.add('stop');
+
+    // Initialize audio context
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    playTick();
+    metronomeInterval = setInterval(playTick, 60000 / metronomeBpm);
+}
+
+function stopMetronome() {
+    metronomeRunning = false;
+    clearInterval(metronomeInterval);
+    document.getElementById('metronome-btn').textContent = '▶  시작';
+    document.getElementById('metronome-btn').classList.remove('stop');
+    document.getElementById('metronome-btn').classList.add('start');
+}
+
+function playTick() {
+    if (!audioContext) return;
+
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+
+    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+
+    // Visual feedback
+    document.getElementById('metronome-bpm').style.transform = 'scale(1.1)';
+    setTimeout(() => {
+        document.getElementById('metronome-bpm').style.transform = 'scale(1)';
+    }, 100);
+
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(30);
+}
+
+// ============================================
+// Cadence Calculator Tool
+// ============================================
+let cadenceTaps = [];
+
+function tapCadence() {
+    const now = Date.now();
+    cadenceTaps.push(now);
+
+    // Keep only last 6 taps
+    if (cadenceTaps.length > 6) cadenceTaps.shift();
+
+    // Calculate SPM from rolling average
+    if (cadenceTaps.length >= 2) {
+        const intervals = [];
+        for (let i = 1; i < cadenceTaps.length; i++) {
+            intervals.push(cadenceTaps[i] - cadenceTaps[i-1]);
+        }
+        const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
+        const spm = Math.round(60000 / avgInterval);
+
+        document.getElementById('cadence-spm').textContent = spm;
+
+        const badge = document.getElementById('cadence-badge');
+        if (spm >= 100 && spm <= 130) {
+            badge.textContent = '정상 보행';
+            badge.className = 'tool-result-badge success';
+        } else if (spm > 130) {
+            badge.textContent = '빠른 보행';
+            badge.className = 'tool-result-badge warning';
+        } else if (spm >= 80) {
+            badge.textContent = '느린 보행';
+            badge.className = 'tool-result-badge warning';
+        } else {
+            badge.textContent = '매우 느린 보행';
+            badge.className = 'tool-result-badge error';
+        }
+    }
+
+    // Visual feedback
+    if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function resetCadence() {
+    cadenceTaps = [];
+    document.getElementById('cadence-spm').textContent = '0';
+    document.getElementById('cadence-badge').textContent = '측정 대기';
+    document.getElementById('cadence-badge').className = 'tool-result-badge';
+}
+
+// ============================================
+// Dual Task Tool
+// ============================================
+let dualTaskMode = 0; // 0: math, 1: words, 2: colors
+let dualTaskInterval = null;
+let dualTaskRunning = false;
+let dualTaskNumber = 100;
+let dualTaskCount = 0;
+let dualTaskCurrentAnswer = '';
+let dualTaskIntervalSec = 5;
+
+const wordCategories = [
+    { name: '동물', words: ['호랑이', '사자', '코끼리', '기린', '원숭이', '펭귄', '독수리', '상어', '돌고래', '토끼'] },
+    { name: '과일', words: ['사과', '바나나', '오렌지', '포도', '딸기', '수박', '참외', '복숭아', '배', '감'] },
+    { name: '색깔', words: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색'] },
+    { name: '도시', words: ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '수원', '제주', '춘천'] }
+];
+
+const colorData = [
+    { name: '빨강', color: '#EF4444' },
+    { name: '파랑', color: '#3B82F6' },
+    { name: '노랑', color: '#EAB308' },
+    { name: '초록', color: '#22C55E' },
+    { name: '보라', color: '#A855F7' },
+    { name: '주황', color: '#F97316' },
+    { name: '분홍', color: '#EC4899' }
+];
+
+function setDualTaskMode(mode) {
+    if (dualTaskRunning) return;
+
+    dualTaskMode = mode;
+    document.querySelectorAll('#tool-dualtask .mode-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === mode);
+    });
+
+    const titles = ['Serial 7s Test', 'Verbal Fluency', 'Stroop Test'];
+    const descs = [
+        '100에서 시작하여 7씩 빼는 계산을 합니다. 인지 기능 평가에 널리 사용됩니다.',
+        '주어진 카테고리에 맞는 단어를 말합니다. 의미적 언어 유창성을 평가합니다.',
+        '글자의 색깔을 말합니다 (글자 내용 무시). 선택적 주의력을 평가합니다.'
+    ];
+
+    document.getElementById('dualtask-mode-title').textContent = '💡 ' + titles[mode];
+    document.getElementById('dualtask-mode-desc').textContent = descs[mode];
+}
+
+function setDualTaskInterval(value) {
+    dualTaskIntervalSec = parseInt(value);
+    document.getElementById('dualtask-interval-display').textContent = value + '초';
+}
+
+function startDualTask() {
+    dualTaskRunning = true;
+    dualTaskNumber = 100;
+    dualTaskCount = 0;
+
+    document.getElementById('dualtask-start-controls').classList.add('hidden');
+    document.getElementById('dualtask-running-controls').classList.remove('hidden');
+
+    generateDualTaskQuestion();
+    dualTaskInterval = setInterval(generateDualTaskQuestion, dualTaskIntervalSec * 1000);
+}
+
+function stopDualTask() {
+    dualTaskRunning = false;
+    clearInterval(dualTaskInterval);
+
+    document.getElementById('dualtask-running-controls').classList.add('hidden');
+    document.getElementById('dualtask-start-controls').classList.remove('hidden');
+
+    document.getElementById('dualtask-display').innerHTML = `
+        <div style="font-size:64px">🧠</div>
+        <p style="opacity:0.7;margin-top:16px">시작 버튼을 눌러주세요</p>
+    `;
+}
+
+function resetDualTask() {
+    stopDualTask();
+    dualTaskNumber = 100;
+    dualTaskCount = 0;
+}
+
+function nextDualTask() {
+    clearInterval(dualTaskInterval);
+    generateDualTaskQuestion();
+    dualTaskInterval = setInterval(generateDualTaskQuestion, dualTaskIntervalSec * 1000);
+}
+
+function generateDualTaskQuestion() {
+    dualTaskCount++;
+    let display = '';
+
+    if (dualTaskMode === 0) {
+        // Math (Serial 7s)
+        const answer = dualTaskNumber - 7;
+        display = `<div class="question-text">${dualTaskNumber} - 7 = ?</div>`;
+        dualTaskCurrentAnswer = answer.toString();
+        dualTaskNumber = answer > 0 ? answer : 100;
+    } else if (dualTaskMode === 1) {
+        // Words
+        const category = wordCategories[Math.floor(Math.random() * wordCategories.length)];
+        display = `<div class="question-text" style="font-size:32px">${category.name} 이름을<br>말해보세요</div>`;
+        dualTaskCurrentAnswer = category.words[Math.floor(Math.random() * category.words.length)];
+    } else {
+        // Colors (Stroop)
+        const textColor = colorData[Math.floor(Math.random() * colorData.length)];
+        const displayColor = colorData[Math.floor(Math.random() * colorData.length)];
+        display = `<div class="question-text" style="color:${displayColor.color}">${textColor.name}</div>`;
+        dualTaskCurrentAnswer = displayColor.name;
+    }
+
+    display += `<div class="question-count">문제 #${dualTaskCount}</div>`;
+    document.getElementById('dualtask-display').innerHTML = display;
+
+    if (navigator.vibrate) navigator.vibrate(50);
+}
+
+function showDualTaskAnswer() {
+    const currentDisplay = document.getElementById('dualtask-display').innerHTML;
+    if (!currentDisplay.includes('정답:')) {
+        document.getElementById('dualtask-display').innerHTML += `
+            <div style="margin-top:24px;padding:12px 24px;background:rgba(0,200,150,0.2);border-radius:12px;display:inline-block">
+                <span style="color:#00C896;font-weight:bold">정답: ${dualTaskCurrentAnswer}</span>
+            </div>
+        `;
+    }
+}
