@@ -3758,3 +3758,509 @@ html, body {
 .tool-modal-content {
     will-change: transform, opacity;
 }
+
+/* ============================================
+   Sensor-based Tools (센서 기반 분석 도구)
+   ============================================ */
+
+/* 센서 도구 버튼 표시 */
+.tool-btn.sensor {
+    border: 1px solid var(--primary-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* 공통 센서 모달 스타일 */
+.sensor-content {
+    padding: 16px;
+}
+
+.sensor-permission-area {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.sensor-permission-area p {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   1. Goniometer (각도계) 스타일
+   ============================================ */
+
+.gonio-mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.gonio-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gonio-tab.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.gonio-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.gonio-circle {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 3px solid var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gonio-needle {
+    position: absolute;
+    width: 4px;
+    height: 70px;
+    background: linear-gradient(to top, #ef4444, #dc2626);
+    border-radius: 2px;
+    transform-origin: bottom center;
+    bottom: 50%;
+    left: calc(50% - 2px);
+    transition: transform 0.1s ease-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.gonio-center {
+    width: 16px;
+    height: 16px;
+    background: #1e40af;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.gonio-value-display {
+    display: flex;
+    align-items: baseline;
+    margin-top: 16px;
+}
+
+.gonio-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.gonio-unit {
+    font-size: 24px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.gonio-axis-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.axis-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.axis-item span:first-child {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.axis-item span:last-child {
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.gonio-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.gonio-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gonio-btn:active {
+    transform: scale(0.98);
+}
+
+.gonio-btn.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.gonio-rom-section {
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.gonio-rom-section h4 {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.gonio-rom-section select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.rom-bar {
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.rom-fill {
+    height: 100%;
+    background: var(--primary-blue);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+#rom-percent {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ============================================
+   2. Tremor Analyzer (떨림 분석) 스타일
+   ============================================ */
+
+.tremor-info-card {
+    margin-bottom: 12px;
+}
+
+.tremor-info-card .hint {
+    background: #fef3c7;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #92400e;
+}
+
+.tremor-graph-container {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.tremor-graph-container canvas {
+    width: 100%;
+    height: 150px;
+    display: block;
+}
+
+.tremor-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.tremor-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.tremor-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.tremor-stat-label {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.tremor-reference {
+    background: var(--background-grey);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+}
+
+.tremor-reference p {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.ref-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ref-item:last-child {
+    border-bottom: none;
+}
+
+.tremor-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.tremor-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tremor-btn.primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.tremor-btn.running {
+    background: #ef4444;
+}
+
+/* ============================================
+   3. Decibel Meter (데시벨) 스타일
+   ============================================ */
+
+.decibel-info-card {
+    margin-bottom: 12px;
+}
+
+.decibel-info-card .hint {
+    background: #dbeafe;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1e40af;
+}
+
+.decibel-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 24px;
+    background: var(--background-grey);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    transition: background 0.3s ease;
+}
+
+.decibel-visual.success {
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.decibel-visual.fail {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.decibel-meter {
+    position: relative;
+    width: 60px;
+    height: 200px;
+    background: #e2e8f0;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.decibel-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #22c55e, #16a34a);
+    border-radius: 30px;
+    transition: height 0.1s ease-out;
+}
+
+.decibel-target {
+    position: absolute;
+    left: -8px;
+    right: -8px;
+    height: 3px;
+    background: #1e40af;
+    border-radius: 2px;
+}
+
+.decibel-target::after {
+    content: '목표';
+    position: absolute;
+    right: -32px;
+    top: -6px;
+    font-size: 10px;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.decibel-value-display {
+    display: flex;
+    align-items: baseline;
+}
+
+.decibel-value {
+    font-size: 64px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.decibel-unit {
+    font-size: 20px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.decibel-feedback {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--background-grey);
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.decibel-settings {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.decibel-settings label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.target-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.target-control button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: white;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.target-control span {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+    min-width: 40px;
+    text-align: center;
+}
+
+.decibel-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.db-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.db-stat span:first-child {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.db-stat span:last-child {
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.decibel-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.decibel-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.decibel-btn.primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.decibel-btn.running {
+    background: #ef4444;
+}

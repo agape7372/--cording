@@ -155,6 +155,26 @@
                             </svg>
                             <span>BBS</span>
                         </button>
+                        <button class="tool-btn sensor" onclick="openGoniometer()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v10l8 4"/>
+                                <circle cx="12" cy="12" r="10"/>
+                            </svg>
+                            <span>각도계</span>
+                        </button>
+                        <button class="tool-btn sensor" onclick="openTremor()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 12h4l3-9 4 18 3-9h6"/>
+                            </svg>
+                            <span>떨림분석</span>
+                        </button>
+                        <button class="tool-btn sensor" onclick="openDecibel()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
+                            </svg>
+                            <span>데시벨</span>
+                        </button>
                         <button class="tool-btn" onclick="showHistory()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/>
@@ -866,6 +886,175 @@
 
             <!-- 결과 요약 (result 상태에서만 표시) -->
             <div class="dt-result hidden" id="dt-result-summary"></div>
+        </div>
+    </div>
+
+    <!-- Goniometer Modal (각도계/수평계) -->
+    <div id="goniometer-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>📐 디지털 각도계</h2>
+                <button class="close-btn" onclick="closeGoniometer()">×</button>
+            </div>
+
+            <div class="sensor-permission-area" id="gonio-permission">
+                <p>센서 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestOrientationPermission()">📱 센서 권한 허용</button>
+            </div>
+
+            <div class="gonio-display hidden" id="gonio-display">
+                <div class="gonio-mode-tabs">
+                    <button class="gonio-tab active" data-mode="incline" onclick="setGonioMode('incline')">수평계</button>
+                    <button class="gonio-tab" data-mode="angle" onclick="setGonioMode('angle')">각도계</button>
+                </div>
+
+                <div class="gonio-visual">
+                    <div class="gonio-circle">
+                        <div class="gonio-needle" id="gonio-needle"></div>
+                        <div class="gonio-center"></div>
+                    </div>
+                    <div class="gonio-value-display">
+                        <span class="gonio-value" id="gonio-value">0.0</span>
+                        <span class="gonio-unit">°</span>
+                    </div>
+                </div>
+
+                <div class="gonio-axis-info" id="gonio-axis-info">
+                    <div class="axis-item"><span>X (좌우)</span><span id="gonio-x">0°</span></div>
+                    <div class="axis-item"><span>Y (앞뒤)</span><span id="gonio-y">0°</span></div>
+                </div>
+
+                <div class="gonio-controls">
+                    <button class="gonio-btn" onclick="zeroGoniometer()">🎯 영점</button>
+                    <button class="gonio-btn" id="gonio-hold-btn" onclick="toggleGonioHold()">⏸ 고정</button>
+                </div>
+
+                <div class="gonio-rom-section hidden" id="gonio-rom-section">
+                    <h4>ROM 비교</h4>
+                    <select id="gonio-joint" onchange="updateRomComparison()">
+                        <option value="">관절 선택</option>
+                        <option value="shoulder-flex">어깨 굴곡 (180°)</option>
+                        <option value="shoulder-abd">어깨 외전 (180°)</option>
+                        <option value="elbow-flex">팔꿈치 굴곡 (150°)</option>
+                        <option value="hip-flex">고관절 굴곡 (120°)</option>
+                        <option value="knee-flex">무릎 굴곡 (135°)</option>
+                        <option value="ankle-df">발목 배굴 (20°)</option>
+                        <option value="ankle-pf">발목 저굴 (50°)</option>
+                    </select>
+                    <div class="rom-result hidden" id="rom-result">
+                        <div class="rom-bar"><div class="rom-fill" id="rom-fill"></div></div>
+                        <span id="rom-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tremor Analyzer Modal (손떨림 분석) -->
+    <div id="tremor-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>📊 손떨림 분석</h2>
+                <button class="close-btn" onclick="closeTremor()">×</button>
+            </div>
+
+            <div class="sensor-permission-area" id="tremor-permission">
+                <p>가속도 센서 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestMotionPermission()">📱 센서 권한 허용</button>
+            </div>
+
+            <div class="tremor-display hidden" id="tremor-display">
+                <div class="tremor-info-card">
+                    <p class="hint">📌 폰을 손바닥 위에 올리고 팔을 뻗은 상태로 측정하세요</p>
+                </div>
+
+                <div class="tremor-graph-container">
+                    <canvas id="tremor-canvas" width="320" height="150"></canvas>
+                </div>
+
+                <div class="tremor-stats">
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-freq">--</span>
+                        <span class="tremor-stat-label">주파수 (Hz)</span>
+                    </div>
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-intensity">--</span>
+                        <span class="tremor-stat-label">강도</span>
+                    </div>
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-type">--</span>
+                        <span class="tremor-stat-label">유형</span>
+                    </div>
+                </div>
+
+                <div class="tremor-reference">
+                    <p><strong>참고 기준</strong> (문헌 기반)</p>
+                    <div class="ref-item">파킨슨 떨림: 4-6 Hz</div>
+                    <div class="ref-item">본태성 떨림: 5-8 Hz</div>
+                    <div class="ref-item">생리적 떨림: 8-12 Hz</div>
+                </div>
+
+                <div class="tremor-controls">
+                    <button class="tremor-btn primary" id="tremor-start-btn" onclick="toggleTremorAnalysis()">▶ 측정 시작</button>
+                    <button class="tremor-btn" onclick="resetTremorData()">🔄 초기화</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decibel Meter Modal (데시벨 측정) -->
+    <div id="decibel-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>🎤 음성 데시벨</h2>
+                <button class="close-btn" onclick="closeDecibel()">×</button>
+            </div>
+
+            <div class="sensor-permission-area" id="decibel-permission">
+                <p>마이크 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestMicPermission()">🎙 마이크 권한 허용</button>
+            </div>
+
+            <div class="decibel-display hidden" id="decibel-display">
+                <div class="decibel-info-card">
+                    <p class="hint">📌 LSVT LOUD 훈련: 65-70dB 이상 유지</p>
+                </div>
+
+                <div class="decibel-visual" id="decibel-visual">
+                    <div class="decibel-meter">
+                        <div class="decibel-bar" id="decibel-bar"></div>
+                        <div class="decibel-target" id="decibel-target"></div>
+                    </div>
+                    <div class="decibel-value-display">
+                        <span class="decibel-value" id="decibel-value">0</span>
+                        <span class="decibel-unit">dB</span>
+                    </div>
+                </div>
+
+                <div class="decibel-feedback" id="decibel-feedback">
+                    대기 중
+                </div>
+
+                <div class="decibel-settings">
+                    <label>목표 데시벨</label>
+                    <div class="target-control">
+                        <button onclick="adjustTargetDb(-5)">−</button>
+                        <span id="target-db-value">70</span>
+                        <button onclick="adjustTargetDb(5)">+</button>
+                    </div>
+                </div>
+
+                <div class="decibel-stats hidden" id="decibel-stats">
+                    <div class="db-stat"><span>최대</span><span id="db-max">0 dB</span></div>
+                    <div class="db-stat"><span>평균</span><span id="db-avg">0 dB</span></div>
+                    <div class="db-stat"><span>목표 달성</span><span id="db-success">0%</span></div>
+                </div>
+
+                <div class="decibel-controls">
+                    <button class="decibel-btn primary" id="decibel-start-btn" onclick="toggleDecibelMeter()">▶ 측정 시작</button>
+                    <button class="decibel-btn" onclick="resetDecibelData()">🔄 초기화</button>
+                </div>
+            </div>
         </div>
     </div>
 

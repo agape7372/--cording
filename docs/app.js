@@ -2522,3 +2522,647 @@ function generateTask() {
 
     playClick(500, 0.03);
 }
+
+// ============================================
+// Sensor-based Tools (센서 기반 분석 도구)
+// ============================================
+
+// --- 공통 센서 권한 처리 ---
+let orientationPermissionGranted = false;
+let motionPermissionGranted = false;
+
+async function requestOrientationPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission === 'granted') {
+                orientationPermissionGranted = true;
+                initGoniometer();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        // Android 또는 권한 불필요 환경
+        orientationPermissionGranted = true;
+        initGoniometer();
+    }
+}
+
+async function requestMotionPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission === 'granted') {
+                motionPermissionGranted = true;
+                initTremor();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        motionPermissionGranted = true;
+        initTremor();
+    }
+}
+
+async function requestMicPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        initDecibel(stream);
+    } catch (e) {
+        console.error('Microphone permission denied:', e);
+        alert('마이크 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
+    }
+}
+
+// ============================================
+// 1. Digital Goniometer (디지털 각도계/수평계)
+// ROM 기준: AAOS (American Academy of Orthopedic Surgeons)
+// ============================================
+
+const gonioState = {
+    mode: 'incline', // 'incline' 또는 'angle'
+    zeroOffset: { alpha: 0, beta: 0, gamma: 0 },
+    isHeld: false,
+    heldValue: 0,
+    currentAngles: { x: 0, y: 0, z: 0 }
+};
+
+// AAOS 기준 정상 ROM (단위: 도)
+const ROM_STANDARDS = {
+    'shoulder-flex': 180,
+    'shoulder-abd': 180,
+    'elbow-flex': 150,
+    'hip-flex': 120,
+    'knee-flex': 135,
+    'ankle-df': 20,
+    'ankle-pf': 50
+};
+
+function openGoniometer() {
+    document.getElementById('goniometer-modal').classList.remove('hidden');
+
+    // 권한 이미 있으면 바로 초기화
+    if (orientationPermissionGranted) {
+        initGoniometer();
+    } else {
+        // iOS가 아닌 경우 권한 요청 없이 시도
+        if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            initGoniometer();
+        }
+    }
+}
+
+function closeGoniometer() {
+    document.getElementById('goniometer-modal').classList.add('hidden');
+    window.removeEventListener('deviceorientation', handleOrientation);
+}
+
+function initGoniometer() {
+    document.getElementById('gonio-permission').classList.add('hidden');
+    document.getElementById('gonio-display').classList.remove('hidden');
+
+    window.addEventListener('deviceorientation', handleOrientation);
+}
+
+function handleOrientation(event) {
+    if (gonioState.isHeld) return;
+
+    let alpha = event.alpha || 0; // z축 회전 (나침반)
+    let beta = event.beta || 0;   // x축 기울기 (앞뒤)
+    let gamma = event.gamma || 0; // y축 기울기 (좌우)
+
+    // 영점 보정
+    beta -= gonioState.zeroOffset.beta;
+    gamma -= gonioState.zeroOffset.gamma;
+
+    gonioState.currentAngles = { x: gamma, y: beta, z: alpha };
+
+    let displayValue;
+    if (gonioState.mode === 'incline') {
+        // 수평계: 좌우 기울기 (gamma)
+        displayValue = gamma;
+    } else {
+        // 각도계: 앞뒤 기울기 (beta)
+        displayValue = beta;
+    }
+
+    updateGonioDisplay(displayValue);
+}
+
+function updateGonioDisplay(angle) {
+    const valueEl = document.getElementById('gonio-value');
+    const needleEl = document.getElementById('gonio-needle');
+    const xEl = document.getElementById('gonio-x');
+    const yEl = document.getElementById('gonio-y');
+
+    // 값 표시
+    valueEl.textContent = Math.abs(angle).toFixed(1);
+
+    // 바늘 회전
+    if (needleEl) {
+        needleEl.style.transform = `rotate(${angle}deg)`;
+    }
+
+    // 축별 정보
+    if (xEl) xEl.textContent = `${gonioState.currentAngles.x.toFixed(1)}°`;
+    if (yEl) yEl.textContent = `${gonioState.currentAngles.y.toFixed(1)}°`;
+
+    // ROM 비교 업데이트
+    updateRomComparison();
+}
+
+function setGonioMode(mode) {
+    gonioState.mode = mode;
+
+    document.querySelectorAll('.gonio-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+
+    const romSection = document.getElementById('gonio-rom-section');
+    if (mode === 'angle') {
+        romSection.classList.remove('hidden');
+    } else {
+        romSection.classList.add('hidden');
+    }
+}
+
+function zeroGoniometer() {
+    gonioState.zeroOffset = {
+        alpha: gonioState.currentAngles.z + gonioState.zeroOffset.alpha,
+        beta: gonioState.currentAngles.y + gonioState.zeroOffset.beta,
+        gamma: gonioState.currentAngles.x + gonioState.zeroOffset.gamma
+    };
+    playClick(800, 0.05);
+}
+
+function toggleGonioHold() {
+    gonioState.isHeld = !gonioState.isHeld;
+    const btn = document.getElementById('gonio-hold-btn');
+
+    if (gonioState.isHeld) {
+        btn.textContent = '▶ 재개';
+        btn.classList.add('active');
+        gonioState.heldValue = parseFloat(document.getElementById('gonio-value').textContent);
+    } else {
+        btn.textContent = '⏸ 고정';
+        btn.classList.remove('active');
+    }
+    playClick(600, 0.05);
+}
+
+function updateRomComparison() {
+    const jointSelect = document.getElementById('gonio-joint');
+    const resultDiv = document.getElementById('rom-result');
+    const fillEl = document.getElementById('rom-fill');
+    const percentEl = document.getElementById('rom-percent');
+
+    if (!jointSelect.value) {
+        resultDiv.classList.add('hidden');
+        return;
+    }
+
+    const standard = ROM_STANDARDS[jointSelect.value];
+    const current = Math.abs(parseFloat(document.getElementById('gonio-value').textContent));
+    const percent = Math.min(100, (current / standard) * 100);
+
+    resultDiv.classList.remove('hidden');
+    fillEl.style.width = `${percent}%`;
+    percentEl.textContent = `${percent.toFixed(0)}%`;
+
+    // 색상 표시
+    if (percent >= 90) {
+        fillEl.style.background = 'var(--success-color)';
+    } else if (percent >= 70) {
+        fillEl.style.background = 'var(--primary-blue)';
+    } else {
+        fillEl.style.background = 'var(--warning-color)';
+    }
+}
+
+// ============================================
+// 2. Tremor Analyzer (손떨림 분석)
+// 참고 문헌: PMC3475963, PMC3656631
+// - 파킨슨 떨림: 4-6 Hz (안정시)
+// - 본태성 떨림: 5-8 Hz (자세/동작시)
+// - 생리적 떨림: 8-12 Hz
+// ============================================
+
+const tremorState = {
+    isRunning: false,
+    data: [],
+    startTime: 0,
+    canvas: null,
+    ctx: null,
+    animationId: null,
+    sampleRate: 60, // Hz
+    analysisWindow: 5 // seconds
+};
+
+function openTremor() {
+    document.getElementById('tremor-modal').classList.remove('hidden');
+
+    if (motionPermissionGranted) {
+        initTremor();
+    } else if (typeof DeviceMotionEvent.requestPermission !== 'function') {
+        initTremor();
+    }
+}
+
+function closeTremor() {
+    document.getElementById('tremor-modal').classList.add('hidden');
+    stopTremorAnalysis();
+}
+
+function initTremor() {
+    document.getElementById('tremor-permission').classList.add('hidden');
+    document.getElementById('tremor-display').classList.remove('hidden');
+
+    tremorState.canvas = document.getElementById('tremor-canvas');
+    tremorState.ctx = tremorState.canvas.getContext('2d');
+
+    // 캔버스 크기 조정
+    const rect = tremorState.canvas.parentElement.getBoundingClientRect();
+    tremorState.canvas.width = rect.width || 320;
+    tremorState.canvas.height = 150;
+
+    drawTremorGraph();
+}
+
+function toggleTremorAnalysis() {
+    if (tremorState.isRunning) {
+        stopTremorAnalysis();
+    } else {
+        startTremorAnalysis();
+    }
+}
+
+function startTremorAnalysis() {
+    tremorState.isRunning = true;
+    tremorState.data = [];
+    tremorState.startTime = performance.now();
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    window.addEventListener('devicemotion', handleMotion);
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function stopTremorAnalysis() {
+    tremorState.isRunning = false;
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    window.removeEventListener('devicemotion', handleMotion);
+    if (tremorState.animationId) {
+        cancelAnimationFrame(tremorState.animationId);
+    }
+
+    // 최종 분석
+    if (tremorState.data.length > 30) {
+        analyzeTremor();
+    }
+}
+
+function handleMotion(event) {
+    if (!tremorState.isRunning) return;
+
+    const acc = event.accelerationIncludingGravity || event.acceleration;
+    if (!acc) return;
+
+    const magnitude = Math.sqrt(
+        (acc.x || 0) ** 2 +
+        (acc.y || 0) ** 2 +
+        (acc.z || 0) ** 2
+    ) - 9.8; // 중력 보정
+
+    const timestamp = performance.now() - tremorState.startTime;
+
+    tremorState.data.push({
+        time: timestamp,
+        value: magnitude
+    });
+
+    // 최근 데이터만 유지 (메모리 관리)
+    const maxSamples = tremorState.sampleRate * tremorState.analysisWindow;
+    if (tremorState.data.length > maxSamples) {
+        tremorState.data.shift();
+    }
+}
+
+function updateTremorGraph() {
+    if (!tremorState.isRunning) return;
+
+    drawTremorGraph();
+    analyzeTremor();
+
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function drawTremorGraph() {
+    const ctx = tremorState.ctx;
+    const canvas = tremorState.canvas;
+    const data = tremorState.data;
+
+    // 배경
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 그리드
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (canvas.height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    if (data.length < 2) return;
+
+    // 데이터 그리기
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const xScale = canvas.width / (tremorState.analysisWindow * 1000);
+    const yCenter = canvas.height / 2;
+    const yScale = canvas.height / 10;
+
+    data.forEach((point, i) => {
+        const x = point.time * xScale;
+        const y = yCenter - (point.value * yScale);
+
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+}
+
+function analyzeTremor() {
+    const data = tremorState.data;
+    if (data.length < 30) return;
+
+    // 간단한 주파수 분석 (영교차 방식)
+    let crossings = 0;
+    const values = data.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+    for (let i = 1; i < values.length; i++) {
+        if ((values[i-1] - mean) * (values[i] - mean) < 0) {
+            crossings++;
+        }
+    }
+
+    const duration = (data[data.length - 1].time - data[0].time) / 1000;
+    const frequency = (crossings / 2) / duration;
+
+    // 강도 계산 (RMS)
+    const rms = Math.sqrt(values.reduce((sum, v) => sum + v * v, 0) / values.length);
+
+    // 결과 표시
+    document.getElementById('tremor-freq').textContent = frequency.toFixed(1);
+
+    let intensityText, tremorType;
+    if (rms < 0.3) {
+        intensityText = '미약';
+    } else if (rms < 0.8) {
+        intensityText = '경도';
+    } else if (rms < 1.5) {
+        intensityText = '중등도';
+    } else {
+        intensityText = '심함';
+    }
+    document.getElementById('tremor-intensity').textContent = intensityText;
+
+    // 유형 추정 (주파수 기반)
+    if (frequency >= 4 && frequency <= 6) {
+        tremorType = '파킨슨 의심';
+    } else if (frequency > 6 && frequency <= 8) {
+        tremorType = '본태성 의심';
+    } else if (frequency > 8 && frequency <= 12) {
+        tremorType = '생리적';
+    } else if (frequency < 4) {
+        tremorType = '저주파';
+    } else {
+        tremorType = '고주파';
+    }
+    document.getElementById('tremor-type').textContent = tremorType;
+}
+
+function resetTremorData() {
+    tremorState.data = [];
+    document.getElementById('tremor-freq').textContent = '--';
+    document.getElementById('tremor-intensity').textContent = '--';
+    document.getElementById('tremor-type').textContent = '--';
+    drawTremorGraph();
+}
+
+// ============================================
+// 3. Decibel Meter (음성 데시벨 측정)
+// LSVT LOUD 기준: 목표 65-70dB 이상
+// 참고: PMC3316992, ASHA LSVT 가이드라인
+// ============================================
+
+const decibelState = {
+    isRunning: false,
+    audioContext: null,
+    analyser: null,
+    microphone: null,
+    targetDb: 70,
+    dataArray: null,
+    animationId: null,
+    history: [],
+    successCount: 0,
+    totalCount: 0
+};
+
+function openDecibel() {
+    document.getElementById('decibel-modal').classList.remove('hidden');
+}
+
+function closeDecibel() {
+    document.getElementById('decibel-modal').classList.add('hidden');
+    stopDecibelMeter();
+}
+
+function initDecibel(stream) {
+    document.getElementById('decibel-permission').classList.add('hidden');
+    document.getElementById('decibel-display').classList.remove('hidden');
+
+    decibelState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    decibelState.analyser = decibelState.audioContext.createAnalyser();
+    decibelState.analyser.fftSize = 2048;
+    decibelState.analyser.smoothingTimeConstant = 0.3;
+
+    decibelState.microphone = decibelState.audioContext.createMediaStreamSource(stream);
+    decibelState.microphone.connect(decibelState.analyser);
+
+    decibelState.dataArray = new Uint8Array(decibelState.analyser.frequencyBinCount);
+
+    updateTargetIndicator();
+}
+
+function toggleDecibelMeter() {
+    if (decibelState.isRunning) {
+        stopDecibelMeter();
+    } else {
+        startDecibelMeter();
+    }
+}
+
+function startDecibelMeter() {
+    if (!decibelState.audioContext) return;
+
+    decibelState.isRunning = true;
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    document.getElementById('decibel-stats').classList.remove('hidden');
+
+    if (decibelState.audioContext.state === 'suspended') {
+        decibelState.audioContext.resume();
+    }
+
+    updateDecibelMeter();
+}
+
+function stopDecibelMeter() {
+    decibelState.isRunning = false;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    if (decibelState.animationId) {
+        cancelAnimationFrame(decibelState.animationId);
+    }
+}
+
+function updateDecibelMeter() {
+    if (!decibelState.isRunning) return;
+
+    decibelState.analyser.getByteFrequencyData(decibelState.dataArray);
+
+    // RMS 계산
+    let sum = 0;
+    for (let i = 0; i < decibelState.dataArray.length; i++) {
+        sum += decibelState.dataArray[i] ** 2;
+    }
+    const rms = Math.sqrt(sum / decibelState.dataArray.length);
+
+    // dB 변환 (근사값, 보정 필요)
+    // 실제 SPL dB는 교정된 마이크 필요, 이는 상대적 측정
+    const db = Math.max(0, Math.min(120, 20 * Math.log10(rms + 1) * 2));
+
+    // 표시 업데이트
+    updateDecibelDisplay(db);
+
+    // 통계
+    decibelState.history.push(db);
+    decibelState.totalCount++;
+    if (db >= decibelState.targetDb) {
+        decibelState.successCount++;
+    }
+
+    // 최근 100개만 유지
+    if (decibelState.history.length > 100) {
+        decibelState.history.shift();
+    }
+
+    updateDecibelStats();
+
+    decibelState.animationId = requestAnimationFrame(updateDecibelMeter);
+}
+
+function updateDecibelDisplay(db) {
+    const valueEl = document.getElementById('decibel-value');
+    const barEl = document.getElementById('decibel-bar');
+    const visualEl = document.getElementById('decibel-visual');
+    const feedbackEl = document.getElementById('decibel-feedback');
+
+    valueEl.textContent = Math.round(db);
+    barEl.style.height = `${(db / 120) * 100}%`;
+
+    // 목표 달성 여부에 따른 색상
+    const isSuccess = db >= decibelState.targetDb;
+
+    if (isSuccess) {
+        barEl.style.background = 'linear-gradient(to top, #22c55e, #16a34a)';
+        visualEl.classList.add('success');
+        visualEl.classList.remove('fail');
+        feedbackEl.textContent = '좋아요! 유지하세요!';
+        feedbackEl.style.color = '#16a34a';
+    } else {
+        barEl.style.background = 'linear-gradient(to top, #ef4444, #dc2626)';
+        visualEl.classList.add('fail');
+        visualEl.classList.remove('success');
+        feedbackEl.textContent = '더 크게 말해보세요!';
+        feedbackEl.style.color = '#dc2626';
+    }
+}
+
+function updateDecibelStats() {
+    const history = decibelState.history;
+    if (history.length === 0) return;
+
+    const max = Math.max(...history);
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const successRate = (decibelState.successCount / decibelState.totalCount) * 100;
+
+    document.getElementById('db-max').textContent = `${Math.round(max)} dB`;
+    document.getElementById('db-avg').textContent = `${Math.round(avg)} dB`;
+    document.getElementById('db-success').textContent = `${Math.round(successRate)}%`;
+}
+
+function adjustTargetDb(delta) {
+    decibelState.targetDb = Math.max(40, Math.min(100, decibelState.targetDb + delta));
+    document.getElementById('target-db-value').textContent = decibelState.targetDb;
+    updateTargetIndicator();
+}
+
+function updateTargetIndicator() {
+    const targetEl = document.getElementById('decibel-target');
+    if (targetEl) {
+        targetEl.style.bottom = `${(decibelState.targetDb / 120) * 100}%`;
+    }
+}
+
+function resetDecibelData() {
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    document.getElementById('decibel-value').textContent = '0';
+    document.getElementById('decibel-bar').style.height = '0%';
+    document.getElementById('decibel-feedback').textContent = '대기 중';
+    document.getElementById('decibel-feedback').style.color = '';
+    document.getElementById('db-max').textContent = '0 dB';
+    document.getElementById('db-avg').textContent = '0 dB';
+    document.getElementById('db-success').textContent = '0%';
+}
