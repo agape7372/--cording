@@ -2084,7 +2084,8 @@ function getDtElements() {
             difficultyBtns: document.querySelectorAll('.difficulty-btn'),
             countdown: document.getElementById('dt-countdown'),
             resultSummary: document.getElementById('dt-result-summary'),
-            instruction: document.getElementById('dt-instruction')
+            instruction: document.getElementById('dt-instruction'),
+            stats: document.querySelector('.dualtask-stats')
         };
     }
     return dtElements;
@@ -2152,7 +2153,8 @@ function resetDualTaskStats() {
     const el = getDtElements();
     if (el.taskCounter) el.taskCounter.textContent = '0';
     if (el.sessionTime) el.sessionTime.textContent = '0:00';
-    if (el.countdown) el.countdown.textContent = '';
+    if (el.countdown) el.countdown.innerHTML = '';
+    if (el.stats) el.stats.classList.remove('running');
 }
 
 function adjustInterval(delta) {
@@ -2215,6 +2217,8 @@ function startDualTask() {
     el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> 종료';
     el.playBtn.classList.add('playing');
     if (el.pauseBtn) el.pauseBtn.classList.remove('hidden');
+    if (el.stats) el.stats.classList.add('running');
+    if (el.countdown) el.countdown.innerHTML = '<div class="dt-countdown-bar" style="width: 100%"></div>';
 
     hideResultSummary();
     generateTask();
@@ -2244,7 +2248,8 @@ function stopDualTask() {
     el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 시작';
     el.playBtn.classList.remove('playing');
     if (el.pauseBtn) el.pauseBtn.classList.add('hidden');
-    if (el.countdown) el.countdown.textContent = '';
+    if (el.stats) el.stats.classList.remove('running');
+    if (el.countdown) el.countdown.innerHTML = '';
 
     // TTS 취소
     if (dualTaskState.speechSynthesis) {
@@ -2311,7 +2316,11 @@ function updateCountdown() {
     }
     const el = getDtElements();
     if (el.countdown) {
-        el.countdown.textContent = Math.ceil(dualTaskState.remainingTime);
+        const bar = el.countdown.querySelector('.dt-countdown-bar');
+        if (bar) {
+            const percent = (dualTaskState.remainingTime / dualTaskState.interval) * 100;
+            bar.style.width = `${percent}%`;
+        }
     }
 }
 

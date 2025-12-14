@@ -3658,58 +3658,72 @@ html, body {
     border-left: 3px solid var(--primary-blue);
 }
 
-/* 카운트다운 표시 */
+/* 카운트다운 프로그레스 바 */
 .dt-countdown {
-    font-size: 48px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.9);
-    margin-top: 12px;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 80%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 20px auto 0;
+    overflow: hidden;
+}
+
+.dt-countdown-bar {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+/* 실행 중 통계 숨기기 */
+.dualtask-stats.running {
+    display: none;
 }
 
 /* 결과 요약 */
 .dt-result-summary {
     background: linear-gradient(135deg, var(--mint-green-dark), var(--mint-green));
     border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
     color: white;
 }
 
-.dt-result-summary h4 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 .result-summary-content {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
     text-align: center;
 }
 
-.result-summary-content .summary-item {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 12px 8px;
+.result-summary-content h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    opacity: 0.9;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+}
+
+.result-stat {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 10px 6px;
     border-radius: 8px;
 }
 
-.result-summary-content .summary-value {
-    font-size: 24px;
+.result-stat-value {
+    font-size: 20px;
     font-weight: 700;
     display: block;
+    line-height: 1.2;
 }
 
-.result-summary-content .summary-label {
-    font-size: 11px;
-    opacity: 0.9;
+.result-stat-label {
+    font-size: 10px;
+    opacity: 0.85;
+    white-space: nowrap;
 }
 
 /* 프롬프트 애니메이션 */
