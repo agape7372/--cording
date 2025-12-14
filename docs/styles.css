@@ -34,7 +34,7 @@
 }
 
 html, body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--background-grey);
     color: var(--text-primary);
     font-size: 16px;
@@ -6699,10 +6699,11 @@ html, body {
 }
 
 .nav-icon.soap-letter {
-    font-size: 22px;
-    font-weight: 900;
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #374151;
+    font-size: 24px;
+    font-weight: 800;
+    font-family: 'Pretendard', sans-serif;
+    color: #1f2937;
+    letter-spacing: -0.5px;
 }
 
 .nav-item.active .nav-icon.soap-letter {
