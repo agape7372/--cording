@@ -3673,3 +3673,168 @@ function closeTrpDetail() {
         }, { passive: true });
     });
 })();
+
+// =====================================================
+// AAC Communication Board (의사소통 보드)
+// For patients with aphasia/dysarthria
+// =====================================================
+
+const AAC_DATA = {
+    basic: [
+        { icon: '🚽', label: '화장실', speech: '화장실에 가고 싶어요' },
+        { icon: '💧', label: '물', speech: '물을 주세요' },
+        { icon: '🍚', label: '밥', speech: '배가 고파요' },
+        { icon: '🥵', label: '더워요', speech: '더워요. 시원하게 해주세요' },
+        { icon: '🥶', label: '추워요', speech: '추워요. 따뜻하게 해주세요' },
+        { icon: '😴', label: '피곤해요', speech: '피곤해요. 쉬고 싶어요' },
+        { icon: '👍', label: '네', speech: '네, 좋아요' },
+        { icon: '👎', label: '아니오', speech: '아니요, 싫어요' },
+        { icon: '🆘', label: '도와주세요', speech: '도와주세요' }
+    ],
+    pain: [
+        { icon: '😣', label: '아파요', speech: '아파요' },
+        { icon: '🤕', label: '머리', speech: '머리가 아파요' },
+        { icon: '💔', label: '가슴', speech: '가슴이 아파요' },
+        { icon: '🫃', label: '배', speech: '배가 아파요' },
+        { icon: '🦵', label: '다리', speech: '다리가 아파요' },
+        { icon: '💪', label: '팔', speech: '팔이 아파요' },
+        { icon: '🔥', label: '따끔거려요', speech: '따끔거리고 화끈거려요' },
+        { icon: '⚡', label: '저려요', speech: '저리고 찌릿해요' },
+        { icon: '😵‍💫', label: '어지러워요', speech: '어지러워요' }
+    ],
+    emotion: [
+        { icon: '😊', label: '좋아요', speech: '기분이 좋아요' },
+        { icon: '😢', label: '슬퍼요', speech: '슬프고 우울해요' },
+        { icon: '😰', label: '불안해요', speech: '불안하고 걱정돼요' },
+        { icon: '😤', label: '화나요', speech: '화가 나요' },
+        { icon: '😨', label: '무서워요', speech: '무섭고 두려워요' },
+        { icon: '🥺', label: '보고싶어요', speech: '가족이 보고 싶어요' },
+        { icon: '😔', label: '외로워요', speech: '외롭고 심심해요' },
+        { icon: '🙏', label: '감사해요', speech: '감사합니다' },
+        { icon: '😌', label: '괜찮아요', speech: '괜찮아요, 걱정 마세요' }
+    ],
+    action: [
+        { icon: '🛏️', label: '눕고 싶어요', speech: '눕고 싶어요' },
+        { icon: '🪑', label: '앉고 싶어요', speech: '앉고 싶어요' },
+        { icon: '🚶', label: '걷고 싶어요', speech: '걷고 싶어요' },
+        { icon: '📺', label: 'TV', speech: 'TV를 켜주세요' },
+        { icon: '💡', label: '불', speech: '불을 꺼주세요' },
+        { icon: '📞', label: '전화', speech: '전화하고 싶어요' },
+        { icon: '👨‍⚕️', label: '의사', speech: '의사 선생님을 불러주세요' },
+        { icon: '👩‍⚕️', label: '간호사', speech: '간호사를 불러주세요' },
+        { icon: '⏰', label: '시간', speech: '지금 몇 시예요?' }
+    ]
+};
+
+let aacState = {
+    currentCategory: 'basic',
+    currentText: '',
+    speechRate: 0.9
+};
+
+function openAACBoard() {
+    document.getElementById('aac-modal').classList.remove('hidden');
+    setAACCategory('basic');
+}
+
+function closeAACBoard() {
+    document.getElementById('aac-modal').classList.add('hidden');
+    // Stop any ongoing speech
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+function setAACCategory(category) {
+    aacState.currentCategory = category;
+    
+    // Update category buttons
+    document.querySelectorAll('.aac-cat-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.includes(getCategoryKorean(category))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    renderAACBoard();
+}
+
+function getCategoryKorean(cat) {
+    const map = { basic: '기본', pain: '통증', emotion: '감정', action: '요청' };
+    return map[cat] || cat;
+}
+
+function renderAACBoard() {
+    const board = document.getElementById('aac-board');
+    const items = AAC_DATA[aacState.currentCategory] || [];
+    
+    board.innerHTML = items.map((item, idx) => `
+        <div class="aac-item" onclick="selectAACItem(${idx})" id="aac-item-${idx}">
+            <span class="aac-icon">${item.icon}</span>
+            <span class="aac-label">${item.label}</span>
+        </div>
+    `).join('');
+}
+
+function selectAACItem(idx) {
+    const items = AAC_DATA[aacState.currentCategory];
+    if (!items || !items[idx]) return;
+    
+    const item = items[idx];
+    aacState.currentText = item.speech;
+    
+    // Update output display
+    document.getElementById('aac-output-text').textContent = item.speech;
+    
+    // Visual feedback
+    const el = document.getElementById(`aac-item-${idx}`);
+    if (el) {
+        el.classList.add('speaking');
+        setTimeout(() => el.classList.remove('speaking'), 500);
+    }
+    
+    // Speak immediately
+    speakText(item.speech);
+}
+
+function speakAACOutput() {
+    if (aacState.currentText) {
+        speakText(aacState.currentText);
+    }
+}
+
+function speakText(text) {
+    if (!window.speechSynthesis) {
+        showToast('이 기기에서 음성 합성을 지원하지 않습니다');
+        return;
+    }
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    utterance.rate = aacState.speechRate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Try to use Korean voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const koreanVoice = voices.find(v => v.lang.includes('ko'));
+    if (koreanVoice) {
+        utterance.voice = koreanVoice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+function updateAACRate(value) {
+    aacState.speechRate = parseFloat(value);
+}
+
+// Load voices when available
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        // Voices loaded
+    };
+}

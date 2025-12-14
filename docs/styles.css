@@ -4703,3 +4703,174 @@ html, body {
 .trp-detail-ref small {
     font-size: 11px;
 }
+
+/* =====================================================
+   AAC Communication Board Styles
+   ===================================================== */
+.tool-btn.aac {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+}
+
+.aac-content {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.aac-info {
+    text-align: center;
+    padding: 8px;
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #1e40af;
+}
+
+.aac-categories {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.aac-cat-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.aac-cat-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+.aac-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 320px;
+}
+
+.aac-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 8px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 90px;
+}
+
+.aac-item:hover,
+.aac-item:active {
+    border-color: var(--primary-blue);
+    background: #eff6ff;
+    transform: scale(1.02);
+}
+
+.aac-item.speaking {
+    border-color: #22c55e;
+    background: #dcfce7;
+    animation: aacPulse 0.5s ease;
+}
+
+@keyframes aacPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.aac-icon {
+    font-size: 36px;
+    margin-bottom: 6px;
+}
+
+.aac-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.aac-output {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+.aac-output-text {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+}
+
+.aac-speak-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.aac-speak-btn:active {
+    transform: scale(0.95);
+    background: #1d4ed8;
+}
+
+.aac-settings {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.aac-settings label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.aac-settings input[type="range"] {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.aac-settings input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--primary-blue);
+    border-radius: 50%;
+    cursor: pointer;
+}
