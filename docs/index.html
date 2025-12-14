@@ -1235,16 +1235,62 @@
     <div id="neglect-modal" class="tool-modal hidden">
         <div class="tool-modal-content neglect-content">
             <div class="tool-modal-header">
-                <h2>⭐ 편측 무시 검사</h2>
+                <h2>👁️ 편측 무시 검사</h2>
                 <button class="close-btn" onclick="closeNeglectTest()">×</button>
             </div>
 
-            <!-- 검사 전 안내 -->
-            <div class="neglect-intro" id="neglect-intro">
+            <!-- 경고 배너 -->
+            <div class="neglect-warning">
+                ⚠️ 스마트폰 선별검사입니다. 정확한 평가는 <strong>태블릿 또는 종이검사</strong>를 권장합니다.
+            </div>
+
+            <!-- 검사 유형 탭 -->
+            <div class="neglect-mode-tabs">
+                <button class="neglect-tab active" onclick="setNeglectMode('bisection')">선 이등분</button>
+                <button class="neglect-tab" onclick="setNeglectMode('star')">별 찾기</button>
+            </div>
+
+            <!-- Line Bisection 안내 -->
+            <div class="neglect-intro" id="neglect-intro-bisection">
+                <div class="neglect-info-card">
+                    <h3>Line Bisection Test</h3>
+                    <p>수평선의 <strong>정중앙</strong>을 터치하세요.</p>
+                    <p class="hint">📱 좁은 화면에서도 신뢰성 높음</p>
+                </div>
+
+                <div class="neglect-settings">
+                    <label>
+                        <span>시행 횟수</span>
+                        <select id="bisection-trials">
+                            <option value="3">3회</option>
+                            <option value="5" selected>5회</option>
+                            <option value="10">10회</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>선 길이</span>
+                        <select id="bisection-length">
+                            <option value="short">짧음</option>
+                            <option value="full" selected>화면폭</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button class="neglect-start-btn" onclick="startBisectionTest()">
+                    ▶ 검사 시작
+                </button>
+
+                <div class="neglect-ref">
+                    <small>📚 Ref: Schenkenberg et al. (1980) - Line Bisection Test</small>
+                </div>
+            </div>
+
+            <!-- Star Cancellation 안내 -->
+            <div class="neglect-intro hidden" id="neglect-intro-star">
                 <div class="neglect-info-card">
                     <h3>Star Cancellation Test</h3>
                     <p>화면에 흩어진 <strong>별(⭐)</strong>을 모두 터치해서 없애세요.</p>
-                    <p class="hint">검사 시간: 약 2분 | 대상: 뇌졸중 후 편측 무시 선별</p>
+                    <p class="hint">📱 가로 모드 권장 | 대상: 뇌졸중 후 편측 무시 선별</p>
                 </div>
 
                 <div class="neglect-settings">
@@ -1272,6 +1318,18 @@
 
                 <div class="neglect-ref">
                     <small>📚 Ref: Wilson, Cockburn & Halligan (1987) - BIT Star Cancellation</small>
+                </div>
+            </div>
+
+            <!-- Line Bisection 진행 영역 -->
+            <div class="bisection-test-area hidden" id="bisection-test-area">
+                <div class="bisection-progress">
+                    시행 <span id="bisection-current">1</span> / <span id="bisection-total">5</span>
+                </div>
+                <div class="bisection-instruction">선의 정중앙을 터치하세요</div>
+                <div class="bisection-field" id="bisection-field">
+                    <div class="bisection-line" id="bisection-line"></div>
+                    <div class="bisection-marker hidden" id="bisection-marker"></div>
                 </div>
             </div>
 

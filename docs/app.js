@@ -3866,16 +3866,49 @@ function closeNeglectTest() {
     stopNeglectTimer();
 }
 
-function resetNeglectTest() {
-    stopNeglectTimer();
-    
-    document.getElementById('neglect-intro').classList.remove('hidden');
+// Current neglect mode: 'bisection' or 'star'
+let currentNeglectMode = 'bisection';
+
+// Bisection test state
+let bisectionState = {
+    trials: [],
+    currentTrial: 0,
+    totalTrials: 5,
+    lineLength: 'full',
+    isRunning: false
+};
+
+function setNeglectMode(mode) {
+    currentNeglectMode = mode;
+
+    // Update tabs
+    document.querySelectorAll('.neglect-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.includes(mode === 'bisection' ? '선 이등분' : '별 찾기'));
+    });
+
+    // Show/hide intro sections
+    document.getElementById('neglect-intro-bisection').classList.toggle('hidden', mode !== 'bisection');
+    document.getElementById('neglect-intro-star').classList.toggle('hidden', mode !== 'star');
+
+    // Hide test areas and results
+    document.getElementById('bisection-test-area').classList.add('hidden');
     document.getElementById('neglect-test-area').classList.add('hidden');
     document.getElementById('neglect-result').classList.add('hidden');
-    
+}
+
+function resetNeglectTest() {
+    stopNeglectTimer();
+
+    // Reset to intro based on current mode
+    setNeglectMode(currentNeglectMode);
+
     neglectState.found = { left: 0, right: 0 };
     neglectState.stars = [];
     neglectState.isRunning = false;
+
+    bisectionState.trials = [];
+    bisectionState.currentTrial = 0;
+    bisectionState.isRunning = false;
 }
 
 function restartNeglectTest() {
@@ -4075,5 +4108,190 @@ function endNeglectTest() {
     }
     
     document.getElementById('neglect-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.remove('hidden');
+}
+
+// ============================================
+// LINE BISECTION TEST
+// ============================================
+
+function startBisectionTest() {
+    bisectionState.totalTrials = parseInt(document.getElementById('bisection-trials').value);
+    bisectionState.lineLength = document.getElementById('bisection-length').value;
+    bisectionState.trials = [];
+    bisectionState.currentTrial = 0;
+    bisectionState.isRunning = true;
+
+    // Hide intro, show test area
+    document.getElementById('neglect-intro-bisection').classList.add('hidden');
+    document.getElementById('bisection-test-area').classList.remove('hidden');
+
+    document.getElementById('bisection-total').textContent = bisectionState.totalTrials;
+
+    setupBisectionTrial();
+}
+
+function setupBisectionTrial() {
+    bisectionState.currentTrial++;
+    document.getElementById('bisection-current').textContent = bisectionState.currentTrial;
+
+    const field = document.getElementById('bisection-field');
+    const line = document.getElementById('bisection-line');
+    const marker = document.getElementById('bisection-marker');
+
+    // Reset marker
+    marker.classList.add('hidden');
+    marker.classList.remove('correct');
+
+    // Set line length
+    if (bisectionState.lineLength === 'short') {
+        line.classList.add('short');
+    } else {
+        line.classList.remove('short');
+    }
+
+    // Random vertical offset to prevent memorization
+    const randomOffset = (Math.random() - 0.5) * 60;
+    line.style.top = 'calc(50% + ' + randomOffset + 'px)';
+
+    // Add touch/click handler
+    field.onclick = handleBisectionTap;
+    field.ontouchstart = function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleBisectionTapAt(touch.clientX, touch.clientY);
+    };
+}
+
+function handleBisectionTap(e) {
+    handleBisectionTapAt(e.clientX, e.clientY);
+}
+
+function handleBisectionTapAt(clientX, clientY) {
+    if (!bisectionState.isRunning) return;
+
+    const field = document.getElementById('bisection-field');
+    const line = document.getElementById('bisection-line');
+    const marker = document.getElementById('bisection-marker');
+
+    const fieldRect = field.getBoundingClientRect();
+    const lineRect = line.getBoundingClientRect();
+
+    // Calculate tap position relative to field
+    const tapX = clientX - fieldRect.left;
+    const tapY = clientY - fieldRect.top;
+
+    // Calculate line properties
+    const lineLeft = lineRect.left - fieldRect.left;
+    const lineRight = lineRect.right - fieldRect.left;
+    const lineCenter = (lineLeft + lineRight) / 2;
+    const lineLength = lineRight - lineLeft;
+    const lineY = lineRect.top - fieldRect.top + lineRect.height / 2;
+
+    // Show marker at tap position (constrained to line)
+    const constrainedX = Math.max(lineLeft, Math.min(lineRight, tapX));
+    marker.style.left = constrainedX + 'px';
+    marker.style.top = lineY + 'px';
+    marker.classList.remove('hidden');
+
+    // Calculate deviation from center (in percentage of half line length)
+    // Positive = right of center, Negative = left of center
+    const deviation = ((constrainedX - lineCenter) / (lineLength / 2)) * 100;
+    const deviationMm = deviation * 0.5; // Approximate mm based on typical line length
+
+    // Store trial result
+    bisectionState.trials.push({
+        trial: bisectionState.currentTrial,
+        deviation: deviation,
+        deviationMm: deviationMm,
+        tapX: constrainedX,
+        lineCenter: lineCenter
+    });
+
+    // Visual feedback
+    if (Math.abs(deviation) < 5) {
+        marker.classList.add('correct');
+    }
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+
+    // Disable further taps
+    field.onclick = null;
+    field.ontouchstart = null;
+
+    // Wait and proceed
+    setTimeout(function() {
+        if (bisectionState.currentTrial < bisectionState.totalTrials) {
+            setupBisectionTrial();
+        } else {
+            endBisectionTest();
+        }
+    }, 800);
+}
+
+function endBisectionTest() {
+    bisectionState.isRunning = false;
+
+    const trials = bisectionState.trials;
+    const avgDeviation = trials.reduce(function(sum, t) { return sum + t.deviation; }, 0) / trials.length;
+    const leftDeviations = trials.filter(function(t) { return t.deviation < -5; }).length;
+    const rightDeviations = trials.filter(function(t) { return t.deviation > 5; }).length;
+
+    // Calculate left/right performance for consistency with star test display
+    const leftPercent = Math.round(100 - Math.abs(Math.min(0, avgDeviation)));
+    const rightPercent = Math.round(100 - Math.abs(Math.max(0, avgDeviation)));
+
+    // Update result display
+    document.getElementById('result-left').textContent = leftPercent + '%';
+    document.getElementById('result-right').textContent = rightPercent + '%';
+    document.getElementById('left-fill').style.width = leftPercent + '%';
+    document.getElementById('right-fill').style.width = rightPercent + '%';
+
+    // Build summary
+    const direction = avgDeviation > 0 ? '우측' : avgDeviation < 0 ? '좌측' : '중앙';
+    let summaryHtml = '<div><strong>평균 편차:</strong> ' + Math.abs(avgDeviation).toFixed(1) + '% ' + (avgDeviation !== 0 ? '(' + direction + ')' : '') + '</div>';
+    summaryHtml += '<div><strong>시행 결과:</strong> 좌측편향 ' + leftDeviations + '회, 우측편향 ' + rightDeviations + '회</div>';
+    summaryHtml += '<div class="bisection-result-detail">';
+    summaryHtml += '<strong>시행별 편차:</strong><div class="bisection-trial-list">';
+
+    for (var i = 0; i < trials.length; i++) {
+        var t = trials[i];
+        var dir = t.deviation > 5 ? 'right' : t.deviation < -5 ? 'left' : 'center';
+        var dirText = t.deviation > 5 ? '우' : t.deviation < -5 ? '좌' : '중앙';
+        summaryHtml += '<div class="bisection-trial-item"><span>시행 ' + t.trial + '</span>';
+        summaryHtml += '<span class="deviation ' + dir + '">' + (t.deviation > 0 ? '+' : '') + t.deviation.toFixed(1) + '% (' + dirText + ')</span></div>';
+    }
+
+    summaryHtml += '</div></div>';
+    summaryHtml += '<div class="bisection-avg"><div class="bisection-avg-value">' + (avgDeviation > 0 ? '+' : '') + avgDeviation.toFixed(1) + '%</div>';
+    summaryHtml += '<div class="bisection-avg-label">평균 편차 (' + direction + ' 편향)</div></div>';
+
+    document.getElementById('neglect-summary').innerHTML = summaryHtml;
+
+    // Interpretation based on Schenkenberg et al. criteria
+    const interpretEl = document.getElementById('neglect-interpretation');
+
+    if (Math.abs(avgDeviation) < 5) {
+        interpretEl.className = 'neglect-interpretation normal';
+        interpretEl.innerHTML = '✅ <strong>정상 범위</strong><br>선 이등분 수행 양호';
+    } else if (avgDeviation < -15) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>좌측 무시 의심</strong><br>우뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (avgDeviation > 15) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>우측 무시 의심</strong><br>좌뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (avgDeviation < -5) {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>경미한 좌측 편향</strong><br>추가 평가 고려';
+    } else {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>경미한 우측 편향</strong><br>추가 평가 고려';
+    }
+
+    // Show result
+    document.getElementById('bisection-test-area').classList.add('hidden');
     document.getElementById('neglect-result').classList.remove('hidden');
 }
