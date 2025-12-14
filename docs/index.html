@@ -160,6 +160,13 @@
                             </svg>
                             <span>데시벨</span>
                         </button>
+                        <button class="tool-btn reference" onclick="openTriggerPointMap()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="5" r="3"/>
+                                <path d="M12 8v4m-4 0h8m-6 4l-2 6m4-6v6m4-6l2 6"/>
+                            </svg>
+                            <span>TrP 지도</span>
+                        </button>
                         <button class="tool-btn" onclick="showHistory()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/>
@@ -1074,6 +1081,100 @@
                     <button class="decibel-btn primary" id="decibel-start-btn" onclick="toggleDecibelMeter()">▶ 측정 시작</button>
                     <button class="decibel-btn" onclick="resetDecibelData()">🔄 초기화</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trigger Point Map Modal -->
+    <div id="trp-modal" class="tool-modal hidden">
+        <div class="tool-modal-content trp-content">
+            <div class="tool-modal-header">
+                <h2>🎯 Trigger Point 지도</h2>
+                <button class="close-btn" onclick="closeTrpMap()">×</button>
+            </div>
+
+            <div class="trp-info-banner">
+                <span>📖 Travell & Simons 기준</span>
+                <span class="trp-legend"><span class="trp-x">✕</span> TrP위치 <span class="trp-ref"></span> 방사통</span>
+            </div>
+
+            <div class="trp-body-container" id="trp-body-container">
+                <div class="trp-zoom-controls">
+                    <button onclick="zoomTrpMap(1.2)">+</button>
+                    <button onclick="zoomTrpMap(0.8)">−</button>
+                    <button onclick="resetTrpZoom()">↺</button>
+                </div>
+
+                <div class="trp-body-wrapper" id="trp-body-wrapper">
+                    <svg id="trp-body-svg" viewBox="0 0 200 400" class="trp-body-svg">
+                        <!-- 머리 -->
+                        <ellipse cx="100" cy="25" rx="22" ry="25" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 목 -->
+                        <rect x="90" y="48" width="20" height="20" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 몸통 -->
+                        <path d="M60 68 L140 68 L145 180 L55 180 Z" fill="#e8c4b8" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 왼팔 -->
+                        <path d="M55 72 L35 72 L25 140 L30 145 L45 85 L55 85 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M25 140 L15 200 L25 205 L35 145 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 오른팔 -->
+                        <path d="M145 72 L165 72 L175 140 L170 145 L155 85 L145 85 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M175 140 L185 200 L175 205 L165 145 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 골반 -->
+                        <path d="M55 180 L145 180 L140 210 L60 210 Z" fill="#e8c4b8" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 왼다리 -->
+                        <path d="M60 210 L90 210 L85 320 L55 320 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M55 320 L85 320 L80 390 L50 390 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 오른다리 -->
+                        <path d="M110 210 L140 210 L145 320 L115 320 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M115 320 L145 320 L150 390 L120 390 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 탭 가능 영역 (투명 오버레이) -->
+                        <!-- 목/어깨 -->
+                        <rect x="60" y="45" width="80" height="35" fill="transparent" class="trp-region" data-region="neck" onclick="showTrpDetail('neck')"/>
+                        <!-- 어깨 좌 -->
+                        <rect x="30" y="65" width="35" height="30" fill="transparent" class="trp-region" data-region="shoulder-l" onclick="showTrpDetail('shoulder')"/>
+                        <!-- 어깨 우 -->
+                        <rect x="135" y="65" width="35" height="30" fill="transparent" class="trp-region" data-region="shoulder-r" onclick="showTrpDetail('shoulder')"/>
+                        <!-- 허리 -->
+                        <rect x="55" y="140" width="90" height="50" fill="transparent" class="trp-region" data-region="lowback" onclick="showTrpDetail('lowback')"/>
+                        <!-- 종아리 좌 -->
+                        <rect x="55" y="320" width="30" height="70" fill="transparent" class="trp-region" data-region="calf-l" onclick="showTrpDetail('calf')"/>
+                        <!-- 종아리 우 -->
+                        <rect x="115" y="320" width="35" height="70" fill="transparent" class="trp-region" data-region="calf-r" onclick="showTrpDetail('calf')"/>
+                    </svg>
+                </div>
+
+                <div class="trp-tap-hint">👆 부위를 탭하여 TrP 패턴 보기</div>
+            </div>
+
+            <div class="trp-quick-btns">
+                <button class="trp-quick-btn" onclick="showTrpDetail('neck')">목</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('shoulder')">어깨</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('lowback')">허리</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('calf')">종아리</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TrP Detail Popup -->
+    <div id="trp-detail-popup" class="trp-detail-popup hidden">
+        <div class="trp-detail-content">
+            <div class="trp-detail-header">
+                <h3 id="trp-detail-title">부위명</h3>
+                <button class="close-btn" onclick="closeTrpDetail()">×</button>
+            </div>
+            <div class="trp-detail-body" id="trp-detail-body">
+                <!-- 상세 내용 동적 생성 -->
+            </div>
+            <div class="trp-detail-ref">
+                <small>📚 Ref: Travell & Simons' Myofascial Pain and Dysfunction</small>
             </div>
         </div>
     </div>

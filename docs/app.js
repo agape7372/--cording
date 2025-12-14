@@ -3418,3 +3418,258 @@ function resetDecibelData() {
     document.getElementById('db-avg').textContent = '0 dB';
     document.getElementById('db-success').textContent = '0%';
 }
+
+// =====================================================
+// Trigger Point Map (TrP 지도)
+// Reference: Travell & Simons' Myofascial Pain and Dysfunction
+// =====================================================
+
+let trpZoomLevel = 1;
+
+// TrP 데이터베이스 (Travell & Simons 기준)
+const TRP_DATA = {
+    neck: {
+        title: '목 (Neck)',
+        muscles: [
+            {
+                name: '상부 승모근',
+                nameEn: 'Upper Trapezius',
+                location: '어깨 위쪽, 목 옆면',
+                referral: '측두부 → 눈썹 위 → 턱 방향으로 방사',
+                pattern: {
+                    trpX: { x: 70, y: 30 },  // TrP 위치
+                    referralPath: 'M70,30 Q60,20 50,15 L30,10'  // 방사통 경로
+                }
+            },
+            {
+                name: '흉쇄유돌근',
+                nameEn: 'Sternocleidomastoid (SCM)',
+                location: '귀 뒤 유양돌기 ~ 흉골/쇄골',
+                referral: '이마, 눈 주위, 귀 안쪽, 때로 어지러움 동반',
+                pattern: {
+                    trpX: { x: 60, y: 45 },
+                    referralPath: 'M60,45 Q50,30 45,15'
+                }
+            },
+            {
+                name: '견갑거근',
+                nameEn: 'Levator Scapulae',
+                location: '목 뒤쪽, 견갑골 상각 위',
+                referral: '목-어깨 연결부, 견갑골 내측연을 따라 방사',
+                pattern: {
+                    trpX: { x: 75, y: 50 },
+                    referralPath: 'M75,50 L80,65 L85,85'
+                }
+            }
+        ]
+    },
+    shoulder: {
+        title: '어깨 (Shoulder)',
+        muscles: [
+            {
+                name: '상부 승모근',
+                nameEn: 'Upper Trapezius',
+                location: '어깨 위쪽 근육 융기부',
+                referral: '목 뒤쪽 → 측두부 → 눈썹/턱까지 방사',
+                pattern: {
+                    trpX: { x: 50, y: 25 },
+                    referralPath: 'M50,25 Q40,15 30,10'
+                }
+            },
+            {
+                name: '극상근',
+                nameEn: 'Supraspinatus',
+                location: '견갑골 극상와 (어깨뼈 위쪽)',
+                referral: '어깨 외측 삼각근 부위, 팔꿈치 외측까지',
+                pattern: {
+                    trpX: { x: 55, y: 40 },
+                    referralPath: 'M55,40 L60,55 L65,75'
+                }
+            },
+            {
+                name: '극하근',
+                nameEn: 'Infraspinatus',
+                location: '견갑골 극하와 (어깨뼈 아래쪽)',
+                referral: '어깨 전면, 상완 전외측, 손목까지 방사 가능',
+                pattern: {
+                    trpX: { x: 60, y: 55 },
+                    referralPath: 'M60,55 L55,45 L50,60 L45,80'
+                }
+            }
+        ]
+    },
+    lowback: {
+        title: '허리 (Low Back)',
+        muscles: [
+            {
+                name: '요방형근',
+                nameEn: 'Quadratus Lumborum (QL)',
+                location: '12번 늑골 ~ 장골능 사이, 척추 옆',
+                referral: '천장관절(SI joint) → 둔부 → 대퇴 외측, 서혜부까지',
+                pattern: {
+                    trpX: { x: 65, y: 50 },
+                    referralPath: 'M65,50 L70,65 L75,85'
+                }
+            },
+            {
+                name: '이상근',
+                nameEn: 'Piriformis',
+                location: '천골 ~ 대전자 사이 (깊은 둔부)',
+                referral: '둔부 전체, 대퇴 후면 (좌골신경통 유사)',
+                pattern: {
+                    trpX: { x: 55, y: 70 },
+                    referralPath: 'M55,70 L50,85 L45,100'
+                }
+            },
+            {
+                name: '중둔근',
+                nameEn: 'Gluteus Medius',
+                location: '장골능 아래, 둔부 외측',
+                referral: '천장관절, 둔부 후면, 대퇴 외측',
+                pattern: {
+                    trpX: { x: 70, y: 65 },
+                    referralPath: 'M70,65 L65,55 L75,80'
+                }
+            }
+        ]
+    },
+    calf: {
+        title: '종아리 (Calf)',
+        muscles: [
+            {
+                name: '비복근',
+                nameEn: 'Gastrocnemius',
+                location: '종아리 뒤쪽 상부 (내측두/외측두)',
+                referral: '슬와부(무릎 뒤) → 종아리 → 발바닥 안쪽',
+                pattern: {
+                    trpX: { x: 50, y: 30 },
+                    referralPath: 'M50,30 L50,50 L45,80'
+                }
+            },
+            {
+                name: '가자미근',
+                nameEn: 'Soleus',
+                location: '비복근 아래, 종아리 깊은 층',
+                referral: '아킬레스건 → 발뒤꿈치 (뒤꿈치 통증의 주요 원인)',
+                pattern: {
+                    trpX: { x: 55, y: 55 },
+                    referralPath: 'M55,55 L55,75 L50,95'
+                }
+            }
+        ]
+    }
+};
+
+function openTriggerPointMap() {
+    document.getElementById('trp-modal').classList.remove('hidden');
+    trpZoomLevel = 1;
+    updateTrpZoom();
+}
+
+function closeTrpMap() {
+    document.getElementById('trp-modal').classList.add('hidden');
+}
+
+function zoomTrpMap(factor) {
+    trpZoomLevel = Math.max(0.5, Math.min(3, trpZoomLevel * factor));
+    updateTrpZoom();
+}
+
+function resetTrpZoom() {
+    trpZoomLevel = 1;
+    updateTrpZoom();
+}
+
+function updateTrpZoom() {
+    const svg = document.getElementById('trp-body-svg');
+    if (svg) {
+        svg.style.transform = `scale(${trpZoomLevel})`;
+    }
+}
+
+function showTrpDetail(region) {
+    const data = TRP_DATA[region];
+    if (!data) return;
+
+    document.getElementById('trp-detail-title').textContent = data.title;
+
+    let html = '';
+    data.muscles.forEach((muscle, idx) => {
+        html += `
+            <div class="trp-muscle-card">
+                <div class="trp-muscle-name">
+                    ${muscle.name}
+                    <span class="muscle-en">${muscle.nameEn}</span>
+                </div>
+                <div class="trp-pattern-img">
+                    <svg viewBox="0 0 120 120" class="trp-pattern-svg">
+                        <!-- 근육 개략도 -->
+                        <ellipse cx="60" cy="60" rx="40" ry="50" fill="#fce7f3" stroke="#f472b6" stroke-width="1"/>
+                        
+                        <!-- 방사통 영역 -->
+                        <path d="${muscle.pattern.referralPath}" 
+                              fill="none" 
+                              stroke="rgba(239,68,68,0.6)" 
+                              stroke-width="12" 
+                              stroke-linecap="round"
+                              stroke-dasharray="2,4"/>
+                        
+                        <!-- TrP 위치 (X 표시) -->
+                        <g transform="translate(${muscle.pattern.trpX.x}, ${muscle.pattern.trpX.y})">
+                            <line x1="-6" y1="-6" x2="6" y2="6" stroke="#dc2626" stroke-width="3"/>
+                            <line x1="6" y1="-6" x2="-6" y2="6" stroke="#dc2626" stroke-width="3"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="trp-location">
+                    <span class="trp-location-icon">✕</span>
+                    <span><strong>TrP 위치:</strong> ${muscle.location}</span>
+                </div>
+                <div class="trp-referral">
+                    <span>→</span>
+                    <span><strong>방사통:</strong> ${muscle.referral}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    document.getElementById('trp-detail-body').innerHTML = html;
+    document.getElementById('trp-detail-popup').classList.remove('hidden');
+}
+
+function closeTrpDetail() {
+    document.getElementById('trp-detail-popup').classList.add('hidden');
+}
+
+// 터치 줌/팬 지원
+(function initTrpTouchHandlers() {
+    let initialDistance = 0;
+    let initialZoom = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('trp-body-container');
+        if (!container) return;
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                initialZoom = trpZoomLevel;
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                const scale = currentDistance / initialDistance;
+                trpZoomLevel = Math.max(0.5, Math.min(3, initialZoom * scale));
+                updateTrpZoom();
+            }
+        }, { passive: true });
+    });
+})();
