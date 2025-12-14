@@ -6699,14 +6699,15 @@ html, body {
 }
 
 .nav-icon.soap-letter {
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 900;
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: inherit;
+    color: #374151;
 }
 
 .nav-item.active .nav-icon.soap-letter {
     color: var(--primary-color);
+    font-weight: 900;
 }
 
 /* ============================================
