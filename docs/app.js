@@ -693,21 +693,26 @@ function renderPatientList() {
     }
 
     container.innerHTML = patients.slice(0, 10).map(patient => `
-        <div class="patient-card" onclick="loadPatient('${patient.id}')">
+        <div class="patient-card" data-patient-id="${patient.id}">
             <div class="patient-info">
                 <div class="patient-name">${patient.name}</div>
-                <div class="patient-meta">${patient.gender || ''}${patient.gender && patient.age ? '/' : ''}${patient.age ? patient.age + '세' : ''} ${patient.diagnosis ? '· ' + patient.diagnosis : ''}</div>
+                <div class="patient-meta">${patient.gender === 'male' ? '남' : patient.gender === 'female' ? '여' : ''}${patient.age ? '/' + patient.age + '세' : ''} ${patient.diagnosis ? '· ' + patient.diagnosis : ''}</div>
             </div>
             <div class="patient-status">
                 <span class="status-badge ${patient.status || 'progress'}">${patient.status === 'complete' ? '완료' : '작성중'}</span>
-                <button class="patient-menu-btn" onclick="event.stopPropagation(); showPatientActions('${patient.id}')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-                        <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-                    </svg>
-                </button>
             </div>
         </div>
     `).join('');
+
+    // 이벤트 위임으로 클릭 처리
+    container.querySelectorAll('.patient-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const patientId = this.dataset.patientId;
+            if (patientId) {
+                loadPatient(patientId);
+            }
+        });
+    });
 }
 
 function showPatientActions(patientId) {
