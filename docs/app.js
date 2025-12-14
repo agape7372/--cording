@@ -547,16 +547,39 @@ function updateStickyHeader(currentScreen) {
 }
 
 // Update save status in sticky header
+let saveStatusTimer = null;
+
 function updateSaveStatus(saving = false) {
     const statusEl = document.getElementById('sticky-save-status');
     if (!statusEl) return;
 
+    // Clear previous timer
+    if (saveStatusTimer) {
+        clearTimeout(saveStatusTimer);
+        saveStatusTimer = null;
+    }
+
+    // Remove all state classes
+    statusEl.classList.remove('saving', 'saved', 'fade-out');
+
     if (saving) {
-        statusEl.classList.add('saving');
+        // Show "저장 중..." state
+        statusEl.classList.add('visible', 'saving');
         statusEl.querySelector('.save-text').textContent = '저장 중...';
     } else {
-        statusEl.classList.remove('saving');
-        statusEl.querySelector('.save-text').textContent = '자동 저장됨';
+        // Show "✔ 저장됨" state
+        statusEl.classList.add('visible', 'saved');
+        statusEl.querySelector('.save-text').textContent = '✔ 저장됨';
+
+        // Fade out after 3 seconds
+        saveStatusTimer = setTimeout(() => {
+            statusEl.classList.add('fade-out');
+
+            // Hide completely after fade animation
+            setTimeout(() => {
+                statusEl.classList.remove('visible', 'saved', 'fade-out');
+            }, 1000);
+        }, 3000);
     }
 }
 
@@ -1035,7 +1058,7 @@ let selectedPatientId = null;
 function openAddPatientModal() {
     patientFormState = { editMode: false, editId: null, gender: null };
 
-    document.getElementById('patient-modal-title').textContent = '새 환자 등록';
+    document.getElementById('patient-modal-title').textContent = '빠른 환자 등록';
     document.getElementById('patient-save-btn').textContent = '등록';
     document.getElementById('patient-form').reset();
     document.getElementById('patient-edit-id').value = '';
@@ -1044,11 +1067,22 @@ function openAddPatientModal() {
 
     document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
 
+    // Quick Add Mode - 성별/나이/메모 숨김
+    const modalContent = document.querySelector('.patient-modal-content');
+    modalContent.classList.add('quick-add');
+
     document.getElementById('patient-modal').classList.remove('hidden');
+
+    // 이름 입력란에 자동 포커스
+    setTimeout(() => {
+        document.getElementById('patient-name-input').focus();
+    }, 100);
 }
 
 function closePatientModal() {
     document.getElementById('patient-modal').classList.add('hidden');
+    // Quick Add Mode 클래스 제거
+    document.querySelector('.patient-modal-content').classList.remove('quick-add');
 }
 
 function selectGender(gender) {
@@ -1099,12 +1133,20 @@ function savePatient(event) {
             age,
             diagnosis,
             memo,
-            status: 'progress',
+            status: 'waiting',
+            progress: { S: false, O: false, A: false, P: false },
+            soapData: {},
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
         patients.unshift(newPatient);
-        showToast('새 환자가 등록되었습니다');
+        savePatients(patients);
+        closePatientModal();
+
+        // 즉시 해당 환자 선택 후 S탭으로 이동
+        selectCasePatient(newPatient.id);
+        showToast(`${name} 환자가 등록되었습니다`);
+        return;
     }
 
     savePatients(patients);
@@ -3649,6 +3691,9 @@ const ROM_STANDARDS = {
 function openGoniometer() {
     document.getElementById('goniometer-modal').classList.remove('hidden');
 
+    // 환자 기록 버튼 업데이트
+    updateGonioRecordButton();
+
     // 권한 이미 있으면 바로 초기화
     if (orientationPermissionGranted) {
         initGoniometer();
@@ -3658,6 +3703,63 @@ function openGoniometer() {
             initGoniometer();
         }
     }
+}
+
+// 환자 기록 버튼 업데이트
+function updateGonioRecordButton() {
+    const btn = document.getElementById('gonio-record-btn');
+    const textEl = document.getElementById('gonio-record-text');
+
+    if (!btn || !textEl) return;
+
+    if (state.currentPatient) {
+        btn.disabled = false;
+        textEl.textContent = `${state.currentPatient.name} O탭에 기록`;
+    } else {
+        btn.disabled = true;
+        textEl.textContent = '환자를 선택해주세요';
+    }
+}
+
+// 측정값을 현재 환자의 O탭에 기록
+function recordGonioToPatient() {
+    if (!state.currentPatient) {
+        showToast('먼저 환자를 선택해주세요');
+        return;
+    }
+
+    const angleValue = document.getElementById('gonio-value').textContent;
+    const jointSelect = document.getElementById('gonio-joint');
+    const jointName = jointSelect.options[jointSelect.selectedIndex]?.text || '관절';
+
+    // 현재 환자의 SOAP 데이터에 ROM 기록 추가
+    const patients = getPatients();
+    const patientIndex = patients.findIndex(p => p.id === state.currentPatient.id);
+
+    if (patientIndex === -1) return;
+
+    const patient = patients[patientIndex];
+
+    // soapData 초기화
+    if (!patient.soapData) patient.soapData = {};
+    if (!patient.soapData.O) patient.soapData.O = {};
+    if (!patient.soapData.O.romRecords) patient.soapData.O.romRecords = [];
+
+    // ROM 기록 추가
+    patient.soapData.O.romRecords.push({
+        joint: jointName,
+        angle: parseFloat(angleValue),
+        timestamp: new Date().toISOString()
+    });
+
+    // 저장
+    patients[patientIndex] = patient;
+    savePatients(patients);
+
+    // 현재 환자 상태 업데이트
+    state.currentPatient = patient;
+
+    showToast(`✔ ${jointName} ${angleValue}° 기록 완료!`);
 }
 
 function closeGoniometer() {

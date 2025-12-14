@@ -231,6 +231,17 @@ html, body {
     gap: 4px;
     font-size: 11px;
     color: #78909C;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sticky-save-status.visible {
+    opacity: 1;
+}
+
+.sticky-save-status.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease;
 }
 
 .sticky-save-status .save-dot {
@@ -240,9 +251,21 @@ html, body {
     background: #4CAF50;
 }
 
+.sticky-save-status.saving {
+    color: #FF9800;
+}
+
 .sticky-save-status.saving .save-dot {
     background: #FF9800;
     animation: pulse 1s infinite;
+}
+
+.sticky-save-status.saved {
+    color: #4CAF50;
+}
+
+.sticky-save-status.saved .save-dot {
+    background: #4CAF50;
 }
 
 .sticky-save-status .save-text {
@@ -4498,6 +4521,51 @@ html, body {
     font-size: 14px;
 }
 
+/* 환자 차트에 기록 버튼 */
+.gonio-record-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.gonio-record-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.gonio-record-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.gonio-record-btn:active {
+    transform: translateY(0);
+}
+
+.gonio-record-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.gonio-record-btn .record-icon {
+    font-size: 18px;
+}
+
 /* ============================================
    2. Tremor Analyzer (떨림 분석) 스타일
    ============================================ */
@@ -6065,6 +6133,11 @@ html, body {
    ===================================================== */
 .patient-modal-content {
     max-width: 420px;
+}
+
+/* Quick Add Mode - 간소화된 환자 추가 */
+.patient-modal-content.quick-add .optional-fields {
+    display: none;
 }
 
 .form-group {

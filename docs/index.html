@@ -866,7 +866,7 @@
                     <label class="form-label">이름 <span class="required">*</span></label>
                     <input type="text" id="patient-name-input" class="form-input" placeholder="홍길동" required maxlength="20">
                 </div>
-                <div class="form-row">
+                <div class="form-row optional-fields" id="gender-age-row">
                     <div class="form-group half">
                         <label class="form-label">성별</label>
                         <div class="gender-selector">
@@ -917,7 +917,7 @@
                     </select>
                     <input type="text" id="patient-diagnosis-custom" class="form-input mt-8 hidden" placeholder="직접 입력">
                 </div>
-                <div class="form-group">
+                <div class="form-group optional-fields" id="memo-row">
                     <label class="form-label">메모</label>
                     <textarea id="patient-memo-input" class="form-textarea" placeholder="특이사항, 주의점 등" rows="3" maxlength="200"></textarea>
                     <div class="char-count"><span id="memo-char-count">0</span>/200</div>
@@ -1361,6 +1361,14 @@
                         <div class="rom-bar"><div class="rom-fill" id="rom-fill"></div></div>
                         <span id="rom-percent">0%</span>
                     </div>
+                </div>
+
+                <!-- 환자 차트에 기록 버튼 -->
+                <div class="gonio-record-section" id="gonio-record-section">
+                    <button class="gonio-record-btn" id="gonio-record-btn" onclick="recordGonioToPatient()">
+                        <span class="record-icon">📥</span>
+                        <span class="record-text" id="gonio-record-text">환자를 선택해주세요</span>
+                    </button>
                 </div>
             </div>
         </div>
