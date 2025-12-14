@@ -1423,9 +1423,7 @@ function showToast(message) {
 // ============================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW registration failed'));
+        navigator.serviceWorker.register('sw.js').catch(() => {});
     });
 }
 
@@ -2780,7 +2778,6 @@ function checkAutoHold(currentAngle) {
 // E: 음성 인식 설정
 function setupVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        console.log('음성 인식 미지원');
         return;
     }
 
@@ -2800,11 +2797,7 @@ function setupVoiceRecognition() {
         }
     };
 
-    gonioState.voiceRecognition.onerror = (e) => {
-        if (e.error !== 'no-speech') {
-            console.log('음성 인식 오류:', e.error);
-        }
-    };
+    gonioState.voiceRecognition.onerror = () => {};
 
     gonioState.voiceRecognition.onend = () => {
         // 계속 듣기
@@ -2818,9 +2811,7 @@ function setupVoiceRecognition() {
 
     try {
         gonioState.voiceRecognition.start();
-    } catch (e) {
-        console.log('음성 인식 시작 실패:', e);
-    }
+    } catch (e) {}
 }
 
 function handleOrientation(event) {

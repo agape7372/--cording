@@ -378,23 +378,6 @@ html, body {
     color: var(--text-primary);
 }
 
-.tool-btn.primary {
-    background: var(--primary-blue);
-    border-color: var(--primary-blue);
-}
-
-.tool-btn.primary:active {
-    background: var(--primary-blue-dark);
-}
-
-.tool-btn.primary svg {
-    color: white;
-}
-
-.tool-btn.primary span {
-    color: white;
-}
-
 /* ============================================
    Cards
    ============================================ */
@@ -3763,12 +3746,6 @@ html, body {
    Sensor-based Tools (센서 기반 분석 도구)
    ============================================ */
 
-/* 센서 도구 버튼 표시 */
-.tool-btn.sensor {
-    border: 1px solid var(--primary-blue);
-    background: rgba(59, 130, 246, 0.05);
-}
-
 /* 공통 센서 모달 스타일 */
 .sensor-content {
     padding: 16px;
@@ -4433,11 +4410,6 @@ html, body {
 /* =====================================================
    Trigger Point Map Styles
    ===================================================== */
-.tool-btn.reference {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid #f59e0b;
-}
-
 .trp-content {
     max-height: 90vh;
     overflow: hidden;
@@ -4707,11 +4679,6 @@ html, body {
 /* =====================================================
    AAC Communication Board Styles
    ===================================================== */
-.tool-btn.aac {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border: 1px solid #3b82f6;
-}
-
 .aac-content {
     max-height: 90vh;
     display: flex;
@@ -4878,11 +4845,6 @@ html, body {
 /* =====================================================
    Visual Neglect Test Styles
    ===================================================== */
-.tool-btn.neglect {
-    background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
-    border: 1px solid #eab308;
-}
-
 .neglect-content {
     max-height: 95vh;
     display: flex;
