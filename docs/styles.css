@@ -2660,3 +2660,837 @@ html, body {
     background: #FECACA;
     transform: scale(0.98);
 }
+
+/* ============================================
+   Quick Tools Grid - Expanded 3x3
+   ============================================ */
+.tools-grid.expanded {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.tools-grid.expanded .tool-btn {
+    padding: 16px 8px;
+    min-height: 80px;
+}
+
+.tools-grid.expanded .tool-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.tools-grid.expanded .tool-btn span {
+    font-size: 11px;
+    text-align: center;
+}
+
+/* ============================================
+   Tool Modal Base Styles
+   ============================================ */
+.tool-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.tool-modal.hidden {
+    display: none;
+}
+
+.tool-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.tool-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tool-modal-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.close-btn {
+    width: 36px;
+    height: 36px;
+    background: var(--card-grey);
+    border: none;
+    border-radius: 50%;
+    font-size: 24px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-btn:active {
+    background: #E5E7EB;
+    transform: scale(0.95);
+}
+
+/* ============================================
+   Clinical Stopwatch Styles
+   ============================================ */
+.stopwatch-mode-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--card-grey);
+    border-radius: 10px;
+    background: white;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mode-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.stopwatch-display {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.time-display {
+    font-size: 56px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 16px;
+}
+
+.result-display {
+    background: linear-gradient(135deg, var(--mint-green), var(--mint-green-dark));
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+}
+
+.result-value {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.result-unit {
+    font-size: 20px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.result-label {
+    font-size: 14px;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+.result-interpretation {
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.result-interpretation.good {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.result-interpretation.moderate {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.result-interpretation.warning {
+    background: rgba(255, 193, 7, 0.4);
+}
+
+.result-interpretation.poor {
+    background: rgba(239, 68, 68, 0.4);
+}
+
+.tug-laps {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+
+.lap-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--card-grey);
+    font-size: 14px;
+}
+
+.lap-item:last-child {
+    border-bottom: none;
+}
+
+.lap-item span:last-child {
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+    color: var(--primary-blue);
+}
+
+.stopwatch-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.sw-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sw-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.sw-btn.start {
+    background: var(--mint-green);
+    color: white;
+}
+
+.sw-btn.start:active {
+    background: var(--mint-green-dark);
+}
+
+.sw-btn.stop {
+    background: #EF4444;
+    color: white;
+}
+
+.sw-btn.lap {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.sw-btn.reset {
+    background: var(--card-grey);
+    color: var(--text-secondary);
+}
+
+.stopwatch-info {
+    background: var(--primary-blue-light);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.stopwatch-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-blue);
+    margin-bottom: 8px;
+}
+
+.stopwatch-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ============================================
+   Pro Metronome Styles
+   ============================================ */
+.metronome-display {
+    text-align: center;
+    margin-bottom: 16px;
+}
+
+.bpm-display {
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    line-height: 1;
+}
+
+.bpm-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.visual-beat {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--card-grey);
+    margin: 20px auto;
+    transition: all 0.05s ease;
+}
+
+.visual-beat.active {
+    background: var(--primary-blue);
+    transform: scale(1.2);
+    box-shadow: 0 0 40px rgba(46, 92, 255, 0.5);
+}
+
+.bpm-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.bpm-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: var(--card-grey);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bpm-btn:active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+#bpm-slider {
+    flex: 1;
+    height: 8px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--card-grey);
+    border-radius: 4px;
+}
+
+#bpm-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(46, 92, 255, 0.4);
+}
+
+.metronome-presets {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.preset-btn {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid var(--card-grey);
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.preset-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.metronome-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.metro-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.metro-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.metro-btn.tap {
+    background: var(--card-grey);
+    color: var(--text-primary);
+}
+
+.metro-btn.play {
+    background: var(--mint-green);
+    color: white;
+}
+
+.metro-btn.play.playing {
+    background: #EF4444;
+}
+
+.metronome-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.option-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.option-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary-blue);
+}
+
+.metronome-info {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.metronome-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* ============================================
+   Cadence Calculator Styles
+   ============================================ */
+.cadence-display {
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-blue-dark));
+    border-radius: 16px;
+    padding: 24px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.cadence-value {
+    font-size: 64px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.cadence-unit {
+    font-size: 20px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.cadence-label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 8px;
+}
+
+.cadence-stats {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    flex: 1;
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: block;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.tap-area {
+    width: 100%;
+    height: 150px;
+    border: 3px dashed var(--primary-blue);
+    border-radius: 20px;
+    background: var(--primary-blue-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.1s;
+    margin-bottom: 20px;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.tap-area:active,
+.tap-area.tapped {
+    background: var(--primary-blue);
+    border-color: var(--primary-blue);
+    transform: scale(0.98);
+}
+
+.tap-area:active .tap-icon,
+.tap-area.tapped .tap-icon,
+.tap-area:active .tap-text,
+.tap-area.tapped .tap-text {
+    color: white;
+}
+
+.tap-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.tap-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-blue);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.cadence-controls {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.cadence-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cadence-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.cadence-btn.reset {
+    background: var(--card-grey);
+    color: var(--text-secondary);
+}
+
+.cadence-info {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.cadence-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.info-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+}
+
+.info-table td {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--card-grey);
+}
+
+.info-table td:last-child {
+    text-align: right;
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+.info-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* ============================================
+   Dual Task Generator Styles
+   ============================================ */
+.dualtask-mode-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.dt-mode-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--card-grey);
+    border-radius: 10px;
+    background: white;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dt-mode-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.dualtask-display {
+    background: linear-gradient(135deg, #1E3A8A, var(--primary-blue));
+    border-radius: 16px;
+    padding: 40px 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.task-prompt {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+}
+
+.dualtask-settings {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.setting-row label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.interval-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.interval-control button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary-blue);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.interval-control span {
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--card-grey);
+    transition: .3s;
+}
+
+.switch .slider.round {
+    border-radius: 28px;
+}
+
+.switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.switch input:checked + .slider {
+    background-color: var(--mint-green);
+}
+
+.switch input:checked + .slider:before {
+    transform: translateX(22px);
+}
+
+.dualtask-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dt-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.dt-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.dt-btn.play {
+    background: var(--mint-green);
+    color: white;
+}
+
+.dt-btn.play.playing {
+    background: #EF4444;
+}
+
+.dt-btn.next {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.dualtask-info {
+    background: var(--background-grey);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.dualtask-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.dualtask-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
