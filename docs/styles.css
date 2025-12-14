@@ -5433,17 +5433,16 @@ html, body {
     /* 모달 공통 - 가로모드 최적화 */
     .tool-modal {
         padding: 8px;
-        align-items: flex-start;
-        overflow-y: auto;
+        align-items: center;
+        justify-content: center;
     }
     .tool-modal-content {
-        max-height: none;
+        max-height: calc(100vh - 16px);
         height: auto;
-        min-height: min-content;
         border-radius: 16px;
         padding: 16px;
-        margin: auto;
-        overflow-y: visible;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     .tool-modal-header {
         padding: 8px 0;
@@ -5457,6 +5456,7 @@ html, body {
     #neglect-modal .tool-modal-content {
         max-width: 95vw;
         width: 95vw;
+        max-height: calc(100vh - 16px);
     }
     .neglect-content {
         max-height: none;
