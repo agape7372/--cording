@@ -5382,3 +5382,264 @@ html, body {
     color: #6366F1;
     margin-top: 4px;
 }
+
+/* ============================================
+   LANDSCAPE MODE - 전체 가로모드 지원
+   ============================================ */
+@media (orientation: landscape) {
+    /* 헤더 축소 */
+    .header {
+        padding: 8px 16px;
+    }
+    .header h1 {
+        font-size: 16px;
+    }
+
+    /* 하단 네비게이션 축소 */
+    .bottom-nav {
+        padding: 4px 0;
+    }
+    .nav-item {
+        padding: 4px 8px;
+    }
+    .nav-icon {
+        font-size: 18px;
+    }
+    .nav-item span:last-child {
+        font-size: 10px;
+    }
+
+    /* 메인 콘텐츠 영역 */
+    .screens {
+        padding-bottom: 60px;
+    }
+
+    /* 빠른 도구 그리드 - 가로모드에서 6열 */
+    .tools-grid.expanded {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+    .tool-btn {
+        padding: 10px 6px;
+    }
+    .tool-btn svg {
+        width: 24px;
+        height: 24px;
+    }
+    .tool-btn span {
+        font-size: 10px;
+    }
+
+    /* 모달 공통 - 가로모드 최적화 */
+    .tool-modal-content {
+        max-height: 95vh;
+        border-radius: 16px 16px 0 0;
+    }
+    .tool-modal-header {
+        padding: 12px 16px;
+        margin-bottom: 8px;
+    }
+    .tool-modal-header h2 {
+        font-size: 16px;
+    }
+
+    /* 스톱워치 가로모드 */
+    .stopwatch-display {
+        padding: 16px;
+    }
+    .time-display {
+        font-size: 48px;
+    }
+    .stopwatch-info {
+        padding: 8px 12px;
+    }
+    .stopwatch-info h4 {
+        font-size: 12px;
+    }
+    .stopwatch-info p {
+        font-size: 11px;
+    }
+
+    /* 메트로놈 가로모드 */
+    .metronome-display {
+        padding: 12px;
+    }
+    .bpm-display {
+        font-size: 48px;
+    }
+    .visual-beat {
+        width: 60px;
+        height: 60px;
+    }
+    .metronome-info {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    /* 각도계 가로모드 */
+    .gonio-visual {
+        padding: 16px;
+    }
+    .gonio-circle {
+        width: 150px;
+        height: 150px;
+    }
+    .gonio-value-display {
+        margin-top: 8px;
+    }
+    .gonio-value {
+        font-size: 36px;
+    }
+    .gonio-hold-settings {
+        padding: 8px;
+    }
+
+    /* 손떨림 분석 가로모드 */
+    .tremor-graph-container {
+        height: 100px;
+    }
+    .tremor-stats {
+        gap: 12px;
+    }
+
+    /* 데시벨 측정 가로모드 */
+    .decibel-visual {
+        padding: 16px;
+    }
+    .decibel-meter {
+        height: 150px;
+    }
+
+    /* TrP 지도 가로모드 */
+    .trp-body-container {
+        max-height: 50vh;
+    }
+    .trp-body-svg {
+        max-height: 45vh;
+    }
+
+    /* AAC 보드 가로모드 */
+    .aac-board {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+    .aac-item {
+        padding: 8px;
+    }
+    .aac-icon {
+        font-size: 24px;
+    }
+    .aac-label {
+        font-size: 10px;
+    }
+
+    /* 편측 무시 검사 가로모드 */
+    .neglect-content {
+        padding: 12px;
+    }
+    .neglect-warning {
+        padding: 8px 12px;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    .neglect-info-card {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    .neglect-info-card h3 {
+        font-size: 16px;
+    }
+    .neglect-info-card p {
+        font-size: 13px;
+    }
+    .neglect-field {
+        height: 200px;
+    }
+    .neglect-star {
+        font-size: 16px;
+    }
+
+    /* 선 이등분 검사 가로모드 */
+    .bisection-field {
+        height: 150px;
+    }
+    .bisection-progress {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .bisection-instruction {
+        margin-bottom: 12px;
+    }
+
+    /* 이중과제 가로모드 */
+    .dt-prompt-area {
+        padding: 20px;
+    }
+    .task-prompt {
+        font-size: 28px;
+    }
+
+    /* 카드 패딩 축소 */
+    .card {
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    /* 결과 화면 가로모드 */
+    .neglect-result-visual {
+        gap: 30px;
+    }
+    .hemi-value {
+        font-size: 24px;
+    }
+    .neglect-summary {
+        padding: 12px;
+        font-size: 13px;
+    }
+    .bisection-avg {
+        padding: 12px;
+    }
+    .bisection-avg-value {
+        font-size: 24px;
+    }
+}
+
+/* 매우 낮은 높이의 가로모드 (폴드 등) */
+@media (orientation: landscape) and (max-height: 400px) {
+    .header {
+        padding: 4px 12px;
+    }
+    .bottom-nav {
+        padding: 2px 0;
+    }
+    .nav-item {
+        padding: 2px 6px;
+    }
+    .nav-icon {
+        font-size: 16px;
+    }
+    .nav-item span:last-child {
+        display: none;
+    }
+
+    .tools-grid.expanded {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 6px;
+    }
+
+    .tool-modal-content {
+        max-height: 98vh;
+    }
+
+    .neglect-field {
+        height: 150px;
+    }
+    .bisection-field {
+        height: 120px;
+    }
+
+    .gonio-circle {
+        width: 120px;
+        height: 120px;
+    }
+}
