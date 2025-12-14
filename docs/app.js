@@ -2009,42 +2009,59 @@ function resetCadence() {
 }
 
 // ============================================
-// Dual Task Generator (TTS) - 최적화 버전
+// Dual Task Generator - 전면 업그레이드 버전
 // ============================================
 const dualTaskState = {
     mode: 'math', // 'math', 'word', 'color'
     running: false,
+    paused: false,
     interval: 5,
     intervalId: null,
     currentNumber: 100,
     speechSynthesis: window.speechSynthesis,
     taskCount: 0,
     sessionStartTime: null,
-    difficulty: 'normal' // 'easy', 'normal', 'hard'
+    difficulty: 'normal', // 'easy', 'normal', 'hard'
+    mathType: 'subtract', // 'subtract', 'add', 'mixed'
+    countdownId: null,
+    remainingTime: 0,
+    usedPrompts: new Set() // 중복 방지용
 };
 
+// 확장된 단어 카테고리
 const WORD_CATEGORIES = {
-    animals: ['강아지', '고양이', '호랑이', '사자', '코끼리', '기린', '원숭이', '토끼', '곰', '여우', '늑대', '독수리', '참새', '비둘기', '까치'],
-    fruits: ['사과', '배', '포도', '수박', '참외', '딸기', '바나나', '오렌지', '귤', '복숭아', '자두', '살구', '체리', '망고', '키위'],
-    colors: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색', '갈색', '하늘색'],
-    countries: ['한국', '일본', '중국', '미국', '영국', '프랑스', '독일', '이탈리아', '스페인', '호주'],
-    foods: ['김치', '불고기', '비빔밥', '라면', '떡볶이', '삼겹살', '된장찌개', '냉면', '김밥', '만두']
+    animals: ['강아지', '고양이', '호랑이', '사자', '코끼리', '기린', '원숭이', '토끼', '곰', '여우', '늑대', '독수리', '참새', '비둘기', '까치', '돼지', '소', '말', '양', '닭'],
+    fruits: ['사과', '배', '포도', '수박', '참외', '딸기', '바나나', '오렌지', '귤', '복숭아', '자두', '살구', '체리', '망고', '키위', '파인애플', '블루베리', '레몬'],
+    countries: ['한국', '일본', '중국', '미국', '영국', '프랑스', '독일', '이탈리아', '스페인', '호주', '캐나다', '브라질', '인도', '러시아', '멕시코'],
+    foods: ['김치', '불고기', '비빔밥', '라면', '떡볶이', '삼겹살', '된장찌개', '냉면', '김밥', '만두', '갈비', '삼계탕', '순두부', '잡채'],
+    jobs: ['의사', '선생님', '경찰관', '소방관', '요리사', '운전사', '간호사', '약사', '변호사', '회계사', '기자', '배우', '가수', '화가', '작가'],
+    bodyParts: ['머리', '눈', '코', '입', '귀', '팔', '다리', '손', '발', '어깨', '무릎', '허리', '목', '손가락', '발가락'],
+    cities: ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '제주', '수원', '창원', '고양', '성남', '청주', '전주', '포항']
 };
 
+// 카테고리 이름 매핑
+const CATEGORY_NAMES = {
+    animals: '동물', fruits: '과일', countries: '나라', foods: '음식',
+    jobs: '직업', bodyParts: '신체부위', cities: '도시'
+};
+
+// 확장된 색상
 const COLORS_DISPLAY = [
     { name: '빨강', color: '#EF4444' },
     { name: '파랑', color: '#3B82F6' },
     { name: '노랑', color: '#EAB308' },
     { name: '초록', color: '#22C55E' },
     { name: '보라', color: '#8B5CF6' },
-    { name: '주황', color: '#F97316' }
+    { name: '주황', color: '#F97316' },
+    { name: '분홍', color: '#EC4899' },
+    { name: '하늘', color: '#06B6D4' }
 ];
 
 // 난이도별 수학 문제 설정
 const MATH_SETTINGS = {
-    easy: { start: 50, subtract: 3 },
-    normal: { start: 100, subtract: 7 },
-    hard: { start: 150, subtract: 13 }
+    easy: { start: 50, subtract: 3, add: 2 },
+    normal: { start: 100, subtract: 7, add: 6 },
+    hard: { start: 150, subtract: 13, add: 9 }
 };
 
 // DOM 캐싱
@@ -2054,7 +2071,9 @@ function getDtElements() {
         dtElements = {
             modal: document.getElementById('dualtask-modal'),
             prompt: document.getElementById('task-prompt'),
+            promptContainer: document.getElementById('task-prompt-container'),
             playBtn: document.getElementById('dt-play'),
+            pauseBtn: document.getElementById('dt-pause'),
             mathBtn: document.getElementById('dt-math'),
             wordBtn: document.getElementById('dt-word'),
             colorBtn: document.getElementById('dt-color'),
@@ -2062,7 +2081,10 @@ function getDtElements() {
             ttsEnabled: document.getElementById('tts-enabled'),
             taskCounter: document.getElementById('task-counter'),
             sessionTime: document.getElementById('dt-session-time'),
-            difficultyBtns: document.querySelectorAll('.difficulty-btn')
+            difficultyBtns: document.querySelectorAll('.difficulty-btn'),
+            countdown: document.getElementById('dt-countdown'),
+            resultSummary: document.getElementById('dt-result-summary'),
+            instruction: document.getElementById('dt-instruction')
         };
     }
     return dtElements;
@@ -2072,6 +2094,7 @@ function openDualTask() {
     const el = getDtElements();
     el.modal.classList.remove('hidden');
     resetDualTaskStats();
+    hideResultSummary();
     getAudioContext();
 }
 
@@ -2088,9 +2111,21 @@ function setDualTaskMode(mode) {
     el.wordBtn.classList.toggle('active', mode === 'word');
     el.colorBtn.classList.toggle('active', mode === 'color');
 
+    // 모드별 안내 텍스트
+    const instructions = {
+        math: '숫자를 빼거나 더한 결과를 말하세요',
+        word: '해당 카테고리의 단어를 말하세요',
+        color: '글자가 아닌 "색깔"을 말하세요'
+    };
+    if (el.instruction) {
+        el.instruction.textContent = instructions[mode];
+    }
+
     resetDualTaskStats();
+    hideResultSummary();
     el.prompt.textContent = '시작 버튼을 누르세요';
     el.prompt.style.color = '';
+    el.prompt.style.fontSize = '';
 }
 
 function setDualTaskDifficulty(difficulty) {
@@ -2109,10 +2144,15 @@ function resetDualTaskStats() {
     dualTaskState.currentNumber = settings.start;
     dualTaskState.taskCount = 0;
     dualTaskState.sessionStartTime = null;
+    dualTaskState.usedPrompts.clear();
+    dualTaskState.mathType = 'subtract';
+    dualTaskState.remainingTime = 0;
+    dualTaskState.paused = false;
 
     const el = getDtElements();
     if (el.taskCounter) el.taskCounter.textContent = '0';
     if (el.sessionTime) el.sessionTime.textContent = '0:00';
+    if (el.countdown) el.countdown.textContent = '';
 }
 
 function adjustInterval(delta) {
@@ -2123,31 +2163,69 @@ function adjustInterval(delta) {
 function toggleDualTask() {
     if (dualTaskState.running) {
         stopDualTask();
+        showResultSummary();
     } else {
         startDualTask();
     }
 }
 
+function pauseDualTask() {
+    if (!dualTaskState.running) return;
+
+    if (dualTaskState.paused) {
+        // 재개
+        dualTaskState.paused = false;
+        dualTaskState.intervalId = setInterval(generateTask, dualTaskState.interval * 1000);
+        dualTaskState.sessionTimerId = setInterval(updateDtSessionTime, 1000);
+        dualTaskState.countdownId = setInterval(updateCountdown, 100);
+        const el = getDtElements();
+        if (el.pauseBtn) {
+            el.pauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+            el.pauseBtn.classList.remove('paused');
+        }
+    } else {
+        // 일시정지
+        dualTaskState.paused = true;
+        clearInterval(dualTaskState.intervalId);
+        clearInterval(dualTaskState.sessionTimerId);
+        clearInterval(dualTaskState.countdownId);
+        const el = getDtElements();
+        if (el.pauseBtn) {
+            el.pauseBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+            el.pauseBtn.classList.add('paused');
+        }
+        // TTS 취소
+        if (dualTaskState.speechSynthesis) {
+            dualTaskState.speechSynthesis.cancel();
+        }
+    }
+}
+
 function startDualTask() {
     dualTaskState.running = true;
+    dualTaskState.paused = false;
     dualTaskState.sessionStartTime = performance.now();
+    dualTaskState.usedPrompts.clear();
 
     const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
     dualTaskState.currentNumber = settings.start;
+    dualTaskState.remainingTime = dualTaskState.interval;
 
     const el = getDtElements();
-    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
+    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"/></svg> 종료';
     el.playBtn.classList.add('playing');
+    if (el.pauseBtn) el.pauseBtn.classList.remove('hidden');
 
+    hideResultSummary();
     generateTask();
     dualTaskState.intervalId = setInterval(generateTask, dualTaskState.interval * 1000);
-
-    // 세션 시간 업데이트 타이머
     dualTaskState.sessionTimerId = setInterval(updateDtSessionTime, 1000);
+    dualTaskState.countdownId = setInterval(updateCountdown, 100);
 }
 
 function stopDualTask() {
     dualTaskState.running = false;
+    dualTaskState.paused = false;
 
     if (dualTaskState.intervalId) {
         clearInterval(dualTaskState.intervalId);
@@ -2157,14 +2235,60 @@ function stopDualTask() {
         clearInterval(dualTaskState.sessionTimerId);
         dualTaskState.sessionTimerId = null;
     }
+    if (dualTaskState.countdownId) {
+        clearInterval(dualTaskState.countdownId);
+        dualTaskState.countdownId = null;
+    }
 
     const el = getDtElements();
     el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 시작';
     el.playBtn.classList.remove('playing');
+    if (el.pauseBtn) el.pauseBtn.classList.add('hidden');
+    if (el.countdown) el.countdown.textContent = '';
 
     // TTS 취소
     if (dualTaskState.speechSynthesis) {
         dualTaskState.speechSynthesis.cancel();
+    }
+}
+
+function showResultSummary() {
+    if (dualTaskState.taskCount === 0) return;
+
+    const el = getDtElements();
+    if (!el.resultSummary) return;
+
+    const sessionSeconds = dualTaskState.sessionStartTime
+        ? Math.floor((performance.now() - dualTaskState.sessionStartTime) / 1000)
+        : 0;
+    const avgTime = sessionSeconds > 0 ? (sessionSeconds / dualTaskState.taskCount).toFixed(1) : 0;
+
+    el.resultSummary.innerHTML = `
+        <div class="result-summary-content">
+            <h4>세션 결과</h4>
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span class="result-stat-value">${dualTaskState.taskCount}</span>
+                    <span class="result-stat-label">총 문제</span>
+                </div>
+                <div class="result-stat">
+                    <span class="result-stat-value">${Math.floor(sessionSeconds / 60)}:${(sessionSeconds % 60).toString().padStart(2, '0')}</span>
+                    <span class="result-stat-label">소요 시간</span>
+                </div>
+                <div class="result-stat">
+                    <span class="result-stat-value">${avgTime}초</span>
+                    <span class="result-stat-label">문제당 평균</span>
+                </div>
+            </div>
+        </div>
+    `;
+    el.resultSummary.classList.remove('hidden');
+}
+
+function hideResultSummary() {
+    const el = getDtElements();
+    if (el.resultSummary) {
+        el.resultSummary.classList.add('hidden');
     }
 }
 
@@ -2180,7 +2304,19 @@ function updateDtSessionTime() {
     }
 }
 
+function updateCountdown() {
+    dualTaskState.remainingTime -= 0.1;
+    if (dualTaskState.remainingTime < 0) {
+        dualTaskState.remainingTime = dualTaskState.interval;
+    }
+    const el = getDtElements();
+    if (el.countdown) {
+        el.countdown.textContent = Math.ceil(dualTaskState.remainingTime);
+    }
+}
+
 function nextTask() {
+    dualTaskState.remainingTime = dualTaskState.interval;
     generateTask();
 }
 
@@ -2189,6 +2325,8 @@ function generateTask() {
     const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
 
     dualTaskState.taskCount++;
+    dualTaskState.remainingTime = dualTaskState.interval;
+
     if (el.taskCounter) {
         el.taskCounter.textContent = dualTaskState.taskCount;
     }
@@ -2196,42 +2334,77 @@ function generateTask() {
     let prompt = '';
     let speechText = '';
 
+    // 프롬프트 애니메이션
+    el.prompt.classList.remove('prompt-animate');
+    void el.prompt.offsetWidth; // reflow 트리거
+    el.prompt.classList.add('prompt-animate');
+
     switch (dualTaskState.mode) {
         case 'math':
-            // 연속 빼기
-            if (dualTaskState.currentNumber <= 0) {
-                dualTaskState.currentNumber = settings.start;
+            // 난이도에 따라 더하기/빼기 혼합
+            const useMixed = dualTaskState.difficulty === 'hard' && Math.random() > 0.5;
+
+            if (useMixed || dualTaskState.currentNumber <= 0) {
+                // 더하기로 전환
+                if (dualTaskState.currentNumber <= 0) dualTaskState.currentNumber = 10;
+                const addNum = settings.add;
+                prompt = `${dualTaskState.currentNumber} + ${addNum} = ?`;
+                speechText = `${dualTaskState.currentNumber} 더하기 ${addNum}은?`;
+                dualTaskState.currentNumber += addNum;
+                if (dualTaskState.currentNumber > settings.start) {
+                    dualTaskState.currentNumber = settings.start;
+                }
+            } else {
+                // 빼기
+                prompt = `${dualTaskState.currentNumber} - ${settings.subtract} = ?`;
+                speechText = `${dualTaskState.currentNumber} 빼기 ${settings.subtract}은?`;
+                dualTaskState.currentNumber -= settings.subtract;
             }
-            prompt = `${dualTaskState.currentNumber} - ${settings.subtract} = ?`;
-            speechText = `${dualTaskState.currentNumber} 빼기 ${settings.subtract}은?`;
-            dualTaskState.currentNumber -= settings.subtract;
             el.prompt.style.color = '';
+            el.prompt.style.fontSize = '2.5rem';
             break;
 
         case 'word':
-            // 랜덤 카테고리
+            // 랜덤 카테고리 (중복 방지)
             const categories = Object.keys(WORD_CATEGORIES);
-            const category = categories[Math.floor(Math.random() * categories.length)];
-            const categoryNames = {
-                animals: '동물', fruits: '과일', colors: '색깔',
-                countries: '나라', foods: '음식'
-            };
-            const categoryName = categoryNames[category] || category;
-            prompt = `${categoryName} 이름을 말하세요`;
+            let category, categoryName;
+            let attempts = 0;
+
+            do {
+                category = categories[Math.floor(Math.random() * categories.length)];
+                categoryName = CATEGORY_NAMES[category];
+                attempts++;
+            } while (dualTaskState.usedPrompts.has(category) && attempts < categories.length);
+
+            dualTaskState.usedPrompts.add(category);
+            if (dualTaskState.usedPrompts.size >= categories.length) {
+                dualTaskState.usedPrompts.clear();
+            }
+
+            prompt = `"${categoryName}" 말하기`;
             speechText = `${categoryName} 이름을 말하세요`;
             el.prompt.style.color = '';
+            el.prompt.style.fontSize = '2rem';
             break;
 
         case 'color':
-            // 스트룹 효과
+            // 스트룹 효과 - 더 다양하게
             const colorInfo = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            let displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            while (displayColor.name === colorInfo.name) {
+            let displayColor;
+            do {
                 displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            }
+            } while (displayColor.name === colorInfo.name);
+
+            // 난이도에 따라 글자 크기 변화
+            const fontSizes = dualTaskState.difficulty === 'hard'
+                ? ['2rem', '2.5rem', '3rem', '1.5rem']
+                : ['2.5rem'];
+            const fontSize = fontSizes[Math.floor(Math.random() * fontSizes.length)];
+
             prompt = colorInfo.name;
             speechText = `이 글자의 색깔을 말하세요`;
             el.prompt.style.color = displayColor.color;
+            el.prompt.style.fontSize = fontSize;
             break;
     }
 

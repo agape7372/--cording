@@ -3640,6 +3640,107 @@ html, body {
     font-weight: 500;
 }
 
+/* 모드 아이콘 */
+.mode-icon {
+    font-size: 16px;
+    margin-right: 4px;
+}
+
+/* 모드별 안내 텍스트 */
+.dt-instruction {
+    text-align: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-blue);
+}
+
+/* 카운트다운 표시 */
+.dt-countdown {
+    font-size: 48px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 12px;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 결과 요약 */
+.dt-result-summary {
+    background: linear-gradient(135deg, var(--mint-green-dark), var(--mint-green));
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.dt-result-summary h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.result-summary-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    text-align: center;
+}
+
+.result-summary-content .summary-item {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 8px;
+    border-radius: 8px;
+}
+
+.result-summary-content .summary-value {
+    font-size: 24px;
+    font-weight: 700;
+    display: block;
+}
+
+.result-summary-content .summary-label {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* 프롬프트 애니메이션 */
+@keyframes promptAnimate {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.prompt-animate {
+    animation: promptAnimate 0.3s ease-out;
+}
+
+/* 일시정지 버튼 스타일 */
+.dt-btn.pause {
+    background: var(--warning);
+    color: white;
+}
+
+.dt-btn.pause:active {
+    background: #E67E00;
+}
+
 /* 탭 영역 터치 피드백 개선 */
 .tap-area {
     -webkit-user-select: none;
