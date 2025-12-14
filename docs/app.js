@@ -379,14 +379,27 @@ function updateComplaintUI() {
 // Body Map & Pain Assessment (Image-based Marker System)
 // ============================================
 let markerIdCounter = 0;
+let touchStartData = null; // 터치 시작 정보 저장
 
 function initBodyMap() {
     const container = document.getElementById('body-chart-container');
     if (!container) return;
 
-    // Click/Touch event for adding markers
+    // Click event for desktop
     container.addEventListener('click', handleBodyChartClick);
+
+    // Touch events - 스크롤과 탭 구분
+    container.addEventListener('touchstart', handleBodyChartTouchStart, { passive: true });
     container.addEventListener('touchend', handleBodyChartTouch);
+}
+
+function handleBodyChartTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartData = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+    };
 }
 
 function handleBodyChartClick(e) {
@@ -406,15 +419,29 @@ function handleBodyChartTouch(e) {
     // Ignore touches on existing markers
     if (e.target.closest('.pain-marker')) return;
 
+    // 터치 시작 정보가 없으면 무시
+    if (!touchStartData) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartData.x);
+    const deltaY = Math.abs(touch.clientY - touchStartData.y);
+    const duration = Date.now() - touchStartData.time;
+
+    // 스크롤 감지: 이동 거리 > 15px 또는 터치 시간 > 300ms면 스크롤로 판단
+    if (deltaX > 15 || deltaY > 15 || duration > 300) {
+        touchStartData = null;
+        return; // 스크롤이므로 마커 추가 안함
+    }
+
     e.preventDefault();
     const container = document.getElementById('body-chart-container');
     const rect = container.getBoundingClientRect();
-    const touch = e.changedTouches[0];
 
     const x = ((touch.clientX - rect.left) / rect.width) * 100;
     const y = ((touch.clientY - rect.top) / rect.height) * 100;
 
     addPainMarker(x, y);
+    touchStartData = null;
 }
 
 function addPainMarker(x, y) {
