@@ -6685,42 +6685,28 @@ html, body {
 .bottom-nav.soap-nav {
     display: flex;
     justify-content: space-around;
-    padding: 8px 4px;
-    padding-bottom: calc(8px + env(safe-area-inset-bottom));
 }
 
 .bottom-nav.soap-nav .nav-item {
     flex: 1;
     min-width: 0;
-    padding: 10px 6px;
-    gap: 4px;
+    padding: 8px 4px;
 }
 
 .bottom-nav.soap-nav .nav-item span:last-child {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
-    letter-spacing: -0.3px;
 }
 
 .nav-icon.soap-letter {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 800;
     font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--text-secondary);
-    background: var(--card-grey);
-    border-radius: 8px;
-    transition: all 0.2s ease;
+    color: inherit;
 }
 
 .nav-item.active .nav-icon.soap-letter {
-    background: var(--primary-blue);
-    color: white;
-    box-shadow: 0 2px 8px rgba(46, 92, 255, 0.3);
+    color: var(--primary-blue);
 }
 
 /* ============================================
@@ -7353,15 +7339,13 @@ html, body {
     background: #fecaca;
 }
 
-/* Responsive adjustments for 6 tabs */
+/* Responsive adjustments for 7 tabs */
 @media (max-width: 400px) {
     .bottom-nav.soap-nav .nav-item span:last-child {
-        font-size: 10px;
+        font-size: 9px;
     }
     .nav-icon.soap-letter {
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
+        font-size: 18px;
     }
 }
 
