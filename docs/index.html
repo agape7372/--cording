@@ -61,46 +61,10 @@
                 <div class="dashboard-section">
                     <div class="section-header">
                         <h3>최근 환자</h3>
-                        <span class="section-count" id="recent-count">3</span>
+                        <span class="section-count" id="recent-count">0</span>
                     </div>
                     <div class="patient-list" id="recent-patients">
-                        <!-- Dummy Data -->
-                        <div class="patient-card" onclick="loadPatient('p1')">
-                            <div class="patient-info">
-                                <div class="patient-name">김철수</div>
-                                <div class="patient-meta">M/65 · Stroke (Lt. hemiplegia)</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge progress">작성중</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="patient-card" onclick="loadPatient('p2')">
-                            <div class="patient-info">
-                                <div class="patient-name">박영희</div>
-                                <div class="patient-meta">F/72 · Parkinson's disease</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge complete">완료</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="patient-card" onclick="loadPatient('p3')">
-                            <div class="patient-info">
-                                <div class="patient-name">이민수</div>
-                                <div class="patient-meta">M/45 · LBP (Herniated disc L4-5)</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge progress">작성중</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
+                        <!-- 동적으로 렌더링됨 -->
                     </div>
                 </div>
 

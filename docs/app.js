@@ -221,9 +221,50 @@ function initApp() {
     initBbsTab();
 
     // Initialize patient management
+    initSamplePatients();
     renderPatientList();
     loadCurrentPatientFromStorage();
     initPatientFormListeners();
+}
+
+// Initialize sample patients on first run
+function initSamplePatients() {
+    const patients = getPatients();
+    if (patients.length === 0) {
+        const samplePatients = [
+            {
+                id: Date.now().toString() + '1',
+                name: '김철수',
+                gender: 'male',
+                age: 65,
+                diagnosis: '뇌졸중 (Lt. hemiplegia)',
+                memo: '좌측 편마비, 보행 훈련 중',
+                status: 'progress',
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: Date.now().toString() + '2',
+                name: '박영희',
+                gender: 'female',
+                age: 72,
+                diagnosis: '파킨슨병',
+                memo: '균형 훈련 필요',
+                status: 'complete',
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: Date.now().toString() + '3',
+                name: '이민수',
+                gender: 'male',
+                age: 45,
+                diagnosis: '요추 추간판 탈출증 (L4-5)',
+                memo: '통증 관리 및 코어 강화',
+                status: 'progress',
+                createdAt: new Date().toISOString()
+            }
+        ];
+        savePatients(samplePatients);
+    }
 }
 
 // Load current patient from storage on startup
