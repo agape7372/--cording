@@ -5453,14 +5453,55 @@ html, body {
         font-size: 16px;
     }
 
-    /* 무시검사 모달 가로모드 특별 처리 */
+    /* 무시검사 모달 가로모드 특별 처리 - 전체 화면 활용 */
+    #neglect-modal .tool-modal-content {
+        max-width: 95vw;
+        width: 95vw;
+    }
     .neglect-content {
         max-height: none;
+        padding: 12px;
+    }
+    .neglect-warning {
+        padding: 8px;
+        margin-bottom: 8px;
+        font-size: 11px;
+    }
+    .neglect-mode-tabs {
+        margin-bottom: 10px;
     }
     .neglect-intro {
         display: flex;
         flex-direction: column;
         gap: 8px;
+    }
+    .neglect-info-card {
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    .neglect-info-card h3 {
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+    .neglect-info-card p {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    .neglect-settings {
+        margin-bottom: 10px;
+    }
+    .neglect-start-btn {
+        padding: 12px;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .neglect-field {
+        height: calc(100vh - 280px);
+        min-height: 180px;
+    }
+    .bisection-field {
+        height: calc(100vh - 250px);
+        min-height: 150px;
     }
 
     /* 스톱워치 가로모드 */
