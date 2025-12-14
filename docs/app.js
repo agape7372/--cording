@@ -379,14 +379,27 @@ function updateComplaintUI() {
 // Body Map & Pain Assessment (Image-based Marker System)
 // ============================================
 let markerIdCounter = 0;
+let touchStartData = null; // 터치 시작 정보 저장
 
 function initBodyMap() {
     const container = document.getElementById('body-chart-container');
     if (!container) return;
 
-    // Click/Touch event for adding markers
+    // Click event for desktop
     container.addEventListener('click', handleBodyChartClick);
+
+    // Touch events - 스크롤과 탭 구분
+    container.addEventListener('touchstart', handleBodyChartTouchStart, { passive: true });
     container.addEventListener('touchend', handleBodyChartTouch);
+}
+
+function handleBodyChartTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartData = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+    };
 }
 
 function handleBodyChartClick(e) {
@@ -406,15 +419,29 @@ function handleBodyChartTouch(e) {
     // Ignore touches on existing markers
     if (e.target.closest('.pain-marker')) return;
 
+    // 터치 시작 정보가 없으면 무시
+    if (!touchStartData) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartData.x);
+    const deltaY = Math.abs(touch.clientY - touchStartData.y);
+    const duration = Date.now() - touchStartData.time;
+
+    // 스크롤 감지: 이동 거리 > 15px 또는 터치 시간 > 300ms면 스크롤로 판단
+    if (deltaX > 15 || deltaY > 15 || duration > 300) {
+        touchStartData = null;
+        return; // 스크롤이므로 마커 추가 안함
+    }
+
     e.preventDefault();
     const container = document.getElementById('body-chart-container');
     const rect = container.getBoundingClientRect();
-    const touch = e.changedTouches[0];
 
     const x = ((touch.clientX - rect.left) / rect.width) * 100;
     const y = ((touch.clientY - rect.top) / rect.height) * 100;
 
     addPainMarker(x, y);
+    touchStartData = null;
 }
 
 function addPainMarker(x, y) {
@@ -2009,42 +2036,77 @@ function resetCadence() {
 }
 
 // ============================================
-// Dual Task Generator (TTS) - 최적화 버전
+// Dual Task Generator - 전면 업그레이드 버전
 // ============================================
 const dualTaskState = {
     mode: 'math', // 'math', 'word', 'color'
     running: false,
+    paused: false,
     interval: 5,
     intervalId: null,
     currentNumber: 100,
     speechSynthesis: window.speechSynthesis,
     taskCount: 0,
     sessionStartTime: null,
-    difficulty: 'normal' // 'easy', 'normal', 'hard'
+    difficulty: 'normal', // 'easy', 'normal', 'hard'
+    mathType: 'subtract', // 'subtract', 'add', 'mixed'
+    countdownId: null,
+    remainingTime: 0,
+    usedPrompts: new Set() // 중복 방지용
 };
 
+// 확장된 단어 카테고리
 const WORD_CATEGORIES = {
-    animals: ['강아지', '고양이', '호랑이', '사자', '코끼리', '기린', '원숭이', '토끼', '곰', '여우', '늑대', '독수리', '참새', '비둘기', '까치'],
-    fruits: ['사과', '배', '포도', '수박', '참외', '딸기', '바나나', '오렌지', '귤', '복숭아', '자두', '살구', '체리', '망고', '키위'],
-    colors: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색', '갈색', '하늘색'],
-    countries: ['한국', '일본', '중국', '미국', '영국', '프랑스', '독일', '이탈리아', '스페인', '호주'],
-    foods: ['김치', '불고기', '비빔밥', '라면', '떡볶이', '삼겹살', '된장찌개', '냉면', '김밥', '만두']
+    animals: ['강아지', '고양이', '호랑이', '사자', '코끼리', '기린', '원숭이', '토끼', '곰', '여우', '늑대', '독수리', '참새', '비둘기', '까치', '돼지', '소', '말', '양', '닭'],
+    fruits: ['사과', '배', '포도', '수박', '참외', '딸기', '바나나', '오렌지', '귤', '복숭아', '자두', '살구', '체리', '망고', '키위', '파인애플', '블루베리', '레몬'],
+    countries: ['한국', '일본', '중국', '미국', '영국', '프랑스', '독일', '이탈리아', '스페인', '호주', '캐나다', '브라질', '인도', '러시아', '멕시코'],
+    foods: ['김치', '불고기', '비빔밥', '라면', '떡볶이', '삼겹살', '된장찌개', '냉면', '김밥', '만두', '갈비', '삼계탕', '순두부', '잡채'],
+    jobs: ['의사', '선생님', '경찰관', '소방관', '요리사', '운전사', '간호사', '약사', '변호사', '회계사', '기자', '배우', '가수', '화가', '작가'],
+    bodyParts: ['머리', '눈', '코', '입', '귀', '팔', '다리', '손', '발', '어깨', '무릎', '허리', '목', '손가락', '발가락'],
+    cities: ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '제주', '수원', '창원', '고양', '성남', '청주', '전주', '포항']
 };
 
-const COLORS_DISPLAY = [
+// 카테고리 이름 매핑
+const CATEGORY_NAMES = {
+    animals: '동물', fruits: '과일', countries: '나라', foods: '음식',
+    jobs: '직업', bodyParts: '신체부위', cities: '도시'
+};
+
+// 난이도별 색상 (스트룹 효과)
+const COLORS_EASY = [
     { name: '빨강', color: '#EF4444' },
     { name: '파랑', color: '#3B82F6' },
     { name: '노랑', color: '#EAB308' },
-    { name: '초록', color: '#22C55E' },
-    { name: '보라', color: '#8B5CF6' },
-    { name: '주황', color: '#F97316' }
+    { name: '초록', color: '#22C55E' }
 ];
+
+const COLORS_NORMAL = [
+    ...COLORS_EASY,
+    { name: '보라', color: '#8B5CF6' },
+    { name: '주황', color: '#F97316' },
+    { name: '분홍', color: '#EC4899' },
+    { name: '하늘', color: '#06B6D4' }
+];
+
+const COLORS_HARD = [
+    ...COLORS_NORMAL,
+    { name: '남색', color: '#4F46E5' },
+    { name: '연두', color: '#84CC16' }
+];
+
+// 초성 리스트 (어려움 모드용)
+const CHOSUNG = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+// 난이도별 카테고리
+const CATEGORIES_EASY = ['animals', 'fruits'];
+const CATEGORIES_NORMAL = ['animals', 'fruits', 'foods', 'bodyParts'];
+const CATEGORIES_HARD = ['animals', 'fruits', 'countries', 'foods', 'jobs', 'bodyParts', 'cities'];
 
 // 난이도별 수학 문제 설정
 const MATH_SETTINGS = {
-    easy: { start: 50, subtract: 3 },
-    normal: { start: 100, subtract: 7 },
-    hard: { start: 150, subtract: 13 }
+    easy: { start: 50, subtract: 3, add: 2 },
+    normal: { start: 100, subtract: 7, add: 6 },
+    hard: { start: 150, subtract: 13, add: 9 }
 };
 
 // DOM 캐싱
@@ -2055,23 +2117,54 @@ function getDtElements() {
             modal: document.getElementById('dualtask-modal'),
             prompt: document.getElementById('task-prompt'),
             playBtn: document.getElementById('dt-play'),
+            nextBtn: document.getElementById('dt-next'),
             mathBtn: document.getElementById('dt-math'),
             wordBtn: document.getElementById('dt-word'),
             colorBtn: document.getElementById('dt-color'),
             intervalValue: document.getElementById('interval-value'),
             ttsEnabled: document.getElementById('tts-enabled'),
-            taskCounter: document.getElementById('task-counter'),
-            sessionTime: document.getElementById('dt-session-time'),
-            difficultyBtns: document.querySelectorAll('.difficulty-btn')
+            difficultyBtns: document.querySelectorAll('.difficulty-btn'),
+            progress: document.getElementById('dt-countdown'),
+            resultSummary: document.getElementById('dt-result-summary'),
+            guide: document.getElementById('dt-guide')
         };
     }
     return dtElements;
 }
 
+// 모드별 가이드 텍스트 (컴팩트)
+const MODE_GUIDES = {
+    math: {
+        easy: '50에서 -3씩 빼기',
+        normal: '100에서 -7씩 빼기',
+        hard: '150에서 -13 (덧셈 혼합)'
+    },
+    word: {
+        easy: '동물/과일 이름 말하기',
+        normal: '다양한 카테고리 단어',
+        hard: '초성 제한 단어 말하기'
+    },
+    color: {
+        easy: '4색 중 글자색 말하기',
+        normal: '8색 중 글자색 말하기',
+        hard: '10색 + 크기 변화 + 배경'
+    }
+};
+
+function setDtState(state) {
+    const el = getDtElements();
+    el.modal.dataset.state = state;
+}
+
 function openDualTask() {
     const el = getDtElements();
     el.modal.classList.remove('hidden');
+    setDtState('idle');
     resetDualTaskStats();
+    updateGuideText();
+    el.prompt.textContent = '준비';
+    el.prompt.style.color = '';
+    el.prompt.style.background = '';
     getAudioContext();
 }
 
@@ -2081,6 +2174,8 @@ function closeDualTask() {
 }
 
 function setDualTaskMode(mode) {
+    if (dualTaskState.running) return; // 실행 중에는 변경 불가
+
     const el = getDtElements();
     dualTaskState.mode = mode;
 
@@ -2088,12 +2183,16 @@ function setDualTaskMode(mode) {
     el.wordBtn.classList.toggle('active', mode === 'word');
     el.colorBtn.classList.toggle('active', mode === 'color');
 
+    updateGuideText();
     resetDualTaskStats();
-    el.prompt.textContent = '시작 버튼을 누르세요';
+    el.prompt.textContent = '준비';
     el.prompt.style.color = '';
+    el.prompt.style.background = '';
 }
 
 function setDualTaskDifficulty(difficulty) {
+    if (dualTaskState.running) return; // 실행 중에는 변경 불가
+
     dualTaskState.difficulty = difficulty;
     const el = getDtElements();
 
@@ -2101,7 +2200,17 @@ function setDualTaskDifficulty(difficulty) {
         btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
     });
 
+    updateGuideText();
     resetDualTaskStats();
+}
+
+function updateGuideText() {
+    const el = getDtElements();
+    if (el.guide) {
+        const modeGuide = MODE_GUIDES[dualTaskState.mode];
+        const diffGuide = modeGuide ? modeGuide[dualTaskState.difficulty] : '';
+        el.guide.textContent = diffGuide || '';
+    }
 }
 
 function resetDualTaskStats() {
@@ -2109,10 +2218,12 @@ function resetDualTaskStats() {
     dualTaskState.currentNumber = settings.start;
     dualTaskState.taskCount = 0;
     dualTaskState.sessionStartTime = null;
+    dualTaskState.usedPrompts.clear();
+    dualTaskState.mathType = 'subtract';
+    dualTaskState.remainingTime = 0;
 
     const el = getDtElements();
-    if (el.taskCounter) el.taskCounter.textContent = '0';
-    if (el.sessionTime) el.sessionTime.textContent = '0:00';
+    if (el.progress) el.progress.innerHTML = '';
 }
 
 function adjustInterval(delta) {
@@ -2123,6 +2234,7 @@ function adjustInterval(delta) {
 function toggleDualTask() {
     if (dualTaskState.running) {
         stopDualTask();
+        showResultSummary();
     } else {
         startDualTask();
     }
@@ -2131,19 +2243,24 @@ function toggleDualTask() {
 function startDualTask() {
     dualTaskState.running = true;
     dualTaskState.sessionStartTime = performance.now();
+    dualTaskState.usedPrompts.clear();
+    dualTaskState.taskCount = 0;
 
     const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
     dualTaskState.currentNumber = settings.start;
+    dualTaskState.remainingTime = dualTaskState.interval;
 
     const el = getDtElements();
-    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
-    el.playBtn.classList.add('playing');
+    setDtState('running');
+    el.playBtn.textContent = '종료';
+    el.playBtn.classList.add('running');
+    if (el.nextBtn) el.nextBtn.classList.remove('hidden');
+    if (el.progress) el.progress.innerHTML = '<div class="dt-progress-bar" style="width: 100%"></div>';
 
+    hideResultSummary();
     generateTask();
     dualTaskState.intervalId = setInterval(generateTask, dualTaskState.interval * 1000);
-
-    // 세션 시간 업데이트 타이머
-    dualTaskState.sessionTimerId = setInterval(updateDtSessionTime, 1000);
+    dualTaskState.countdownId = setInterval(updateCountdown, 100);
 }
 
 function stopDualTask() {
@@ -2153,14 +2270,20 @@ function stopDualTask() {
         clearInterval(dualTaskState.intervalId);
         dualTaskState.intervalId = null;
     }
-    if (dualTaskState.sessionTimerId) {
-        clearInterval(dualTaskState.sessionTimerId);
-        dualTaskState.sessionTimerId = null;
+    if (dualTaskState.countdownId) {
+        clearInterval(dualTaskState.countdownId);
+        dualTaskState.countdownId = null;
     }
 
     const el = getDtElements();
-    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 시작';
-    el.playBtn.classList.remove('playing');
+    setDtState('idle');
+    el.playBtn.textContent = '시작하기';
+    el.playBtn.classList.remove('running');
+    if (el.nextBtn) el.nextBtn.classList.add('hidden');
+    if (el.progress) el.progress.innerHTML = '';
+    el.prompt.textContent = '준비';
+    el.prompt.style.color = '';
+    el.prompt.style.background = '';
 
     // TTS 취소
     if (dualTaskState.speechSynthesis) {
@@ -2168,19 +2291,114 @@ function stopDualTask() {
     }
 }
 
-function updateDtSessionTime() {
-    if (!dualTaskState.sessionStartTime) return;
+function showResultSummary() {
+    if (dualTaskState.taskCount === 0) return;
 
     const el = getDtElements();
-    if (el.sessionTime) {
-        const elapsed = Math.floor((performance.now() - dualTaskState.sessionStartTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        el.sessionTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    if (!el.resultSummary) return;
+
+    const sessionSeconds = dualTaskState.sessionStartTime
+        ? Math.floor((performance.now() - dualTaskState.sessionStartTime) / 1000)
+        : 0;
+    const avgTime = sessionSeconds > 0 ? (sessionSeconds / dualTaskState.taskCount).toFixed(1) : 0;
+    const tasksPerMin = sessionSeconds > 0 ? ((dualTaskState.taskCount / sessionSeconds) * 60).toFixed(1) : 0;
+
+    // 수행 평가
+    const { rating, feedback, tip } = evaluatePerformance(dualTaskState.taskCount, avgTime, sessionSeconds);
+
+    el.resultSummary.innerHTML = `
+        <h4>📊 세션 결과</h4>
+        <div class="result-stats">
+            <div class="result-stat">
+                <span class="result-stat-value">${dualTaskState.taskCount}</span>
+                <span class="result-stat-label">문제 수</span>
+            </div>
+            <div class="result-stat">
+                <span class="result-stat-value">${Math.floor(sessionSeconds / 60)}:${(sessionSeconds % 60).toString().padStart(2, '0')}</span>
+                <span class="result-stat-label">시간</span>
+            </div>
+            <div class="result-stat">
+                <span class="result-stat-value">${tasksPerMin}</span>
+                <span class="result-stat-label">분당</span>
+            </div>
+        </div>
+        <div class="result-feedback">
+            <div class="feedback-rating">${rating}</div>
+            <div class="feedback-text">${feedback}</div>
+            <div class="feedback-tip">💡 ${tip}</div>
+        </div>
+    `;
+    el.resultSummary.classList.remove('hidden');
+    setDtState('idle'); // idle 상태로 복귀 (setup 영역 표시)
+}
+
+function evaluatePerformance(taskCount, avgTime, totalSeconds) {
+    const difficulty = dualTaskState.difficulty;
+    const mode = dualTaskState.mode;
+
+    // 기본 평가 기준 (난이도별 조정)
+    const diffMultiplier = difficulty === 'easy' ? 1.2 : difficulty === 'hard' ? 0.8 : 1;
+    const adjustedAvg = avgTime / diffMultiplier;
+
+    let rating, feedback, tip;
+
+    if (totalSeconds < 30) {
+        rating = '⏱️';
+        feedback = '더 오래 연습해보세요';
+        tip = '최소 1분 이상 연습을 권장합니다';
+    } else if (adjustedAvg <= 4) {
+        rating = '🌟 우수';
+        feedback = '빠르고 정확한 수행입니다';
+        tip = difficulty !== 'hard' ? '난이도를 높여보세요' : '꾸준히 유지하세요';
+    } else if (adjustedAvg <= 6) {
+        rating = '✅ 양호';
+        feedback = '적절한 속도로 수행했습니다';
+        tip = '반복 연습으로 속도를 높여보세요';
+    } else if (adjustedAvg <= 8) {
+        rating = '📈 보통';
+        feedback = '조금 더 연습이 필요합니다';
+        tip = difficulty !== 'easy' ? '난이도를 낮춰 연습해보세요' : '집중력을 높여보세요';
+    } else {
+        rating = '🔄 연습 필요';
+        feedback = '천천히 시작하세요';
+        tip = '간격을 늘리고 쉬운 난이도로 시작하세요';
+    }
+
+    // 모드별 추가 팁
+    if (mode === 'word' && difficulty === 'hard') {
+        tip = '초성 연상 훈련은 인지 유연성에 도움됩니다';
+    } else if (mode === 'color') {
+        tip = '스트룹 효과 극복은 전두엽 기능 향상에 효과적';
+    }
+
+    return { rating, feedback, tip };
+}
+
+function hideResultSummary() {
+    const el = getDtElements();
+    if (el.resultSummary) {
+        el.resultSummary.classList.add('hidden');
+    }
+}
+
+function updateCountdown() {
+    dualTaskState.remainingTime -= 0.1;
+    if (dualTaskState.remainingTime < 0) {
+        dualTaskState.remainingTime = dualTaskState.interval;
+    }
+    const el = getDtElements();
+    if (el.progress) {
+        const bar = el.progress.querySelector('.dt-progress-bar');
+        if (bar) {
+            const percent = (dualTaskState.remainingTime / dualTaskState.interval) * 100;
+            bar.style.width = `${percent}%`;
+        }
     }
 }
 
 function nextTask() {
+    if (!dualTaskState.running) return; // 실행 중일 때만 작동
+    dualTaskState.remainingTime = dualTaskState.interval;
     generateTask();
 }
 
@@ -2189,49 +2407,105 @@ function generateTask() {
     const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
 
     dualTaskState.taskCount++;
-    if (el.taskCounter) {
-        el.taskCounter.textContent = dualTaskState.taskCount;
-    }
+    dualTaskState.remainingTime = dualTaskState.interval;
 
     let prompt = '';
     let speechText = '';
 
+    // 프롬프트 애니메이션
+    el.prompt.classList.remove('prompt-animate');
+    void el.prompt.offsetWidth; // reflow 트리거
+    el.prompt.classList.add('prompt-animate');
+
     switch (dualTaskState.mode) {
         case 'math':
-            // 연속 빼기
-            if (dualTaskState.currentNumber <= 0) {
-                dualTaskState.currentNumber = settings.start;
+            // 난이도에 따라 더하기/빼기 혼합
+            const useMixed = dualTaskState.difficulty === 'hard' && Math.random() > 0.5;
+
+            if (useMixed || dualTaskState.currentNumber <= 0) {
+                // 더하기로 전환
+                if (dualTaskState.currentNumber <= 0) dualTaskState.currentNumber = 10;
+                const addNum = settings.add;
+                prompt = `${dualTaskState.currentNumber} + ${addNum} = ?`;
+                speechText = `${dualTaskState.currentNumber} 더하기 ${addNum}은?`;
+                dualTaskState.currentNumber += addNum;
+                if (dualTaskState.currentNumber > settings.start) {
+                    dualTaskState.currentNumber = settings.start;
+                }
+            } else {
+                // 빼기
+                prompt = `${dualTaskState.currentNumber} - ${settings.subtract} = ?`;
+                speechText = `${dualTaskState.currentNumber} 빼기 ${settings.subtract}은?`;
+                dualTaskState.currentNumber -= settings.subtract;
             }
-            prompt = `${dualTaskState.currentNumber} - ${settings.subtract} = ?`;
-            speechText = `${dualTaskState.currentNumber} 빼기 ${settings.subtract}은?`;
-            dualTaskState.currentNumber -= settings.subtract;
             el.prompt.style.color = '';
+            el.prompt.style.fontSize = '2.5rem';
             break;
 
         case 'word':
-            // 랜덤 카테고리
-            const categories = Object.keys(WORD_CATEGORIES);
-            const category = categories[Math.floor(Math.random() * categories.length)];
-            const categoryNames = {
-                animals: '동물', fruits: '과일', colors: '색깔',
-                countries: '나라', foods: '음식'
-            };
-            const categoryName = categoryNames[category] || category;
-            prompt = `${categoryName} 이름을 말하세요`;
-            speechText = `${categoryName} 이름을 말하세요`;
+            // 난이도별 카테고리 선택
+            const catList = dualTaskState.difficulty === 'easy' ? CATEGORIES_EASY
+                          : dualTaskState.difficulty === 'normal' ? CATEGORIES_NORMAL
+                          : CATEGORIES_HARD;
+            let category, categoryName;
+            let attempts = 0;
+
+            do {
+                category = catList[Math.floor(Math.random() * catList.length)];
+                categoryName = CATEGORY_NAMES[category];
+                attempts++;
+            } while (dualTaskState.usedPrompts.has(category) && attempts < catList.length);
+
+            dualTaskState.usedPrompts.add(category);
+            if (dualTaskState.usedPrompts.size >= catList.length) {
+                dualTaskState.usedPrompts.clear();
+            }
+
+            // 어려움 모드: 초성 제한 추가
+            if (dualTaskState.difficulty === 'hard') {
+                const chosung = CHOSUNG[Math.floor(Math.random() * CHOSUNG.length)];
+                prompt = `${chosung}으로 시작하는\n"${categoryName}"`;
+                speechText = `${chosung}으로 시작하는 ${categoryName} 이름을 말하세요`;
+            } else {
+                prompt = `"${categoryName}"`;
+                speechText = `${categoryName} 이름을 말하세요`;
+            }
             el.prompt.style.color = '';
+            el.prompt.style.fontSize = dualTaskState.difficulty === 'hard' ? '1.6rem' : '2rem';
+            el.prompt.style.background = '';
             break;
 
         case 'color':
-            // 스트룹 효과
-            const colorInfo = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            let displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            while (displayColor.name === colorInfo.name) {
-                displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            }
+            // 난이도별 색상 선택
+            const colorList = dualTaskState.difficulty === 'easy' ? COLORS_EASY
+                            : dualTaskState.difficulty === 'normal' ? COLORS_NORMAL
+                            : COLORS_HARD;
+            const colorInfo = colorList[Math.floor(Math.random() * colorList.length)];
+            let displayColor;
+            do {
+                displayColor = colorList[Math.floor(Math.random() * colorList.length)];
+            } while (displayColor.name === colorInfo.name);
+
+            // 난이도에 따라 글자 크기 변화
+            const fontSizes = dualTaskState.difficulty === 'hard'
+                ? ['1.8rem', '2.2rem', '2.8rem', '1.4rem']
+                : ['2.2rem'];
+            const fontSize = fontSizes[Math.floor(Math.random() * fontSizes.length)];
+
             prompt = colorInfo.name;
             speechText = `이 글자의 색깔을 말하세요`;
             el.prompt.style.color = displayColor.color;
+            el.prompt.style.fontSize = fontSize;
+
+            // 어려움 모드: 배경색 추가로 혼란 가중
+            if (dualTaskState.difficulty === 'hard') {
+                const bgColors = ['rgba(239,68,68,0.15)', 'rgba(59,130,246,0.15)', 'rgba(234,179,8,0.15)', 'rgba(34,197,94,0.15)'];
+                el.prompt.style.background = bgColors[Math.floor(Math.random() * bgColors.length)];
+                el.prompt.style.padding = '8px 16px';
+                el.prompt.style.borderRadius = '8px';
+            } else {
+                el.prompt.style.background = '';
+            }
             break;
     }
 
@@ -2247,4 +2521,900 @@ function generateTask() {
     }
 
     playClick(500, 0.03);
+}
+
+// ============================================
+// Sensor-based Tools (센서 기반 분석 도구)
+// ============================================
+
+// --- 공통 센서 권한 처리 ---
+let orientationPermissionGranted = false;
+let motionPermissionGranted = false;
+
+async function requestOrientationPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission === 'granted') {
+                orientationPermissionGranted = true;
+                initGoniometer();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        // Android 또는 권한 불필요 환경
+        orientationPermissionGranted = true;
+        initGoniometer();
+    }
+}
+
+async function requestMotionPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission === 'granted') {
+                motionPermissionGranted = true;
+                initTremor();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        motionPermissionGranted = true;
+        initTremor();
+    }
+}
+
+async function requestMicPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        initDecibel(stream);
+    } catch (e) {
+        console.error('Microphone permission denied:', e);
+        alert('마이크 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
+    }
+}
+
+// ============================================
+// 1. Digital Goniometer (디지털 각도계/수평계)
+// ROM 기준: AAOS (American Academy of Orthopedic Surgeons)
+// ============================================
+
+const gonioState = {
+    mode: 'incline', // 'incline' 또는 'angle'
+    zeroOffset: { alpha: 0, beta: 0, gamma: 0 },
+    isHeld: false,
+    heldValue: 0,
+    currentAngles: { x: 0, y: 0, z: 0 },
+    // 고정 방식 설정
+    holdSettings: {
+        tap: true,      // 화면 탭
+        auto: false,    // 자동 고정
+        voice: false    // 음성 명령
+    },
+    // 자동 고정용
+    autoHoldTimer: null,
+    stableStartTime: null,
+    lastAngle: null,
+    // 음성 인식
+    voiceRecognition: null
+};
+
+// AAOS 기준 정상 ROM (단위: 도)
+const ROM_STANDARDS = {
+    'shoulder-flex': 180,
+    'shoulder-abd': 180,
+    'elbow-flex': 150,
+    'hip-flex': 120,
+    'knee-flex': 135,
+    'ankle-df': 20,
+    'ankle-pf': 50
+};
+
+function openGoniometer() {
+    document.getElementById('goniometer-modal').classList.remove('hidden');
+
+    // 권한 이미 있으면 바로 초기화
+    if (orientationPermissionGranted) {
+        initGoniometer();
+    } else {
+        // iOS가 아닌 경우 권한 요청 없이 시도
+        if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            initGoniometer();
+        }
+    }
+}
+
+function closeGoniometer() {
+    document.getElementById('goniometer-modal').classList.add('hidden');
+    window.removeEventListener('deviceorientation', handleOrientation);
+    cleanupGonioHoldMethods();
+}
+
+function initGoniometer() {
+    document.getElementById('gonio-permission').classList.add('hidden');
+    document.getElementById('gonio-display').classList.remove('hidden');
+
+    // 설정 불러오기
+    loadGonioSettings();
+
+    // 고정 방식 초기화
+    setupGonioHoldMethods();
+
+    window.addEventListener('deviceorientation', handleOrientation);
+}
+
+// 설정 저장/불러오기
+function loadGonioSettings() {
+    const saved = localStorage.getItem('gonioHoldSettings');
+    if (saved) {
+        gonioState.holdSettings = JSON.parse(saved);
+    }
+
+    // UI 체크박스 업데이트
+    document.getElementById('hold-tap').checked = gonioState.holdSettings.tap;
+    document.getElementById('hold-auto').checked = gonioState.holdSettings.auto;
+    document.getElementById('hold-voice').checked = gonioState.holdSettings.voice;
+
+    updateHoldStatus();
+}
+
+function saveGonioSettings() {
+    gonioState.holdSettings = {
+        tap: document.getElementById('hold-tap').checked,
+        auto: document.getElementById('hold-auto').checked,
+        voice: document.getElementById('hold-voice').checked
+    };
+
+    localStorage.setItem('gonioHoldSettings', JSON.stringify(gonioState.holdSettings));
+
+    // 고정 방식 재설정
+    cleanupGonioHoldMethods();
+    setupGonioHoldMethods();
+    updateHoldStatus();
+}
+
+function updateHoldStatus() {
+    const statusEl = document.getElementById('hold-status');
+    if (!statusEl) return;
+
+    const active = [];
+    if (gonioState.holdSettings.tap) active.push('탭');
+    if (gonioState.holdSettings.auto) active.push('자동');
+    if (gonioState.holdSettings.voice) active.push('음성');
+
+    statusEl.textContent = active.length ? `활성: ${active.join(', ')}` : '버튼만 사용';
+}
+
+// 고정 방식 설정
+function setupGonioHoldMethods() {
+    // A: 화면 탭
+    if (gonioState.holdSettings.tap) {
+        const tapArea = document.getElementById('gonio-tap-area');
+        if (tapArea) {
+            tapArea.addEventListener('click', handleGonioTap);
+            tapArea.style.cursor = 'pointer';
+        }
+    }
+
+    // D: 자동 고정 (3초 안정)
+    if (gonioState.holdSettings.auto) {
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
+    }
+
+    // E: 음성 명령
+    if (gonioState.holdSettings.voice) {
+        setupVoiceRecognition();
+    }
+}
+
+function cleanupGonioHoldMethods() {
+    // 탭 이벤트 제거
+    const tapArea = document.getElementById('gonio-tap-area');
+    if (tapArea) {
+        tapArea.removeEventListener('click', handleGonioTap);
+        tapArea.style.cursor = '';
+    }
+
+    // 자동 고정 타이머 제거
+    if (gonioState.autoHoldTimer) {
+        clearTimeout(gonioState.autoHoldTimer);
+        gonioState.autoHoldTimer = null;
+    }
+
+    // 음성 인식 중지
+    if (gonioState.voiceRecognition) {
+        gonioState.voiceRecognition.stop();
+        gonioState.voiceRecognition = null;
+    }
+}
+
+// A: 화면 탭 핸들러
+function handleGonioTap(e) {
+    // 버튼 클릭은 제외
+    if (e.target.closest('.gonio-btn') || e.target.closest('.gonio-hold-settings')) return;
+    toggleGonioHold();
+}
+
+// D: 자동 고정 체크 (handleOrientation에서 호출)
+function checkAutoHold(currentAngle) {
+    if (!gonioState.holdSettings.auto || gonioState.isHeld) return;
+
+    const threshold = 0.5; // 0.5도 이내 변화면 안정으로 판단
+    const holdTime = 3000; // 3초
+
+    if (gonioState.lastAngle !== null) {
+        const diff = Math.abs(currentAngle - gonioState.lastAngle);
+
+        if (diff < threshold) {
+            // 안정 상태
+            if (!gonioState.stableStartTime) {
+                gonioState.stableStartTime = Date.now();
+            } else if (Date.now() - gonioState.stableStartTime >= holdTime) {
+                // 3초 동안 안정 → 자동 고정
+                toggleGonioHold();
+                playClick(1000, 0.1); // 알림음
+                gonioState.stableStartTime = null;
+            }
+        } else {
+            // 움직임 감지 → 타이머 리셋
+            gonioState.stableStartTime = null;
+        }
+    }
+
+    gonioState.lastAngle = currentAngle;
+}
+
+// E: 음성 인식 설정
+function setupVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.log('음성 인식 미지원');
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    gonioState.voiceRecognition = new SpeechRecognition();
+    gonioState.voiceRecognition.continuous = true;
+    gonioState.voiceRecognition.interimResults = false;
+    gonioState.voiceRecognition.lang = 'ko-KR';
+
+    gonioState.voiceRecognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript.toLowerCase().trim();
+
+        if (text.includes('고정') || text.includes('홀드') || text.includes('hold') || text.includes('잠금')) {
+            toggleGonioHold();
+            playClick(1000, 0.1);
+        }
+    };
+
+    gonioState.voiceRecognition.onerror = (e) => {
+        if (e.error !== 'no-speech') {
+            console.log('음성 인식 오류:', e.error);
+        }
+    };
+
+    gonioState.voiceRecognition.onend = () => {
+        // 계속 듣기
+        if (gonioState.holdSettings.voice && document.getElementById('goniometer-modal') &&
+            !document.getElementById('goniometer-modal').classList.contains('hidden')) {
+            try {
+                gonioState.voiceRecognition.start();
+            } catch (e) {}
+        }
+    };
+
+    try {
+        gonioState.voiceRecognition.start();
+    } catch (e) {
+        console.log('음성 인식 시작 실패:', e);
+    }
+}
+
+function handleOrientation(event) {
+    if (gonioState.isHeld) return;
+
+    let alpha = event.alpha || 0; // z축 회전 (나침반)
+    let beta = event.beta || 0;   // x축 기울기 (앞뒤)
+    let gamma = event.gamma || 0; // y축 기울기 (좌우)
+
+    // 영점 보정
+    beta -= gonioState.zeroOffset.beta;
+    gamma -= gonioState.zeroOffset.gamma;
+
+    gonioState.currentAngles = { x: gamma, y: beta, z: alpha };
+
+    let displayValue;
+    if (gonioState.mode === 'incline') {
+        // 수평계: 좌우 기울기 (gamma)
+        displayValue = gamma;
+    } else {
+        // 각도계: 앞뒤 기울기 (beta)
+        displayValue = beta;
+    }
+
+    updateGonioDisplay(displayValue);
+
+    // 자동 고정 체크
+    checkAutoHold(displayValue);
+}
+
+function updateGonioDisplay(angle) {
+    const valueEl = document.getElementById('gonio-value');
+    const needleEl = document.getElementById('gonio-needle');
+    const xEl = document.getElementById('gonio-x');
+    const yEl = document.getElementById('gonio-y');
+    const levelEl = document.getElementById('gonio-level');
+    const levelTextEl = document.getElementById('gonio-level-text');
+
+    const absAngle = Math.abs(angle);
+
+    // 값 표시
+    valueEl.textContent = absAngle.toFixed(1);
+
+    // 바늘 회전
+    if (needleEl) {
+        needleEl.style.transform = `rotate(${angle}deg)`;
+    }
+
+    // 축별 정보
+    if (xEl) xEl.textContent = `${gonioState.currentAngles.x.toFixed(1)}°`;
+    if (yEl) yEl.textContent = `${gonioState.currentAngles.y.toFixed(1)}°`;
+
+    // 수평/각도 피드백
+    if (levelEl && levelTextEl) {
+        if (gonioState.mode === 'incline') {
+            // 수평계 모드: 0°에 가까우면 수평 표시
+            if (absAngle < 2) {
+                levelEl.classList.add('level');
+                levelTextEl.classList.add('level');
+                levelTextEl.textContent = '✓ 수평';
+            } else if (absAngle < 5) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '거의 수평';
+            } else if (angle > 0) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '→ 오른쪽 기울임';
+            } else {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '← 왼쪽 기울임';
+            }
+        } else {
+            // 각도계 모드
+            levelEl.classList.remove('level');
+            levelTextEl.classList.remove('level');
+            if (absAngle < 5) {
+                levelTextEl.textContent = '시작 위치';
+            } else if (absAngle < 45) {
+                levelTextEl.textContent = '경도 굴곡';
+            } else if (absAngle < 90) {
+                levelTextEl.textContent = '중등도 굴곡';
+            } else {
+                levelTextEl.textContent = '고도 굴곡';
+            }
+        }
+    }
+
+    // ROM 비교 업데이트
+    updateRomComparison();
+}
+
+function setGonioMode(mode) {
+    gonioState.mode = mode;
+
+    document.querySelectorAll('.gonio-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+
+    const romSection = document.getElementById('gonio-rom-section');
+    const phoneAnim = document.querySelector('.phone-body-mini');
+    const guideText = document.getElementById('guide-text');
+
+    if (mode === 'angle') {
+        romSection.classList.remove('hidden');
+        if (phoneAnim) phoneAnim.classList.add('tilt-forward');
+        if (guideText) guideText.textContent = '관절에 대고 앞뒤로';
+    } else {
+        romSection.classList.add('hidden');
+        if (phoneAnim) phoneAnim.classList.remove('tilt-forward');
+        if (guideText) guideText.textContent = '좌우로 기울이세요';
+    }
+
+    // 자동 고정 타이머 리셋
+    gonioState.stableStartTime = null;
+    gonioState.lastAngle = null;
+}
+
+function zeroGoniometer() {
+    gonioState.zeroOffset = {
+        alpha: gonioState.currentAngles.z + gonioState.zeroOffset.alpha,
+        beta: gonioState.currentAngles.y + gonioState.zeroOffset.beta,
+        gamma: gonioState.currentAngles.x + gonioState.zeroOffset.gamma
+    };
+    playClick(800, 0.05);
+}
+
+function toggleGonioHold() {
+    gonioState.isHeld = !gonioState.isHeld;
+    const btn = document.getElementById('gonio-hold-btn');
+    const indicator = document.getElementById('gonio-hold-indicator');
+
+    if (gonioState.isHeld) {
+        btn.textContent = '▶ 재개';
+        btn.classList.add('active');
+        gonioState.heldValue = parseFloat(document.getElementById('gonio-value').textContent);
+        if (indicator) indicator.classList.remove('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
+    } else {
+        btn.textContent = '⏸ 고정';
+        btn.classList.remove('active');
+        if (indicator) indicator.classList.add('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
+    }
+    playClick(600, 0.05);
+}
+
+function updateRomComparison() {
+    const jointSelect = document.getElementById('gonio-joint');
+    const resultDiv = document.getElementById('rom-result');
+    const fillEl = document.getElementById('rom-fill');
+    const percentEl = document.getElementById('rom-percent');
+
+    if (!jointSelect.value) {
+        resultDiv.classList.add('hidden');
+        return;
+    }
+
+    const standard = ROM_STANDARDS[jointSelect.value];
+    const current = Math.abs(parseFloat(document.getElementById('gonio-value').textContent));
+    const percent = Math.min(100, (current / standard) * 100);
+
+    resultDiv.classList.remove('hidden');
+    fillEl.style.width = `${percent}%`;
+    percentEl.textContent = `${percent.toFixed(0)}%`;
+
+    // 색상 표시
+    if (percent >= 90) {
+        fillEl.style.background = 'var(--success-color)';
+    } else if (percent >= 70) {
+        fillEl.style.background = 'var(--primary-blue)';
+    } else {
+        fillEl.style.background = 'var(--warning-color)';
+    }
+}
+
+// ============================================
+// 2. Tremor Analyzer (손떨림 분석)
+// 참고 문헌: PMC3475963, PMC3656631
+// - 파킨슨 떨림: 4-6 Hz (안정시)
+// - 본태성 떨림: 5-8 Hz (자세/동작시)
+// - 생리적 떨림: 8-12 Hz
+// ============================================
+
+const tremorState = {
+    isRunning: false,
+    data: [],
+    startTime: 0,
+    canvas: null,
+    ctx: null,
+    animationId: null,
+    sampleRate: 60, // Hz
+    analysisWindow: 5 // seconds
+};
+
+function openTremor() {
+    document.getElementById('tremor-modal').classList.remove('hidden');
+
+    if (motionPermissionGranted) {
+        initTremor();
+    } else if (typeof DeviceMotionEvent.requestPermission !== 'function') {
+        initTremor();
+    }
+}
+
+function closeTremor() {
+    document.getElementById('tremor-modal').classList.add('hidden');
+    stopTremorAnalysis();
+}
+
+function initTremor() {
+    document.getElementById('tremor-permission').classList.add('hidden');
+    document.getElementById('tremor-display').classList.remove('hidden');
+
+    tremorState.canvas = document.getElementById('tremor-canvas');
+    tremorState.ctx = tremorState.canvas.getContext('2d');
+
+    // 캔버스 크기 조정
+    const rect = tremorState.canvas.parentElement.getBoundingClientRect();
+    tremorState.canvas.width = rect.width || 320;
+    tremorState.canvas.height = 150;
+
+    drawTremorGraph();
+}
+
+function toggleTremorAnalysis() {
+    if (tremorState.isRunning) {
+        stopTremorAnalysis();
+    } else {
+        startTremorAnalysis();
+    }
+}
+
+function startTremorAnalysis() {
+    tremorState.isRunning = true;
+    tremorState.data = [];
+    tremorState.startTime = performance.now();
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    window.addEventListener('devicemotion', handleMotion);
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function stopTremorAnalysis() {
+    tremorState.isRunning = false;
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    window.removeEventListener('devicemotion', handleMotion);
+    if (tremorState.animationId) {
+        cancelAnimationFrame(tremorState.animationId);
+    }
+
+    // 최종 분석
+    if (tremorState.data.length > 30) {
+        analyzeTremor();
+    }
+}
+
+function handleMotion(event) {
+    if (!tremorState.isRunning) return;
+
+    const acc = event.accelerationIncludingGravity || event.acceleration;
+    if (!acc) return;
+
+    const magnitude = Math.sqrt(
+        (acc.x || 0) ** 2 +
+        (acc.y || 0) ** 2 +
+        (acc.z || 0) ** 2
+    ) - 9.8; // 중력 보정
+
+    const timestamp = performance.now() - tremorState.startTime;
+
+    tremorState.data.push({
+        time: timestamp,
+        value: magnitude
+    });
+
+    // 최근 데이터만 유지 (메모리 관리)
+    const maxSamples = tremorState.sampleRate * tremorState.analysisWindow;
+    if (tremorState.data.length > maxSamples) {
+        tremorState.data.shift();
+    }
+}
+
+function updateTremorGraph() {
+    if (!tremorState.isRunning) return;
+
+    drawTremorGraph();
+    analyzeTremor();
+
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function drawTremorGraph() {
+    const ctx = tremorState.ctx;
+    const canvas = tremorState.canvas;
+    const data = tremorState.data;
+
+    // 배경
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 그리드
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (canvas.height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    if (data.length < 2) return;
+
+    // 데이터 그리기
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const xScale = canvas.width / (tremorState.analysisWindow * 1000);
+    const yCenter = canvas.height / 2;
+    const yScale = canvas.height / 10;
+
+    data.forEach((point, i) => {
+        const x = point.time * xScale;
+        const y = yCenter - (point.value * yScale);
+
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+}
+
+function analyzeTremor() {
+    const data = tremorState.data;
+    if (data.length < 30) return;
+
+    // 간단한 주파수 분석 (영교차 방식)
+    let crossings = 0;
+    const values = data.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+    for (let i = 1; i < values.length; i++) {
+        if ((values[i-1] - mean) * (values[i] - mean) < 0) {
+            crossings++;
+        }
+    }
+
+    const duration = (data[data.length - 1].time - data[0].time) / 1000;
+    const frequency = (crossings / 2) / duration;
+
+    // 강도 계산 (RMS)
+    const rms = Math.sqrt(values.reduce((sum, v) => sum + v * v, 0) / values.length);
+
+    // 결과 표시
+    document.getElementById('tremor-freq').textContent = frequency.toFixed(1);
+
+    let intensityText, tremorType;
+    if (rms < 0.3) {
+        intensityText = '미약';
+    } else if (rms < 0.8) {
+        intensityText = '경도';
+    } else if (rms < 1.5) {
+        intensityText = '중등도';
+    } else {
+        intensityText = '심함';
+    }
+    document.getElementById('tremor-intensity').textContent = intensityText;
+
+    // 유형 추정 (주파수 기반)
+    if (frequency >= 4 && frequency <= 6) {
+        tremorType = '파킨슨 의심';
+    } else if (frequency > 6 && frequency <= 8) {
+        tremorType = '본태성 의심';
+    } else if (frequency > 8 && frequency <= 12) {
+        tremorType = '생리적';
+    } else if (frequency < 4) {
+        tremorType = '저주파';
+    } else {
+        tremorType = '고주파';
+    }
+    document.getElementById('tremor-type').textContent = tremorType;
+}
+
+function resetTremorData() {
+    tremorState.data = [];
+    document.getElementById('tremor-freq').textContent = '--';
+    document.getElementById('tremor-intensity').textContent = '--';
+    document.getElementById('tremor-type').textContent = '--';
+    drawTremorGraph();
+}
+
+// ============================================
+// 3. Decibel Meter (음성 데시벨 측정)
+// LSVT LOUD 기준: 목표 65-70dB 이상
+// 참고: PMC3316992, ASHA LSVT 가이드라인
+// ============================================
+
+const decibelState = {
+    isRunning: false,
+    audioContext: null,
+    analyser: null,
+    microphone: null,
+    targetDb: 70,
+    dataArray: null,
+    animationId: null,
+    history: [],
+    successCount: 0,
+    totalCount: 0
+};
+
+function openDecibel() {
+    document.getElementById('decibel-modal').classList.remove('hidden');
+}
+
+function closeDecibel() {
+    document.getElementById('decibel-modal').classList.add('hidden');
+    stopDecibelMeter();
+}
+
+function initDecibel(stream) {
+    document.getElementById('decibel-permission').classList.add('hidden');
+    document.getElementById('decibel-display').classList.remove('hidden');
+
+    decibelState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    decibelState.analyser = decibelState.audioContext.createAnalyser();
+    decibelState.analyser.fftSize = 2048;
+    decibelState.analyser.smoothingTimeConstant = 0.3;
+
+    decibelState.microphone = decibelState.audioContext.createMediaStreamSource(stream);
+    decibelState.microphone.connect(decibelState.analyser);
+
+    decibelState.dataArray = new Uint8Array(decibelState.analyser.frequencyBinCount);
+
+    updateTargetIndicator();
+}
+
+function toggleDecibelMeter() {
+    if (decibelState.isRunning) {
+        stopDecibelMeter();
+    } else {
+        startDecibelMeter();
+    }
+}
+
+function startDecibelMeter() {
+    if (!decibelState.audioContext) return;
+
+    decibelState.isRunning = true;
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    document.getElementById('decibel-stats').classList.remove('hidden');
+
+    if (decibelState.audioContext.state === 'suspended') {
+        decibelState.audioContext.resume();
+    }
+
+    updateDecibelMeter();
+}
+
+function stopDecibelMeter() {
+    decibelState.isRunning = false;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    if (decibelState.animationId) {
+        cancelAnimationFrame(decibelState.animationId);
+    }
+}
+
+function updateDecibelMeter() {
+    if (!decibelState.isRunning) return;
+
+    decibelState.analyser.getByteFrequencyData(decibelState.dataArray);
+
+    // RMS 계산
+    let sum = 0;
+    for (let i = 0; i < decibelState.dataArray.length; i++) {
+        sum += decibelState.dataArray[i] ** 2;
+    }
+    const rms = Math.sqrt(sum / decibelState.dataArray.length);
+
+    // dB 변환 (근사값, 보정 필요)
+    // 실제 SPL dB는 교정된 마이크 필요, 이는 상대적 측정
+    const db = Math.max(0, Math.min(120, 20 * Math.log10(rms + 1) * 2));
+
+    // 표시 업데이트
+    updateDecibelDisplay(db);
+
+    // 통계
+    decibelState.history.push(db);
+    decibelState.totalCount++;
+    if (db >= decibelState.targetDb) {
+        decibelState.successCount++;
+    }
+
+    // 최근 100개만 유지
+    if (decibelState.history.length > 100) {
+        decibelState.history.shift();
+    }
+
+    updateDecibelStats();
+
+    decibelState.animationId = requestAnimationFrame(updateDecibelMeter);
+}
+
+function updateDecibelDisplay(db) {
+    const valueEl = document.getElementById('decibel-value');
+    const barEl = document.getElementById('decibel-bar');
+    const visualEl = document.getElementById('decibel-visual');
+    const feedbackEl = document.getElementById('decibel-feedback');
+
+    valueEl.textContent = Math.round(db);
+    barEl.style.height = `${(db / 120) * 100}%`;
+
+    // 목표 달성 여부에 따른 색상
+    const isSuccess = db >= decibelState.targetDb;
+
+    if (isSuccess) {
+        barEl.style.background = 'linear-gradient(to top, #22c55e, #16a34a)';
+        visualEl.classList.add('success');
+        visualEl.classList.remove('fail');
+        feedbackEl.textContent = '좋아요! 유지하세요!';
+        feedbackEl.style.color = '#16a34a';
+    } else {
+        barEl.style.background = 'linear-gradient(to top, #ef4444, #dc2626)';
+        visualEl.classList.add('fail');
+        visualEl.classList.remove('success');
+        feedbackEl.textContent = '더 크게 말해보세요!';
+        feedbackEl.style.color = '#dc2626';
+    }
+}
+
+function updateDecibelStats() {
+    const history = decibelState.history;
+    if (history.length === 0) return;
+
+    const max = Math.max(...history);
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const successRate = (decibelState.successCount / decibelState.totalCount) * 100;
+
+    document.getElementById('db-max').textContent = `${Math.round(max)} dB`;
+    document.getElementById('db-avg').textContent = `${Math.round(avg)} dB`;
+    document.getElementById('db-success').textContent = `${Math.round(successRate)}%`;
+}
+
+function adjustTargetDb(delta) {
+    decibelState.targetDb = Math.max(40, Math.min(100, decibelState.targetDb + delta));
+    document.getElementById('target-db-value').textContent = decibelState.targetDb;
+    updateTargetIndicator();
+}
+
+function updateTargetIndicator() {
+    const targetEl = document.getElementById('decibel-target');
+    if (targetEl) {
+        targetEl.style.bottom = `${(decibelState.targetDb / 120) * 100}%`;
+    }
+}
+
+function resetDecibelData() {
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    document.getElementById('decibel-value').textContent = '0';
+    document.getElementById('decibel-bar').style.height = '0%';
+    document.getElementById('decibel-feedback').textContent = '대기 중';
+    document.getElementById('decibel-feedback').style.color = '';
+    document.getElementById('db-max').textContent = '0 dB';
+    document.getElementById('db-avg').textContent = '0 dB';
+    document.getElementById('db-success').textContent = '0%';
 }

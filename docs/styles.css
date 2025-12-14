@@ -2545,12 +2545,12 @@ html, body {
 .body-chart-container {
     position: relative;
     width: 100%;
-    max-width: 400px;
+    max-width: 280px;
     margin: 0 auto 16px;
     border-radius: 12px;
     overflow: hidden;
     background: var(--background-grey);
-    touch-action: manipulation;
+    touch-action: pan-y; /* 세로 스크롤 허용 */
 }
 
 .body-chart-img {
@@ -3298,21 +3298,31 @@ html, body {
 }
 
 /* ============================================
-   Dual Task Generator Styles
+   Dual Task Generator Styles (State-based UI)
    ============================================ */
+.dt-content {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 설정 영역 */
+.dt-setup {
+    transition: all 0.3s ease;
+}
+
 .dualtask-mode-selector {
     display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .dt-mode-btn {
     flex: 1;
-    padding: 12px;
+    padding: 10px 8px;
     border: 2px solid var(--card-grey);
-    border-radius: 10px;
+    border-radius: 8px;
     background: white;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
@@ -3325,72 +3335,101 @@ html, body {
     color: var(--primary-blue);
 }
 
-.dualtask-display {
-    background: linear-gradient(135deg, #1E3A8A, var(--primary-blue));
-    border-radius: 16px;
-    padding: 40px 24px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.task-prompt {
-    font-size: 32px;
-    font-weight: 700;
-    color: white;
-    line-height: 1.3;
-}
-
-.dualtask-settings {
-    background: var(--background-grey);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
-}
-
-.setting-row {
+/* 난이도 + 설정 한 줄로 */
+.difficulty-selector {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
-.setting-row label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
+.difficulty-btn {
+    padding: 6px 14px;
+    border: 2px solid var(--card-grey);
+    border-radius: 16px;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.difficulty-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.difficulty-btn[data-difficulty="easy"].active {
+    border-color: var(--mint-green);
+    background: var(--mint-green-light);
+    color: var(--mint-green-dark);
+}
+
+.difficulty-btn[data-difficulty="hard"].active {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #DC2626;
+}
+
+.dt-settings-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 12px;
+}
+
+.dt-setting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .interval-control {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
 }
 
 .interval-control button {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--primary-blue);
     color: white;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
 }
 
 .interval-control span {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
-    min-width: 30px;
+    min-width: 24px;
     text-align: center;
+}
+
+/* 가이드 텍스트 */
+.dt-guide {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 8px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    line-height: 1.4;
 }
 
 /* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 28px;
+    width: 44px;
+    height: 24px;
 }
 
 .switch input {
@@ -3411,14 +3450,14 @@ html, body {
 }
 
 .switch .slider.round {
-    border-radius: 28px;
+    border-radius: 24px;
 }
 
 .switch .slider:before {
     position: absolute;
     content: "";
-    height: 22px;
-    width: 22px;
+    height: 18px;
+    width: 18px;
     left: 3px;
     bottom: 3px;
     background-color: white;
@@ -3432,67 +3471,174 @@ html, body {
 }
 
 .switch input:checked + .slider:before {
-    transform: translateX(22px);
+    transform: translateX(20px);
 }
 
-.dualtask-controls {
+/* 프롬프트 영역 - 고정 높이 */
+.dt-prompt-area {
+    background: linear-gradient(135deg, #1E3A8A, var(--primary-blue));
+    border-radius: 16px;
+    padding: 32px 20px 24px;
+    text-align: center;
+    margin: 16px 0;
+    min-height: 140px;
     display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.dt-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    gap: 8px;
-    padding: 16px;
+    align-items: center;
+}
+
+.task-prompt {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+}
+
+/* 프로그레스 바 */
+.dt-progress {
+    width: 70%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.dt-progress-bar {
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+}
+
+/* 컨트롤 버튼 */
+.dt-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.dt-btn-main {
+    flex: 2;
+    padding: 14px;
     border: none;
     border-radius: 12px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    background: var(--mint-green);
+    color: white;
     transition: all 0.2s;
 }
 
-.dt-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-.dt-btn.play {
-    background: var(--mint-green);
-    color: white;
-}
-
-.dt-btn.play.playing {
+.dt-btn-main.running {
     background: #EF4444;
 }
 
-.dt-btn.next {
+.dt-btn-sub {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
     background: var(--primary-blue);
     color: white;
 }
 
-.dualtask-info {
-    background: var(--background-grey);
+/* 결과 표시 */
+.dt-result {
+    background: linear-gradient(135deg, var(--mint-green-dark), var(--mint-green));
     border-radius: 12px;
     padding: 16px;
+    margin-bottom: 12px;
+    color: white;
+    text-align: center;
 }
 
-.dualtask-info h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-}
-
-.dualtask-info p {
+.dt-result h4 {
     font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.result-stats {
+    display: flex;
+    justify-content: space-around;
+}
+
+.result-stat {
+    flex: 1;
+}
+
+.result-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    display: block;
+}
+
+.result-stat-label {
+    font-size: 10px;
+    opacity: 0.85;
+}
+
+/* 피드백 영역 */
+.result-feedback {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+}
+
+.feedback-rating {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.feedback-text {
+    font-size: 13px;
+    opacity: 0.95;
+    margin-bottom: 6px;
+}
+
+.feedback-tip {
+    font-size: 11px;
+    opacity: 0.8;
+    background: rgba(255,255,255,0.1);
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+/* 상태별 표시/숨김 */
+#dualtask-modal[data-state="running"] .dt-setup {
+    display: none;
+}
+
+#dualtask-modal[data-state="running"] .dt-result {
+    display: none;
+}
+
+#dualtask-modal[data-state="running"] .dt-prompt-area {
+    min-height: 180px;
+}
+
+#dualtask-modal[data-state="running"] .task-prompt {
+    font-size: 36px;
+}
+
+/* 프롬프트 애니메이션 */
+@keyframes promptPop {
+    0% { transform: scale(0.9); opacity: 0.5; }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.prompt-animate {
+    animation: promptPop 0.25s ease-out;
 }
 
 /* ============================================
@@ -3560,86 +3706,6 @@ html, body {
     color: #991B1B;
 }
 
-/* 이중과제 난이도 선택기 */
-.difficulty-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 12px 0;
-    padding: 10px;
-    background: var(--background-grey);
-    border-radius: 10px;
-}
-
-.difficulty-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-right: 4px;
-}
-
-.difficulty-btn {
-    padding: 6px 14px;
-    border: 2px solid var(--card-grey);
-    border-radius: 16px;
-    background: white;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.difficulty-btn.active {
-    border-color: var(--primary-blue);
-    background: var(--primary-blue-light);
-    color: var(--primary-blue);
-}
-
-.difficulty-btn[data-difficulty="easy"].active {
-    border-color: var(--mint-green);
-    background: var(--mint-green-light);
-    color: var(--mint-green-dark);
-}
-
-.difficulty-btn[data-difficulty="hard"].active {
-    border-color: #EF4444;
-    background: rgba(239, 68, 68, 0.1);
-    color: #DC2626;
-}
-
-/* 이중과제 통계 */
-.dualtask-stats {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    margin: 16px 0;
-    padding: 12px;
-    background: var(--background-grey);
-    border-radius: 12px;
-}
-
-.dt-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.dt-stat-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary-blue);
-    font-family: 'SF Mono', Monaco, monospace;
-}
-
-.dt-stat-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
 /* 탭 영역 터치 피드백 개선 */
 .tap-area {
     -webkit-user-select: none;
@@ -3691,4 +3757,675 @@ html, body {
 /* 모달 애니메이션 성능 */
 .tool-modal-content {
     will-change: transform, opacity;
+}
+
+/* ============================================
+   Sensor-based Tools (센서 기반 분석 도구)
+   ============================================ */
+
+/* 센서 도구 버튼 표시 */
+.tool-btn.sensor {
+    border: 1px solid var(--primary-blue);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+/* 공통 센서 모달 스타일 */
+.sensor-content {
+    padding: 16px;
+}
+
+.sensor-permission-area {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.sensor-permission-area p {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+/* ============================================
+   1. Goniometer (각도계) 스타일
+   ============================================ */
+
+.gonio-mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.gonio-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gonio-tab.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+/* 사용 가이드 (작은 핸드폰 애니메이션) */
+.gonio-guide-compact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+/* 미니 핸드폰 애니메이션 */
+.phone-anim-mini {
+    width: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.phone-body-mini {
+    width: 20px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: phoneTiltMini 2s ease-in-out infinite;
+    transform-origin: center center;
+}
+
+.phone-screen-mini {
+    width: 14px;
+    height: 26px;
+    background: #60a5fa;
+    border-radius: 2px;
+}
+
+/* 좌우 기울이기 애니메이션 (수평계) */
+@keyframes phoneTiltMini {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+}
+
+/* 앞뒤 기울이기 애니메이션 (각도계) */
+@keyframes phoneTiltForwardMini {
+    0%, 100% { transform: perspective(100px) rotateX(-15deg); }
+    50% { transform: perspective(100px) rotateX(15deg); }
+}
+
+.phone-body-mini.tilt-forward {
+    animation: phoneTiltForwardMini 2s ease-in-out infinite;
+}
+
+.guide-text-compact {
+    font-size: 13px;
+    color: #1e40af;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* 고정 표시 */
+.gonio-hold-indicator {
+    margin-top: 8px;
+    padding: 6px 16px;
+    background: rgba(34, 197, 94, 0.2);
+    color: #16a34a;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 700;
+    animation: holdPulse 1s ease-in-out infinite;
+}
+
+@keyframes holdPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 고정 방식 설정 */
+.gonio-hold-settings {
+    margin-top: 12px;
+    padding: 10px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.hold-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.hold-status {
+    font-size: 11px;
+    color: var(--primary-blue);
+}
+
+.hold-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.hold-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    background: white;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.hold-option:has(input:checked) {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.hold-option input {
+    display: none;
+}
+
+.hold-option span {
+    white-space: nowrap;
+}
+
+/* 수평 상태 표시 */
+.gonio-level-indicator {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    pointer-events: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.gonio-level-indicator.level {
+    box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.5);
+}
+
+.gonio-level-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    padding: 4px 12px;
+    background: var(--background-grey);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.gonio-level-text.level {
+    background: rgba(34, 197, 94, 0.2);
+    color: #16a34a;
+}
+
+.gonio-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.gonio-circle {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 3px solid var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gonio-needle {
+    position: absolute;
+    width: 4px;
+    height: 70px;
+    background: linear-gradient(to top, #ef4444, #dc2626);
+    border-radius: 2px;
+    transform-origin: bottom center;
+    bottom: 50%;
+    left: calc(50% - 2px);
+    transition: transform 0.1s ease-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.gonio-center {
+    width: 16px;
+    height: 16px;
+    background: #1e40af;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.gonio-value-display {
+    display: flex;
+    align-items: baseline;
+    margin-top: 16px;
+}
+
+.gonio-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.gonio-unit {
+    font-size: 24px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.gonio-axis-info {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.axis-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.axis-item span:first-child {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.axis-item span:last-child {
+    font-size: 18px;
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.gonio-controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.gonio-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.gonio-btn:active {
+    transform: scale(0.98);
+}
+
+.gonio-btn.active {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.gonio-rom-section {
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+}
+
+.gonio-rom-section h4 {
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.gonio-rom-section select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.rom-bar {
+    height: 12px;
+    background: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.rom-fill {
+    height: 100%;
+    background: var(--primary-blue);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+#rom-percent {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ============================================
+   2. Tremor Analyzer (떨림 분석) 스타일
+   ============================================ */
+
+.tremor-info-card {
+    margin-bottom: 12px;
+}
+
+.tremor-info-card .hint {
+    background: #fef3c7;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #92400e;
+}
+
+.tremor-graph-container {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.tremor-graph-container canvas {
+    width: 100%;
+    height: 150px;
+    display: block;
+}
+
+.tremor-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.tremor-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+}
+
+.tremor-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.tremor-stat-label {
+    font-size: 11px;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.tremor-reference {
+    background: var(--background-grey);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 12px;
+}
+
+.tremor-reference p {
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.ref-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ref-item:last-child {
+    border-bottom: none;
+}
+
+.tremor-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.tremor-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tremor-btn.primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.tremor-btn.running {
+    background: #ef4444;
+}
+
+/* ============================================
+   3. Decibel Meter (데시벨) 스타일
+   ============================================ */
+
+.decibel-info-card {
+    margin-bottom: 12px;
+}
+
+.decibel-info-card .hint {
+    background: #dbeafe;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1e40af;
+}
+
+.decibel-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 24px;
+    background: var(--background-grey);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    transition: background 0.3s ease;
+}
+
+.decibel-visual.success {
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.decibel-visual.fail {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.decibel-meter {
+    position: relative;
+    width: 60px;
+    height: 200px;
+    background: #e2e8f0;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.decibel-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #22c55e, #16a34a);
+    border-radius: 30px;
+    transition: height 0.1s ease-out;
+}
+
+.decibel-target {
+    position: absolute;
+    left: -8px;
+    right: -8px;
+    height: 3px;
+    background: #1e40af;
+    border-radius: 2px;
+}
+
+.decibel-target::after {
+    content: '목표';
+    position: absolute;
+    right: -32px;
+    top: -6px;
+    font-size: 10px;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.decibel-value-display {
+    display: flex;
+    align-items: baseline;
+}
+
+.decibel-value {
+    font-size: 64px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.decibel-unit {
+    font-size: 20px;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
+.decibel-feedback {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--background-grey);
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.decibel-settings {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.decibel-settings label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.target-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.target-control button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: white;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.target-control span {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'SF Mono', Monaco, monospace;
+    min-width: 40px;
+    text-align: center;
+}
+
+.decibel-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.db-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.db-stat span:first-child {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.db-stat span:last-child {
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.decibel-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.decibel-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: var(--background-grey);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.decibel-btn.primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.decibel-btn.running {
+    background: #ef4444;
 }

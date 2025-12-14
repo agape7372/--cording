@@ -140,20 +140,25 @@
                             </svg>
                             <span>이중과제</span>
                         </button>
-                        <button class="tool-btn" onclick="navigateTo('objective')">
+                        <button class="tool-btn sensor" onclick="openGoniometer()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                                <path d="M12 2v10l8 4"/>
+                                <circle cx="12" cy="12" r="10"/>
                             </svg>
-                            <span>ROM</span>
+                            <span>각도계</span>
                         </button>
-                        <button class="tool-btn" onclick="navigateTo('objective'); switchObjectiveTab('bbs');">
+                        <button class="tool-btn sensor" onclick="openTremor()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                                <circle cx="9" cy="7" r="4"/>
-                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                                <path d="M2 12h4l3-9 4 18 3-9h6"/>
                             </svg>
-                            <span>BBS</span>
+                            <span>떨림분석</span>
+                        </button>
+                        <button class="tool-btn sensor" onclick="openDecibel()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
+                            </svg>
+                            <span>데시벨</span>
                         </button>
                         <button class="tool-btn" onclick="showHistory()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -803,70 +808,272 @@
     </div>
 
     <!-- Dual Task Generator Modal -->
-    <div id="dualtask-modal" class="tool-modal hidden">
-        <div class="tool-modal-content">
+    <div id="dualtask-modal" class="tool-modal hidden" data-state="idle">
+        <div class="tool-modal-content dt-content">
             <div class="tool-modal-header">
                 <h2>이중과제 생성기</h2>
                 <button class="close-btn" onclick="closeDualTask()">×</button>
             </div>
-            <div class="dualtask-mode-selector">
-                <button class="dt-mode-btn active" onclick="setDualTaskMode('math')" id="dt-math">산수</button>
-                <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">단어</button>
-                <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">색깔</button>
-            </div>
-            <!-- 난이도 선택 추가 -->
-            <div class="difficulty-selector">
-                <span class="difficulty-label">난이도:</span>
-                <button class="difficulty-btn" data-difficulty="easy" onclick="setDualTaskDifficulty('easy')">쉬움</button>
-                <button class="difficulty-btn active" data-difficulty="normal" onclick="setDualTaskDifficulty('normal')">보통</button>
-                <button class="difficulty-btn" data-difficulty="hard" onclick="setDualTaskDifficulty('hard')">어려움</button>
-            </div>
-            <div class="dualtask-display">
-                <div class="task-prompt" id="task-prompt">시작 버튼을 누르세요</div>
-            </div>
-            <!-- 세션 통계 추가 -->
-            <div class="dualtask-stats">
-                <div class="dt-stat">
-                    <span class="dt-stat-value" id="task-counter">0</span>
-                    <span class="dt-stat-label">문제 수</span>
+
+            <!-- 설정 영역 (idle 상태에서만 표시) -->
+            <div class="dt-setup">
+                <div class="dualtask-mode-selector">
+                    <button class="dt-mode-btn active" onclick="setDualTaskMode('math')" id="dt-math">
+                        🔢 산수
+                    </button>
+                    <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">
+                        💬 단어
+                    </button>
+                    <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">
+                        🎨 색깔
+                    </button>
                 </div>
-                <div class="dt-stat">
-                    <span class="dt-stat-value" id="dt-session-time">0:00</span>
-                    <span class="dt-stat-label">시간</span>
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn" data-difficulty="easy" onclick="setDualTaskDifficulty('easy')">쉬움</button>
+                    <button class="difficulty-btn active" data-difficulty="normal" onclick="setDualTaskDifficulty('normal')">보통</button>
+                    <button class="difficulty-btn" data-difficulty="hard" onclick="setDualTaskDifficulty('hard')">어려움</button>
                 </div>
-            </div>
-            <div class="dualtask-settings">
-                <div class="setting-row">
-                    <label>간격 (초)</label>
-                    <div class="interval-control">
-                        <button onclick="adjustInterval(-1)">-</button>
-                        <span id="interval-value">5</span>
-                        <button onclick="adjustInterval(1)">+</button>
+                <div class="dt-settings-row">
+                    <div class="dt-setting">
+                        <span>간격</span>
+                        <div class="interval-control">
+                            <button onclick="adjustInterval(-1)">−</button>
+                            <span id="interval-value">5</span>
+                            <button onclick="adjustInterval(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="dt-setting">
+                        <span>음성</span>
+                        <label class="switch">
+                            <input type="checkbox" id="tts-enabled" checked>
+                            <span class="slider round"></span>
+                        </label>
                     </div>
                 </div>
-                <div class="setting-row">
-                    <label>음성 출력</label>
-                    <label class="switch">
-                        <input type="checkbox" id="tts-enabled" checked>
-                        <span class="slider round"></span>
-                    </label>
+                <div class="dt-guide" id="dt-guide">100에서 -7씩 빼기</div>
+            </div>
+
+            <!-- 프롬프트 영역 (항상 표시, 내용만 변경) -->
+            <div class="dt-prompt-area" id="task-prompt-container">
+                <div class="task-prompt" id="task-prompt">준비</div>
+                <div class="dt-progress" id="dt-countdown"></div>
+            </div>
+
+            <!-- 컨트롤 버튼 -->
+            <div class="dt-controls">
+                <button class="dt-btn-main" id="dt-play" onclick="toggleDualTask()">
+                    시작하기
+                </button>
+                <button class="dt-btn-sub hidden" id="dt-next" onclick="nextTask()">
+                    다음 →
+                </button>
+            </div>
+
+            <!-- 결과 요약 (result 상태에서만 표시) -->
+            <div class="dt-result hidden" id="dt-result-summary"></div>
+        </div>
+    </div>
+
+    <!-- Goniometer Modal (각도계/수평계) -->
+    <div id="goniometer-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>📐 디지털 각도계</h2>
+                <button class="close-btn" onclick="closeGoniometer()">×</button>
+            </div>
+
+            <div class="sensor-permission-area" id="gonio-permission">
+                <p>센서 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestOrientationPermission()">📱 센서 권한 허용</button>
+            </div>
+
+            <div class="gonio-display hidden" id="gonio-display">
+                <div class="gonio-mode-tabs">
+                    <button class="gonio-tab active" data-mode="incline" onclick="setGonioMode('incline')">수평계</button>
+                    <button class="gonio-tab" data-mode="angle" onclick="setGonioMode('angle')">각도계</button>
+                </div>
+
+                <!-- 사용 가이드 (작은 핸드폰 애니메이션) -->
+                <div class="gonio-guide-compact" id="gonio-guide">
+                    <div class="phone-anim-mini" id="phone-anim-mini">
+                        <div class="phone-body-mini">
+                            <div class="phone-screen-mini"></div>
+                        </div>
+                    </div>
+                    <span class="guide-text-compact" id="guide-text">좌우로 기울이세요</span>
+                </div>
+
+                <div class="gonio-visual" id="gonio-tap-area">
+                    <div class="gonio-circle">
+                        <div class="gonio-needle" id="gonio-needle"></div>
+                        <div class="gonio-center"></div>
+                        <div class="gonio-level-indicator" id="gonio-level"></div>
+                    </div>
+                    <div class="gonio-value-display">
+                        <span class="gonio-value" id="gonio-value">0.0</span>
+                        <span class="gonio-unit">°</span>
+                    </div>
+                    <div class="gonio-level-text" id="gonio-level-text">기울임</div>
+                    <div class="gonio-hold-indicator hidden" id="gonio-hold-indicator">🔒 고정됨</div>
+                </div>
+
+                <div class="gonio-axis-info" id="gonio-axis-info">
+                    <div class="axis-item"><span>↔ 좌우</span><span id="gonio-x">0°</span></div>
+                    <div class="axis-item"><span>↕ 앞뒤</span><span id="gonio-y">0°</span></div>
+                </div>
+
+                <div class="gonio-controls">
+                    <button class="gonio-btn" onclick="zeroGoniometer()">🎯 영점</button>
+                    <button class="gonio-btn" id="gonio-hold-btn" onclick="toggleGonioHold()">⏸ 고정</button>
+                </div>
+
+                <!-- 고정 방식 설정 -->
+                <div class="gonio-hold-settings">
+                    <div class="hold-settings-header">
+                        <span>⚙️ 고정 방식</span>
+                        <span class="hold-status" id="hold-status"></span>
+                    </div>
+                    <div class="hold-options">
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-tap" onchange="saveGonioSettings()">
+                            <span>👆 화면탭</span>
+                        </label>
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-auto" onchange="saveGonioSettings()">
+                            <span>⏱️ 자동3초</span>
+                        </label>
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-voice" onchange="saveGonioSettings()">
+                            <span>🎤 음성</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="gonio-rom-section hidden" id="gonio-rom-section">
+                    <h4>ROM 비교</h4>
+                    <select id="gonio-joint" onchange="updateRomComparison()">
+                        <option value="">관절 선택</option>
+                        <option value="shoulder-flex">어깨 굴곡 (180°)</option>
+                        <option value="shoulder-abd">어깨 외전 (180°)</option>
+                        <option value="elbow-flex">팔꿈치 굴곡 (150°)</option>
+                        <option value="hip-flex">고관절 굴곡 (120°)</option>
+                        <option value="knee-flex">무릎 굴곡 (135°)</option>
+                        <option value="ankle-df">발목 배굴 (20°)</option>
+                        <option value="ankle-pf">발목 저굴 (50°)</option>
+                    </select>
+                    <div class="rom-result hidden" id="rom-result">
+                        <div class="rom-bar"><div class="rom-fill" id="rom-fill"></div></div>
+                        <span id="rom-percent">0%</span>
+                    </div>
                 </div>
             </div>
-            <div class="dualtask-controls">
-                <button class="dt-btn play" id="dt-play" onclick="toggleDualTask()">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    시작
-                </button>
-                <button class="dt-btn next" onclick="nextTask()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                    다음
-                </button>
+        </div>
+    </div>
+
+    <!-- Tremor Analyzer Modal (손떨림 분석) -->
+    <div id="tremor-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>📊 손떨림 분석</h2>
+                <button class="close-btn" onclick="closeTremor()">×</button>
             </div>
-            <div class="dualtask-info">
-                <h4>이중과제 훈련 가이드</h4>
-                <p><strong>산수:</strong> 연속 빼기 (쉬움: -3, 보통: -7, 어려움: -13)<br>
-                <strong>단어:</strong> 카테고리별 단어 말하기<br>
-                <strong>색깔:</strong> 스트룹 효과 테스트</p>
+
+            <div class="sensor-permission-area" id="tremor-permission">
+                <p>가속도 센서 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestMotionPermission()">📱 센서 권한 허용</button>
+            </div>
+
+            <div class="tremor-display hidden" id="tremor-display">
+                <div class="tremor-info-card">
+                    <p class="hint">📌 폰을 손바닥 위에 올리고 팔을 뻗은 상태로 측정하세요</p>
+                </div>
+
+                <div class="tremor-graph-container">
+                    <canvas id="tremor-canvas" width="320" height="150"></canvas>
+                </div>
+
+                <div class="tremor-stats">
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-freq">--</span>
+                        <span class="tremor-stat-label">주파수 (Hz)</span>
+                    </div>
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-intensity">--</span>
+                        <span class="tremor-stat-label">강도</span>
+                    </div>
+                    <div class="tremor-stat">
+                        <span class="tremor-stat-value" id="tremor-type">--</span>
+                        <span class="tremor-stat-label">유형</span>
+                    </div>
+                </div>
+
+                <div class="tremor-reference">
+                    <p><strong>참고 기준</strong> (문헌 기반)</p>
+                    <div class="ref-item">파킨슨 떨림: 4-6 Hz</div>
+                    <div class="ref-item">본태성 떨림: 5-8 Hz</div>
+                    <div class="ref-item">생리적 떨림: 8-12 Hz</div>
+                </div>
+
+                <div class="tremor-controls">
+                    <button class="tremor-btn primary" id="tremor-start-btn" onclick="toggleTremorAnalysis()">▶ 측정 시작</button>
+                    <button class="tremor-btn" onclick="resetTremorData()">🔄 초기화</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decibel Meter Modal (데시벨 측정) -->
+    <div id="decibel-modal" class="tool-modal hidden">
+        <div class="tool-modal-content sensor-content">
+            <div class="tool-modal-header">
+                <h2>🎤 음성 데시벨</h2>
+                <button class="close-btn" onclick="closeDecibel()">×</button>
+            </div>
+
+            <div class="sensor-permission-area" id="decibel-permission">
+                <p>마이크 사용을 위해 권한이 필요합니다</p>
+                <button class="primary-btn" onclick="requestMicPermission()">🎙 마이크 권한 허용</button>
+            </div>
+
+            <div class="decibel-display hidden" id="decibel-display">
+                <div class="decibel-info-card">
+                    <p class="hint">📌 LSVT LOUD 훈련: 65-70dB 이상 유지</p>
+                </div>
+
+                <div class="decibel-visual" id="decibel-visual">
+                    <div class="decibel-meter">
+                        <div class="decibel-bar" id="decibel-bar"></div>
+                        <div class="decibel-target" id="decibel-target"></div>
+                    </div>
+                    <div class="decibel-value-display">
+                        <span class="decibel-value" id="decibel-value">0</span>
+                        <span class="decibel-unit">dB</span>
+                    </div>
+                </div>
+
+                <div class="decibel-feedback" id="decibel-feedback">
+                    대기 중
+                </div>
+
+                <div class="decibel-settings">
+                    <label>목표 데시벨</label>
+                    <div class="target-control">
+                        <button onclick="adjustTargetDb(-5)">−</button>
+                        <span id="target-db-value">70</span>
+                        <button onclick="adjustTargetDb(5)">+</button>
+                    </div>
+                </div>
+
+                <div class="decibel-stats hidden" id="decibel-stats">
+                    <div class="db-stat"><span>최대</span><span id="db-max">0 dB</span></div>
+                    <div class="db-stat"><span>평균</span><span id="db-avg">0 dB</span></div>
+                    <div class="db-stat"><span>목표 달성</span><span id="db-success">0%</span></div>
+                </div>
+
+                <div class="decibel-controls">
+                    <button class="decibel-btn primary" id="decibel-start-btn" onclick="toggleDecibelMeter()">▶ 측정 시작</button>
+                    <button class="decibel-btn" onclick="resetDecibelData()">🔄 초기화</button>
+                </div>
             </div>
         </div>
     </div>
