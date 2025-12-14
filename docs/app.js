@@ -1437,7 +1437,7 @@ function playClick(frequency = 1000, duration = 0.05) {
 }
 
 // ============================================
-// Clinical Stopwatch (10MWT / TUG)
+// Clinical Stopwatch (10MWT / TUG) - 최적화 버전
 // ============================================
 const stopwatchState = {
     mode: '10mwt', // '10mwt' or 'tug'
@@ -1448,24 +1448,52 @@ const stopwatchState = {
     intervalId: null
 };
 
+// DOM 캐싱
+let swElements = null;
+function getSwElements() {
+    if (!swElements) {
+        swElements = {
+            modal: document.getElementById('stopwatch-modal'),
+            time: document.getElementById('stopwatch-time'),
+            result: document.getElementById('stopwatch-result'),
+            gaitSpeed: document.getElementById('gait-speed'),
+            interpretation: document.getElementById('speed-interpretation'),
+            start: document.getElementById('sw-start'),
+            stop: document.getElementById('sw-stop'),
+            lap: document.getElementById('sw-lap'),
+            mode10mwt: document.getElementById('mode-10mwt'),
+            modeTug: document.getElementById('mode-tug'),
+            info10mwt: document.getElementById('info-10mwt'),
+            infoTug: document.getElementById('info-tug'),
+            tugLaps: document.getElementById('tug-laps'),
+            lapElements: [1, 2, 3, 4].map(i => document.getElementById(`tug-lap${i}`))
+        };
+    }
+    return swElements;
+}
+
 function openStopwatch() {
-    document.getElementById('stopwatch-modal').classList.remove('hidden');
+    const el = getSwElements();
+    el.modal.classList.remove('hidden');
     resetStopwatch();
+    getAudioContext(); // 오디오 컨텍스트 미리 활성화
 }
 
 function closeStopwatch() {
     stopStopwatch();
-    document.getElementById('stopwatch-modal').classList.add('hidden');
+    getSwElements().modal.classList.add('hidden');
 }
 
 function setStopwatchMode(mode) {
+    const el = getSwElements();
     stopwatchState.mode = mode;
-    document.getElementById('mode-10mwt').classList.toggle('active', mode === '10mwt');
-    document.getElementById('mode-tug').classList.toggle('active', mode === 'tug');
-    document.getElementById('info-10mwt').classList.toggle('hidden', mode !== '10mwt');
-    document.getElementById('info-tug').classList.toggle('hidden', mode !== 'tug');
-    document.getElementById('tug-laps').classList.toggle('hidden', mode !== 'tug');
-    document.getElementById('sw-lap').classList.toggle('hidden', mode !== 'tug');
+
+    el.mode10mwt.classList.toggle('active', mode === '10mwt');
+    el.modeTug.classList.toggle('active', mode === 'tug');
+    el.info10mwt.classList.toggle('hidden', mode !== '10mwt');
+    el.infoTug.classList.toggle('hidden', mode !== 'tug');
+    el.tugLaps.classList.toggle('hidden', mode !== 'tug');
+    el.lap.classList.toggle('hidden', mode !== 'tug');
     resetStopwatch();
 }
 
@@ -1477,14 +1505,15 @@ function startStopwatch() {
     stopwatchState.startTime = performance.now() - stopwatchState.elapsed;
     stopwatchState.laps = [];
 
-    document.getElementById('sw-start').classList.add('hidden');
-    document.getElementById('sw-stop').classList.remove('hidden');
+    const el = getSwElements();
+    el.start.classList.add('hidden');
+    el.stop.classList.remove('hidden');
     if (stopwatchState.mode === 'tug') {
-        document.getElementById('sw-lap').classList.remove('hidden');
+        el.lap.classList.remove('hidden');
     }
-    document.getElementById('stopwatch-result').classList.add('hidden');
+    el.result.classList.add('hidden');
 
-    stopwatchState.intervalId = setInterval(updateStopwatchDisplay, 10);
+    stopwatchState.intervalId = setInterval(updateStopwatchDisplay, 16); // 60fps로 변경
 }
 
 function stopStopwatch() {
@@ -1494,36 +1523,73 @@ function stopStopwatch() {
     stopwatchState.running = false;
     stopwatchState.elapsed = performance.now() - stopwatchState.startTime;
 
-    clearInterval(stopwatchState.intervalId);
+    if (stopwatchState.intervalId) {
+        clearInterval(stopwatchState.intervalId);
+        stopwatchState.intervalId = null;
+    }
 
-    document.getElementById('sw-start').classList.remove('hidden');
-    document.getElementById('sw-stop').classList.add('hidden');
+    const el = getSwElements();
+    el.start.classList.remove('hidden');
+    el.stop.classList.add('hidden');
 
-    // Calculate and show results
+    // 결과 계산 및 표시
+    showStopwatchResult();
+}
+
+function showStopwatchResult() {
+    const el = getSwElements();
+    const seconds = stopwatchState.elapsed / 1000;
+
     if (stopwatchState.mode === '10mwt') {
-        const seconds = stopwatchState.elapsed / 1000;
-        const speed = 10 / seconds; // 10m / time
-        document.getElementById('gait-speed').textContent = speed.toFixed(2);
+        const speed = 10 / seconds;
+        el.gaitSpeed.textContent = speed.toFixed(2);
 
-        // Interpretation
-        let interpretation = '';
-        let interpClass = '';
+        // 해석
+        let interpretation, interpClass;
         if (speed >= 1.2) {
-            interpretation = '정상 범위';
+            interpretation = '정상 범위 (≥1.2 m/s)';
             interpClass = 'good';
         } else if (speed >= 0.8) {
-            interpretation = '지역사회 보행 가능';
+            interpretation = '지역사회 보행 가능 (0.8-1.2 m/s)';
             interpClass = 'moderate';
         } else if (speed >= 0.4) {
-            interpretation = '가정내 보행 수준';
+            interpretation = '가정내 보행 수준 (0.4-0.8 m/s)';
             interpClass = 'warning';
         } else {
-            interpretation = '보행 보조 필요';
+            interpretation = '보행 보조 필요 (<0.4 m/s)';
             interpClass = 'poor';
         }
-        document.getElementById('speed-interpretation').textContent = interpretation;
-        document.getElementById('speed-interpretation').className = 'result-interpretation ' + interpClass;
-        document.getElementById('stopwatch-result').classList.remove('hidden');
+        el.interpretation.textContent = interpretation;
+        el.interpretation.className = 'result-interpretation ' + interpClass;
+        el.result.classList.remove('hidden');
+    } else if (stopwatchState.mode === 'tug') {
+        // TUG 결과 해석 추가
+        el.gaitSpeed.textContent = seconds.toFixed(2);
+
+        let interpretation, interpClass;
+        if (seconds < 10) {
+            interpretation = '독립적 이동 가능 (<10초)';
+            interpClass = 'good';
+        } else if (seconds < 14) {
+            interpretation = '낙상 위험 낮음 (10-14초)';
+            interpClass = 'moderate';
+        } else if (seconds < 20) {
+            interpretation = '낙상 위험 증가 (14-20초)';
+            interpClass = 'warning';
+        } else {
+            interpretation = '높은 낙상 위험 (≥20초)';
+            interpClass = 'poor';
+        }
+        el.interpretation.textContent = interpretation;
+        el.interpretation.className = 'result-interpretation ' + interpClass;
+
+        // TUG 결과 표시 영역 업데이트
+        const resultUnit = el.result.querySelector('.result-unit');
+        if (resultUnit) resultUnit.textContent = '초';
+        const resultLabel = el.result.querySelector('.result-label');
+        if (resultLabel) resultLabel.textContent = 'TUG 시간';
+
+        el.result.classList.remove('hidden');
     }
 }
 
@@ -1536,7 +1602,8 @@ function lapStopwatch() {
 
     if (lapIndex < 4) {
         stopwatchState.laps.push(lapTime);
-        const lapElement = document.getElementById(`tug-lap${lapIndex + 1}`);
+        const el = getSwElements();
+        const lapElement = el.lapElements[lapIndex];
         if (lapElement) {
             const prevTime = lapIndex > 0 ? stopwatchState.laps[lapIndex - 1] : 0;
             const segmentTime = (lapTime - prevTime) / 1000;
@@ -1550,20 +1617,30 @@ function lapStopwatch() {
 }
 
 function resetStopwatch() {
-    stopStopwatch();
+    if (stopwatchState.intervalId) {
+        clearInterval(stopwatchState.intervalId);
+        stopwatchState.intervalId = null;
+    }
+    stopwatchState.running = false;
     stopwatchState.elapsed = 0;
     stopwatchState.laps = [];
 
-    document.getElementById('stopwatch-time').textContent = '00:00.00';
-    document.getElementById('stopwatch-result').classList.add('hidden');
-    document.getElementById('sw-start').classList.remove('hidden');
-    document.getElementById('sw-stop').classList.add('hidden');
+    const el = getSwElements();
+    el.time.textContent = '00:00.00';
+    el.result.classList.add('hidden');
+    el.start.classList.remove('hidden');
+    el.stop.classList.add('hidden');
 
-    // Reset TUG laps
-    for (let i = 1; i <= 4; i++) {
-        const lapEl = document.getElementById(`tug-lap${i}`);
+    // TUG 랩 초기화
+    el.lapElements.forEach(lapEl => {
         if (lapEl) lapEl.textContent = '--:--';
-    }
+    });
+
+    // 결과 단위 초기화
+    const resultUnit = el.result.querySelector('.result-unit');
+    if (resultUnit) resultUnit.textContent = 'm/s';
+    const resultLabel = el.result.querySelector('.result-label');
+    if (resultLabel) resultLabel.textContent = '보행 속도';
 }
 
 function updateStopwatchDisplay() {
@@ -1573,12 +1650,12 @@ function updateStopwatchDisplay() {
     const seconds = totalSeconds % 60;
     const centiseconds = Math.floor((elapsed % 1000) / 10);
 
-    document.getElementById('stopwatch-time').textContent =
+    getSwElements().time.textContent =
         `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
 }
 
 // ============================================
-// Pro Metronome
+// Pro Metronome - 최적화 버전
 // ============================================
 const metronomeState = {
     bpm: 60,
@@ -1586,34 +1663,59 @@ const metronomeState = {
     intervalId: null,
     visualCue: true,
     soundCue: true,
-    tapTimes: []
+    tapTimes: [],
+    beatCount: 0,
+    sessionStartTime: null
 };
 
+// DOM 캐싱
+let metroElements = null;
+function getMetroElements() {
+    if (!metroElements) {
+        metroElements = {
+            modal: document.getElementById('metronome-modal'),
+            bpmValue: document.getElementById('bpm-value'),
+            bpmSlider: document.getElementById('bpm-slider'),
+            playBtn: document.getElementById('metro-play'),
+            visualBeat: document.getElementById('visual-beat'),
+            beatCounter: document.getElementById('beat-counter'),
+            sessionTime: document.getElementById('session-time'),
+            presetBtns: document.querySelectorAll('.preset-btn')
+        };
+    }
+    return metroElements;
+}
+
 function openMetronome() {
-    document.getElementById('metronome-modal').classList.remove('hidden');
-    // Resume audio context on user interaction
+    const el = getMetroElements();
+    el.modal.classList.remove('hidden');
     getAudioContext();
+    updateMetronomeDisplay();
 }
 
 function closeMetronome() {
     stopMetronome();
-    document.getElementById('metronome-modal').classList.add('hidden');
+    getMetroElements().modal.classList.add('hidden');
 }
 
 function setBpm(value) {
-    metronomeState.bpm = Math.max(20, Math.min(240, parseInt(value)));
-    document.getElementById('bpm-value').textContent = metronomeState.bpm;
-    document.getElementById('bpm-slider').value = metronomeState.bpm;
+    const el = getMetroElements();
+    metronomeState.bpm = Math.max(20, Math.min(240, parseInt(value) || 60));
+    el.bpmValue.textContent = metronomeState.bpm;
+    el.bpmSlider.value = metronomeState.bpm;
 
-    // Update presets
-    document.querySelectorAll('.preset-btn').forEach(btn => {
+    // 프리셋 업데이트
+    el.presetBtns.forEach(btn => {
         btn.classList.toggle('active', parseInt(btn.textContent) === metronomeState.bpm);
     });
 
-    // Restart if running
+    // 실행 중이면 재시작
     if (metronomeState.running) {
-        stopMetronome();
-        startMetronome();
+        if (metronomeState.intervalId) {
+            clearInterval(metronomeState.intervalId);
+        }
+        const interval = 60000 / metronomeState.bpm;
+        metronomeState.intervalId = setInterval(tick, interval);
     }
 }
 
@@ -1633,37 +1735,73 @@ function startMetronome() {
     if (metronomeState.running) return;
 
     metronomeState.running = true;
-    const playBtn = document.getElementById('metro-play');
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
-    playBtn.classList.add('playing');
+    metronomeState.beatCount = 0;
+    metronomeState.sessionStartTime = performance.now();
+
+    const el = getMetroElements();
+    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
+    el.playBtn.classList.add('playing');
 
     const interval = 60000 / metronomeState.bpm;
     tick();
     metronomeState.intervalId = setInterval(tick, interval);
+
+    // 세션 시간 업데이트 타이머
+    metronomeState.sessionTimerId = setInterval(updateSessionTime, 1000);
 }
 
 function stopMetronome() {
     metronomeState.running = false;
-    clearInterval(metronomeState.intervalId);
 
-    const playBtn = document.getElementById('metro-play');
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 재생';
-    playBtn.classList.remove('playing');
+    if (metronomeState.intervalId) {
+        clearInterval(metronomeState.intervalId);
+        metronomeState.intervalId = null;
+    }
+    if (metronomeState.sessionTimerId) {
+        clearInterval(metronomeState.sessionTimerId);
+        metronomeState.sessionTimerId = null;
+    }
 
-    document.getElementById('visual-beat').classList.remove('active');
+    const el = getMetroElements();
+    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 재생';
+    el.playBtn.classList.remove('playing');
+    el.visualBeat.classList.remove('active');
 }
 
 function tick() {
-    // Sound cue
+    metronomeState.beatCount++;
+
+    // 사운드 큐
     if (metronomeState.soundCue) {
         playClick(1000, 0.03);
     }
 
-    // Visual cue
+    // 시각적 큐
     if (metronomeState.visualCue) {
-        const beat = document.getElementById('visual-beat');
-        beat.classList.add('active');
-        setTimeout(() => beat.classList.remove('active'), 100);
+        const el = getMetroElements();
+        el.visualBeat.classList.add('active');
+        setTimeout(() => el.visualBeat.classList.remove('active'), 100);
+    }
+
+    updateMetronomeDisplay();
+}
+
+function updateMetronomeDisplay() {
+    const el = getMetroElements();
+    if (el.beatCounter) {
+        el.beatCounter.textContent = metronomeState.beatCount;
+    }
+}
+
+function updateSessionTime() {
+    if (!metronomeState.sessionStartTime) return;
+
+    const el = getMetroElements();
+    if (el.sessionTime) {
+        const elapsed = Math.floor((performance.now() - metronomeState.sessionStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        el.sessionTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 }
 
@@ -1671,12 +1809,20 @@ function tapTempo() {
     const now = performance.now();
     metronomeState.tapTimes.push(now);
 
-    // Keep only last 5 taps
+    // 3초 이상 경과하면 초기화
+    if (metronomeState.tapTimes.length >= 2) {
+        const lastInterval = now - metronomeState.tapTimes[metronomeState.tapTimes.length - 2];
+        if (lastInterval > 3000) {
+            metronomeState.tapTimes = [now];
+        }
+    }
+
+    // 최근 5개 탭만 유지
     if (metronomeState.tapTimes.length > 5) {
         metronomeState.tapTimes.shift();
     }
 
-    // Calculate BPM from tap intervals
+    // BPM 계산
     if (metronomeState.tapTimes.length >= 2) {
         let totalInterval = 0;
         for (let i = 1; i < metronomeState.tapTimes.length; i++) {
@@ -1699,23 +1845,46 @@ function toggleSoundCue(enabled) {
 }
 
 // ============================================
-// Cadence Calculator (SPM)
+// Cadence Calculator (SPM) - 최적화 버전
 // ============================================
 const cadenceState = {
     tapTimes: [],
     startTime: null,
     stepCount: 0,
-    updateInterval: null
+    updateInterval: null,
+    currentSpm: 0
 };
 
+// DOM 캐싱
+let cadenceElements = null;
+function getCadenceElements() {
+    if (!cadenceElements) {
+        cadenceElements = {
+            modal: document.getElementById('cadence-modal'),
+            spm: document.getElementById('cadence-spm'),
+            stepCount: document.getElementById('step-count'),
+            elapsedTime: document.getElementById('elapsed-time'),
+            tapArea: document.getElementById('cadence-tap'),
+            interpretation: document.getElementById('cadence-interpretation'),
+            avgSpm: document.getElementById('avg-spm')
+        };
+    }
+    return cadenceElements;
+}
+
 function openCadenceCalc() {
-    document.getElementById('cadence-modal').classList.remove('hidden');
+    const el = getCadenceElements();
+    el.modal.classList.remove('hidden');
     resetCadence();
+    getAudioContext();
 }
 
 function closeCadenceCalc() {
-    clearInterval(cadenceState.updateInterval);
-    document.getElementById('cadence-modal').classList.add('hidden');
+    if (cadenceState.updateInterval) {
+        clearInterval(cadenceState.updateInterval);
+        cadenceState.updateInterval = null;
+    }
+    getCadenceElements().modal.classList.add('hidden');
 }
 
 function tapCadence(event) {
@@ -1723,7 +1892,7 @@ function tapCadence(event) {
 
     const now = performance.now();
 
-    // First tap starts the timer
+    // 첫 탭이면 타이머 시작
     if (cadenceState.startTime === null) {
         cadenceState.startTime = now;
         cadenceState.updateInterval = setInterval(updateCadenceDisplay, 100);
@@ -1732,76 +1901,130 @@ function tapCadence(event) {
     cadenceState.tapTimes.push(now);
     cadenceState.stepCount++;
 
-    // Keep only last 10 taps for moving average
+    // 최근 10개 탭만 유지
     if (cadenceState.tapTimes.length > 10) {
         cadenceState.tapTimes.shift();
     }
 
-    // Visual feedback
-    const tapArea = document.getElementById('cadence-tap');
-    tapArea.classList.add('tapped');
-    setTimeout(() => tapArea.classList.remove('tapped'), 100);
+    // 시각적 피드백
+    const el = getCadenceElements();
+    el.tapArea.classList.add('tapped');
+    setTimeout(() => el.tapArea.classList.remove('tapped'), 100);
 
     playClick(600, 0.02);
     updateCadenceDisplay();
 }
 
 function updateCadenceDisplay() {
-    // Update step count
-    document.getElementById('step-count').textContent = cadenceState.stepCount;
+    const el = getCadenceElements();
 
-    // Update elapsed time
+    // 걸음 수 업데이트
+    el.stepCount.textContent = cadenceState.stepCount;
+
+    // 경과 시간 업데이트
     if (cadenceState.startTime !== null) {
         const elapsed = (performance.now() - cadenceState.startTime) / 1000;
         const minutes = Math.floor(elapsed / 60);
         const seconds = Math.floor(elapsed % 60);
-        document.getElementById('elapsed-time').textContent =
-            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        el.elapsedTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        // 평균 SPM 계산 (총 걸음수 / 총 시간)
+        if (elapsed > 0 && cadenceState.stepCount >= 2) {
+            const avgSpm = Math.round((cadenceState.stepCount / elapsed) * 60);
+            if (el.avgSpm) {
+                el.avgSpm.textContent = avgSpm;
+            }
+        }
     }
 
-    // Calculate SPM from recent taps (moving average of last 5 intervals)
+    // 실시간 SPM 계산 (최근 탭 기반 이동평균)
     if (cadenceState.tapTimes.length >= 2) {
         let totalInterval = 0;
-        const recentTaps = cadenceState.tapTimes.slice(-6); // Last 6 taps = 5 intervals
+        const recentTaps = cadenceState.tapTimes.slice(-6);
 
         for (let i = 1; i < recentTaps.length; i++) {
             totalInterval += recentTaps[i] - recentTaps[i - 1];
         }
 
         const avgInterval = totalInterval / (recentTaps.length - 1);
-        const spm = Math.round(60000 / avgInterval);
+        cadenceState.currentSpm = Math.min(200, Math.round(60000 / avgInterval));
 
-        document.getElementById('cadence-spm').textContent = Math.min(200, spm);
+        el.spm.textContent = cadenceState.currentSpm;
+
+        // 해석 업데이트
+        updateCadenceInterpretation(cadenceState.currentSpm);
     }
 }
 
+function updateCadenceInterpretation(spm) {
+    const el = getCadenceElements();
+    if (!el.interpretation) return;
+
+    let interpretation, interpClass;
+
+    if (spm >= 110) {
+        interpretation = '정상 보행 속도 (≥110 SPM)';
+        interpClass = 'good';
+    } else if (spm >= 90) {
+        interpretation = '느린 보행 (90-110 SPM)';
+        interpClass = 'moderate';
+    } else if (spm >= 70) {
+        interpretation = '보행 장애 의심 (70-90 SPM)';
+        interpClass = 'warning';
+    } else if (spm > 0) {
+        interpretation = '심각한 보행 제한 (<70 SPM)';
+        interpClass = 'poor';
+    } else {
+        interpretation = '탭하여 측정 시작';
+        interpClass = '';
+    }
+
+    el.interpretation.textContent = interpretation;
+    el.interpretation.className = 'result-interpretation ' + interpClass;
+}
+
 function resetCadence() {
-    clearInterval(cadenceState.updateInterval);
+    if (cadenceState.updateInterval) {
+        clearInterval(cadenceState.updateInterval);
+        cadenceState.updateInterval = null;
+    }
     cadenceState.tapTimes = [];
     cadenceState.startTime = null;
     cadenceState.stepCount = 0;
+    cadenceState.currentSpm = 0;
 
-    document.getElementById('cadence-spm').textContent = '0';
-    document.getElementById('step-count').textContent = '0';
-    document.getElementById('elapsed-time').textContent = '0:00';
+    const el = getCadenceElements();
+    el.spm.textContent = '0';
+    el.stepCount.textContent = '0';
+    el.elapsedTime.textContent = '0:00';
+    if (el.avgSpm) el.avgSpm.textContent = '0';
+    if (el.interpretation) {
+        el.interpretation.textContent = '탭하여 측정 시작';
+        el.interpretation.className = 'result-interpretation';
+    }
 }
 
 // ============================================
-// Dual Task Generator (TTS)
+// Dual Task Generator (TTS) - 최적화 버전
 // ============================================
 const dualTaskState = {
     mode: 'math', // 'math', 'word', 'color'
     running: false,
     interval: 5,
     intervalId: null,
-    currentNumber: 100, // For serial subtraction
-    speechSynthesis: window.speechSynthesis
+    currentNumber: 100,
+    speechSynthesis: window.speechSynthesis,
+    taskCount: 0,
+    sessionStartTime: null,
+    difficulty: 'normal' // 'easy', 'normal', 'hard'
 };
 
 const WORD_CATEGORIES = {
     animals: ['강아지', '고양이', '호랑이', '사자', '코끼리', '기린', '원숭이', '토끼', '곰', '여우', '늑대', '독수리', '참새', '비둘기', '까치'],
     fruits: ['사과', '배', '포도', '수박', '참외', '딸기', '바나나', '오렌지', '귤', '복숭아', '자두', '살구', '체리', '망고', '키위'],
-    colors: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색', '갈색', '하늘색']
+    colors: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색', '갈색', '하늘색'],
+    countries: ['한국', '일본', '중국', '미국', '영국', '프랑스', '독일', '이탈리아', '스페인', '호주'],
+    foods: ['김치', '불고기', '비빔밥', '라면', '떡볶이', '삼겹살', '된장찌개', '냉면', '김밥', '만두']
 };
 
 const COLORS_DISPLAY = [
@@ -1813,30 +2036,84 @@ const COLORS_DISPLAY = [
     { name: '주황', color: '#F97316' }
 ];
 
+// 난이도별 수학 문제 설정
+const MATH_SETTINGS = {
+    easy: { start: 50, subtract: 3 },
+    normal: { start: 100, subtract: 7 },
+    hard: { start: 150, subtract: 13 }
+};
+
+// DOM 캐싱
+let dtElements = null;
+function getDtElements() {
+    if (!dtElements) {
+        dtElements = {
+            modal: document.getElementById('dualtask-modal'),
+            prompt: document.getElementById('task-prompt'),
+            playBtn: document.getElementById('dt-play'),
+            mathBtn: document.getElementById('dt-math'),
+            wordBtn: document.getElementById('dt-word'),
+            colorBtn: document.getElementById('dt-color'),
+            intervalValue: document.getElementById('interval-value'),
+            ttsEnabled: document.getElementById('tts-enabled'),
+            taskCounter: document.getElementById('task-counter'),
+            sessionTime: document.getElementById('dt-session-time'),
+            difficultyBtns: document.querySelectorAll('.difficulty-btn')
+        };
+    }
+    return dtElements;
+}
+
 function openDualTask() {
-    document.getElementById('dualtask-modal').classList.remove('hidden');
-    dualTaskState.currentNumber = 100;
+    const el = getDtElements();
+    el.modal.classList.remove('hidden');
+    resetDualTaskStats();
+    getAudioContext();
 }
 
 function closeDualTask() {
     stopDualTask();
-    document.getElementById('dualtask-modal').classList.add('hidden');
+    getDtElements().modal.classList.add('hidden');
 }
 
 function setDualTaskMode(mode) {
+    const el = getDtElements();
     dualTaskState.mode = mode;
-    document.getElementById('dt-math').classList.toggle('active', mode === 'math');
-    document.getElementById('dt-word').classList.toggle('active', mode === 'word');
-    document.getElementById('dt-color').classList.toggle('active', mode === 'color');
 
-    dualTaskState.currentNumber = 100;
-    document.getElementById('task-prompt').textContent = '시작 버튼을 누르세요';
-    document.getElementById('task-prompt').style.color = '';
+    el.mathBtn.classList.toggle('active', mode === 'math');
+    el.wordBtn.classList.toggle('active', mode === 'word');
+    el.colorBtn.classList.toggle('active', mode === 'color');
+
+    resetDualTaskStats();
+    el.prompt.textContent = '시작 버튼을 누르세요';
+    el.prompt.style.color = '';
+}
+
+function setDualTaskDifficulty(difficulty) {
+    dualTaskState.difficulty = difficulty;
+    const el = getDtElements();
+
+    el.difficultyBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.difficulty === difficulty);
+    });
+
+    resetDualTaskStats();
+}
+
+function resetDualTaskStats() {
+    const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
+    dualTaskState.currentNumber = settings.start;
+    dualTaskState.taskCount = 0;
+    dualTaskState.sessionStartTime = null;
+
+    const el = getDtElements();
+    if (el.taskCounter) el.taskCounter.textContent = '0';
+    if (el.sessionTime) el.sessionTime.textContent = '0:00';
 }
 
 function adjustInterval(delta) {
     dualTaskState.interval = Math.max(2, Math.min(15, dualTaskState.interval + delta));
-    document.getElementById('interval-value').textContent = dualTaskState.interval;
+    getDtElements().intervalValue.textContent = dualTaskState.interval;
 }
 
 function toggleDualTask() {
@@ -1849,27 +2126,53 @@ function toggleDualTask() {
 
 function startDualTask() {
     dualTaskState.running = true;
-    dualTaskState.currentNumber = 100;
+    dualTaskState.sessionStartTime = performance.now();
 
-    const playBtn = document.getElementById('dt-play');
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
-    playBtn.classList.add('playing');
+    const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
+    dualTaskState.currentNumber = settings.start;
+
+    const el = getDtElements();
+    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 정지';
+    el.playBtn.classList.add('playing');
 
     generateTask();
     dualTaskState.intervalId = setInterval(generateTask, dualTaskState.interval * 1000);
+
+    // 세션 시간 업데이트 타이머
+    dualTaskState.sessionTimerId = setInterval(updateDtSessionTime, 1000);
 }
 
 function stopDualTask() {
     dualTaskState.running = false;
-    clearInterval(dualTaskState.intervalId);
 
-    const playBtn = document.getElementById('dt-play');
-    playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 시작';
-    playBtn.classList.remove('playing');
+    if (dualTaskState.intervalId) {
+        clearInterval(dualTaskState.intervalId);
+        dualTaskState.intervalId = null;
+    }
+    if (dualTaskState.sessionTimerId) {
+        clearInterval(dualTaskState.sessionTimerId);
+        dualTaskState.sessionTimerId = null;
+    }
 
-    // Cancel any ongoing speech
+    const el = getDtElements();
+    el.playBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 시작';
+    el.playBtn.classList.remove('playing');
+
+    // TTS 취소
     if (dualTaskState.speechSynthesis) {
         dualTaskState.speechSynthesis.cancel();
+    }
+}
+
+function updateDtSessionTime() {
+    if (!dualTaskState.sessionStartTime) return;
+
+    const el = getDtElements();
+    if (el.sessionTime) {
+        const elapsed = Math.floor((performance.now() - dualTaskState.sessionStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        el.sessionTime.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 }
 
@@ -1878,50 +2181,60 @@ function nextTask() {
 }
 
 function generateTask() {
-    const promptEl = document.getElementById('task-prompt');
+    const el = getDtElements();
+    const settings = MATH_SETTINGS[dualTaskState.difficulty] || MATH_SETTINGS.normal;
+
+    dualTaskState.taskCount++;
+    if (el.taskCounter) {
+        el.taskCounter.textContent = dualTaskState.taskCount;
+    }
+
     let prompt = '';
     let speechText = '';
 
     switch (dualTaskState.mode) {
         case 'math':
-            // Serial subtraction (100 - 7)
+            // 연속 빼기
             if (dualTaskState.currentNumber <= 0) {
-                dualTaskState.currentNumber = 100;
+                dualTaskState.currentNumber = settings.start;
             }
-            prompt = `${dualTaskState.currentNumber} - 7 = ?`;
-            speechText = `${dualTaskState.currentNumber} 빼기 7은?`;
-            dualTaskState.currentNumber -= 7;
-            promptEl.style.color = '';
+            prompt = `${dualTaskState.currentNumber} - ${settings.subtract} = ?`;
+            speechText = `${dualTaskState.currentNumber} 빼기 ${settings.subtract}은?`;
+            dualTaskState.currentNumber -= settings.subtract;
+            el.prompt.style.color = '';
             break;
 
         case 'word':
-            // Random category and prompt
+            // 랜덤 카테고리
             const categories = Object.keys(WORD_CATEGORIES);
             const category = categories[Math.floor(Math.random() * categories.length)];
-            const categoryName = category === 'animals' ? '동물' : category === 'fruits' ? '과일' : '색깔';
+            const categoryNames = {
+                animals: '동물', fruits: '과일', colors: '색깔',
+                countries: '나라', foods: '음식'
+            };
+            const categoryName = categoryNames[category] || category;
             prompt = `${categoryName} 이름을 말하세요`;
             speechText = `${categoryName} 이름을 말하세요`;
-            promptEl.style.color = '';
+            el.prompt.style.color = '';
             break;
 
         case 'color':
-            // Show color name in different color (Stroop effect)
+            // 스트룹 효과
             const colorInfo = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
             let displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
-            // Make sure display color is different from the word
             while (displayColor.name === colorInfo.name) {
                 displayColor = COLORS_DISPLAY[Math.floor(Math.random() * COLORS_DISPLAY.length)];
             }
             prompt = colorInfo.name;
             speechText = `이 글자의 색깔을 말하세요`;
-            promptEl.style.color = displayColor.color;
+            el.prompt.style.color = displayColor.color;
             break;
     }
 
-    promptEl.textContent = prompt;
+    el.prompt.textContent = prompt;
 
-    // Text-to-Speech
-    if (document.getElementById('tts-enabled').checked && dualTaskState.speechSynthesis) {
+    // TTS
+    if (el.ttsEnabled && el.ttsEnabled.checked && dualTaskState.speechSynthesis) {
         const utterance = new SpeechSynthesisUtterance(speechText);
         utterance.lang = 'ko-KR';
         utterance.rate = 0.9;
