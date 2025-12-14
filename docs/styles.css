@@ -3494,3 +3494,201 @@ html, body {
     line-height: 1.6;
     margin: 0;
 }
+
+/* ============================================
+   추가 UI 요소 스타일 (성능 개선)
+   ============================================ */
+
+/* 메트로놈 통계 */
+.metronome-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 12px;
+}
+
+.metro-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.metro-stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.metro-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* 보행수 해석 표시 */
+.cadence-display .result-interpretation {
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.cadence-display .result-interpretation.good {
+    background: rgba(16, 185, 129, 0.3);
+    color: #065F46;
+}
+
+.cadence-display .result-interpretation.moderate {
+    background: rgba(59, 130, 246, 0.3);
+    color: #1E40AF;
+}
+
+.cadence-display .result-interpretation.warning {
+    background: rgba(245, 158, 11, 0.3);
+    color: #92400E;
+}
+
+.cadence-display .result-interpretation.poor {
+    background: rgba(239, 68, 68, 0.3);
+    color: #991B1B;
+}
+
+/* 이중과제 난이도 선택기 */
+.difficulty-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0;
+    padding: 10px;
+    background: var(--background-grey);
+    border-radius: 10px;
+}
+
+.difficulty-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-right: 4px;
+}
+
+.difficulty-btn {
+    padding: 6px 14px;
+    border: 2px solid var(--card-grey);
+    border-radius: 16px;
+    background: white;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.difficulty-btn.active {
+    border-color: var(--primary-blue);
+    background: var(--primary-blue-light);
+    color: var(--primary-blue);
+}
+
+.difficulty-btn[data-difficulty="easy"].active {
+    border-color: var(--mint-green);
+    background: var(--mint-green-light);
+    color: var(--mint-green-dark);
+}
+
+.difficulty-btn[data-difficulty="hard"].active {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #DC2626;
+}
+
+/* 이중과제 통계 */
+.dualtask-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin: 16px 0;
+    padding: 12px;
+    background: var(--background-grey);
+    border-radius: 12px;
+}
+
+.dt-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.dt-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary-blue);
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+.dt-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* 탭 영역 터치 피드백 개선 */
+.tap-area {
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+
+.tap-area:active,
+.tap-area.tapped {
+    transform: scale(0.97);
+}
+
+/* 성능 최적화: will-change 속성 */
+.visual-beat {
+    will-change: transform, background-color;
+}
+
+.time-display {
+    will-change: contents;
+}
+
+/* 스톱워치 결과 개선 */
+.result-display {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 도구 버튼 호버 효과 개선 */
+.tool-btn {
+    will-change: transform;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tool-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 모달 애니메이션 성능 */
+.tool-modal-content {
+    will-change: transform, opacity;
+}

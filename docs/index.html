@@ -678,9 +678,10 @@
                 </div>
                 <div id="info-tug" class="hidden">
                     <h4>일어나 걸어가기 검사 (TUG)</h4>
-                    <p>정상 성인: &lt;10초<br>
-                    낙상 위험: ≥12초<br>
-                    높은 낙상위험: ≥14초</p>
+                    <p>정상: &lt;10초<br>
+                    경계: 10-12초<br>
+                    낙상 위험 (CDC): ≥12초<br>
+                    고위험 (Shumway-Cook): ≥13.5초</p>
                 </div>
             </div>
         </div>
@@ -698,6 +699,17 @@
                 <div class="bpm-label">BPM</div>
             </div>
             <div class="visual-beat" id="visual-beat"></div>
+            <!-- 세션 통계 추가 -->
+            <div class="metronome-stats">
+                <div class="metro-stat">
+                    <span class="metro-stat-value" id="beat-counter">0</span>
+                    <span class="metro-stat-label">비트</span>
+                </div>
+                <div class="metro-stat">
+                    <span class="metro-stat-value" id="session-time">0:00</span>
+                    <span class="metro-stat-label">시간</span>
+                </div>
+            </div>
             <div class="bpm-controls">
                 <button class="bpm-btn" onclick="adjustBpm(-10)">-10</button>
                 <button class="bpm-btn" onclick="adjustBpm(-1)">-1</button>
@@ -707,8 +719,8 @@
             </div>
             <div class="metronome-presets">
                 <button class="preset-btn" onclick="setBpm(40)">40</button>
-                <button class="preset-btn" onclick="setBpm(60)">60</button>
-                <button class="preset-btn active" onclick="setBpm(80)">80</button>
+                <button class="preset-btn active" onclick="setBpm(60)">60</button>
+                <button class="preset-btn" onclick="setBpm(80)">80</button>
                 <button class="preset-btn" onclick="setBpm(100)">100</button>
                 <button class="preset-btn" onclick="setBpm(120)">120</button>
             </div>
@@ -750,7 +762,9 @@
             <div class="cadence-display">
                 <div class="cadence-value" id="cadence-spm">0</div>
                 <div class="cadence-unit">SPM</div>
-                <div class="cadence-label">분당 걸음 수 (Steps Per Minute)</div>
+                <div class="cadence-label">분당 걸음 수 (실시간)</div>
+                <!-- 해석 추가 -->
+                <div class="result-interpretation" id="cadence-interpretation">탭하여 측정 시작</div>
             </div>
             <div class="cadence-stats">
                 <div class="stat-item">
@@ -760,6 +774,10 @@
                 <div class="stat-item">
                     <span class="stat-value" id="elapsed-time">0:00</span>
                     <span class="stat-label">경과 시간</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="avg-spm">0</span>
+                    <span class="stat-label">평균 SPM</span>
                 </div>
             </div>
             <button class="tap-area" id="cadence-tap" ontouchstart="tapCadence(event)" onmousedown="tapCadence(event)">
@@ -773,12 +791,12 @@
                 </button>
             </div>
             <div class="cadence-info">
-                <h4>케이던스 정상 범위</h4>
+                <h4>케이던스 해석 기준 (CADENCE-Adults)</h4>
                 <table class="info-table">
-                    <tr><td>정상 성인</td><td>100-120 SPM</td></tr>
-                    <tr><td>노인 (65+)</td><td>80-100 SPM</td></tr>
-                    <tr><td>파킨슨</td><td>동결 시 ↓</td></tr>
-                    <tr><td>뇌졸중</td><td>환측 ↓</td></tr>
+                    <tr><td>정상 보행</td><td>≥100 SPM</td></tr>
+                    <tr><td>느린 보행 / 노인 정상</td><td>80-100 SPM</td></tr>
+                    <tr><td>보행 주의 필요</td><td>60-80 SPM</td></tr>
+                    <tr><td>심각한 제한</td><td>&lt;60 SPM</td></tr>
                 </table>
             </div>
         </div>
@@ -796,8 +814,26 @@
                 <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">단어</button>
                 <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">색깔</button>
             </div>
+            <!-- 난이도 선택 추가 -->
+            <div class="difficulty-selector">
+                <span class="difficulty-label">난이도:</span>
+                <button class="difficulty-btn" data-difficulty="easy" onclick="setDualTaskDifficulty('easy')">쉬움</button>
+                <button class="difficulty-btn active" data-difficulty="normal" onclick="setDualTaskDifficulty('normal')">보통</button>
+                <button class="difficulty-btn" data-difficulty="hard" onclick="setDualTaskDifficulty('hard')">어려움</button>
+            </div>
             <div class="dualtask-display">
                 <div class="task-prompt" id="task-prompt">시작 버튼을 누르세요</div>
+            </div>
+            <!-- 세션 통계 추가 -->
+            <div class="dualtask-stats">
+                <div class="dt-stat">
+                    <span class="dt-stat-value" id="task-counter">0</span>
+                    <span class="dt-stat-label">문제 수</span>
+                </div>
+                <div class="dt-stat">
+                    <span class="dt-stat-value" id="dt-session-time">0:00</span>
+                    <span class="dt-stat-label">시간</span>
+                </div>
             </div>
             <div class="dualtask-settings">
                 <div class="setting-row">
@@ -827,10 +863,10 @@
                 </button>
             </div>
             <div class="dualtask-info">
-                <h4>이중과제 훈련</h4>
-                <p>보행 중 인지과제를 수행하여<br>
-                실제 생활환경에서의 기능을 평가합니다.<br>
-                <strong>낙상 위험 평가</strong>에 유용합니다.</p>
+                <h4>이중과제 훈련 가이드</h4>
+                <p><strong>산수:</strong> 연속 빼기 (쉬움: -3, 보통: -7, 어려움: -13)<br>
+                <strong>단어:</strong> 카테고리별 단어 말하기<br>
+                <strong>색깔:</strong> 스트룹 효과 테스트</p>
             </div>
         </div>
     </div>
