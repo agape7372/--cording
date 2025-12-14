@@ -4,6 +4,10 @@ import '../core/constants/app_constants.dart';
 import 'subjective/subjective_screen.dart';
 import 'objective/objective_screen.dart';
 import 'cdss/cdss_screen.dart';
+import 'tools/clinical_stopwatch_screen.dart';
+import 'tools/pro_metronome_screen.dart';
+import 'tools/cadence_calculator_screen.dart';
+import 'tools/dual_task_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -152,6 +156,8 @@ class _DashboardScreen extends StatelessWidget {
               delegate: SliverChildListDelegate([
                 _buildQuickActionsCard(context),
                 const SizedBox(height: 16),
+                _buildClinicalToolsCard(context),
+                const SizedBox(height: 16),
                 _buildWorkflowCard(context),
                 const SizedBox(height: 16),
                 _buildTipsCard(context),
@@ -208,6 +214,112 @@ class _DashboardScreen extends StatelessWidget {
                     color: AppColors.warning,
                     onTap: () => _navigateToTab(context, 2),
                   ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClinicalToolsCard(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.medical_services, color: AppColors.primaryBlue),
+                const SizedBox(width: 8),
+                Text(
+                  'Clinical Tools',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentMint.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'PNF 정량화',
+                    style: TextStyle(
+                      color: AppColors.accentMint,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.9,
+              children: [
+                _ClinicalToolTile(
+                  icon: Icons.timer,
+                  label: '보행 검사',
+                  subtitle: '10MWT/TUG',
+                  color: AppColors.primaryBlue,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ClinicalStopwatchScreen()),
+                  ),
+                ),
+                _ClinicalToolTile(
+                  icon: Icons.music_note,
+                  label: '메트로놈',
+                  subtitle: 'Auditory Cue',
+                  color: const Color(0xFF8B5CF6),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProMetronomeScreen()),
+                  ),
+                ),
+                _ClinicalToolTile(
+                  icon: Icons.directions_walk,
+                  label: '보행수',
+                  subtitle: 'Cadence',
+                  color: AppColors.success,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CadenceCalculatorScreen()),
+                  ),
+                ),
+                _ClinicalToolTile(
+                  icon: Icons.psychology,
+                  label: '이중 과제',
+                  subtitle: 'Dual Task',
+                  color: AppColors.warning,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const DualTaskScreen()),
+                  ),
+                ),
+                _ClinicalToolTile(
+                  icon: Icons.straighten,
+                  label: '고니오미터',
+                  subtitle: 'ROM 측정',
+                  color: const Color(0xFFEC4899),
+                  onTap: null,
+                  comingSoon: true,
+                ),
+                _ClinicalToolTile(
+                  icon: Icons.balance,
+                  label: '수평계',
+                  subtitle: '자세 분석',
+                  color: const Color(0xFF06B6D4),
+                  onTap: null,
+                  comingSoon: true,
                 ),
               ],
             ),
@@ -466,6 +578,88 @@ class _TipItem extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ClinicalToolTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool comingSoon;
+
+  const _ClinicalToolTile({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    this.onTap,
+    this.comingSoon = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: comingSoon ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withAlpha(40)),
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 28),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: color.withAlpha(180),
+                  ),
+                ),
+              ],
+            ),
+            if (comingSoon)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.textSecondary.withAlpha(40),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'Soon',
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
