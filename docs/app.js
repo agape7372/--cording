@@ -366,11 +366,49 @@ function navigateTo(screen) {
     const titles = {
         home: '알고PT Pro',
         patients: '환자 관리',
-        subjective: '주관적 평가',
-        objective: '객관적 평가',
+        subjective: 'S: 주관적 평가',
+        objective: 'O: 객관적 평가',
+        assessment: 'A: 평가',
+        plan: 'P: 치료 계획',
         cdss: 'AI 임상 지원'
     };
     document.getElementById('header-title').textContent = titles[screen] || '알고PT Pro';
+
+    // Update patient banners on Assessment/Plan screens
+    if (screen === 'assessment' || screen === 'plan') {
+        updatePatientBanner(screen);
+    }
+}
+
+// Update patient banner on Assessment/Plan screens
+function updatePatientBanner(screen) {
+    const bannerId = screen === 'assessment' ? 'assessment-patient-banner' : 'plan-patient-banner';
+    const banner = document.getElementById(bannerId);
+    if (!banner) return;
+
+    if (state.currentPatient) {
+        const p = state.currentPatient;
+        banner.innerHTML = `
+            <div class="patient-banner-info">
+                <span class="patient-banner-icon">👤</span>
+                <div>
+                    <div class="patient-banner-name">${p.name}</div>
+                    <div class="patient-banner-meta">${p.gender === 'male' ? '남' : '여'}/${p.age}세 · ${p.diagnosis || ''}</div>
+                </div>
+            </div>
+        `;
+        banner.style.cursor = 'pointer';
+        banner.onclick = () => navigateTo('home');
+    } else {
+        banner.innerHTML = `
+            <div class="patient-banner-info">
+                <span class="patient-banner-icon">👤</span>
+                <span class="patient-banner-name">HOME에서 환자를 선택해주세요</span>
+            </div>
+        `;
+        banner.style.cursor = 'pointer';
+        banner.onclick = () => navigateTo('home');
+    }
 }
 
 // ============================================
@@ -4807,3 +4845,431 @@ function endBisectionTest() {
     document.getElementById('bisection-test-area').classList.add('hidden');
     document.getElementById('neglect-result').classList.remove('hidden');
 }
+
+// ============================================
+// Assessment Screen Functions
+// ============================================
+let problemCounter = 3;
+let stgCounter = 1;
+let ltgCounter = 1;
+
+function addProblemItem() {
+    problemCounter++;
+    const problemList = document.getElementById('problem-list');
+    const newItem = document.createElement('div');
+    newItem.className = 'problem-item';
+    newItem.innerHTML = `
+        <span class="problem-number">${problemCounter}</span>
+        <input type="text" class="problem-input" placeholder="문제점 입력..." data-problem="${problemCounter}">
+        <button class="remove-problem-btn" onclick="removeProblemItem(this)">✕</button>
+    `;
+    problemList.appendChild(newItem);
+}
+
+function removeProblemItem(btn) {
+    btn.parentElement.remove();
+    updateAssessmentSummary();
+}
+
+function addGoalItem(type) {
+    const list = document.getElementById(`${type}-list`);
+    const counter = type === 'stg' ? ++stgCounter : ++ltgCounter;
+    const label = type === 'stg' ? 'STG' : 'LTG';
+
+    const newItem = document.createElement('div');
+    newItem.className = 'goal-item';
+    newItem.dataset.goal = `${type}-${counter}`;
+    newItem.innerHTML = `
+        <div class="goal-header">
+            <span class="goal-label">${label} ${counter}</span>
+            <button class="remove-goal-btn" onclick="removeGoalItem(this)">✕</button>
+        </div>
+        <textarea class="goal-textarea" placeholder="목표를 입력하세요..." oninput="updateAssessmentSummary()"></textarea>
+        <div class="goal-meta">
+            <div class="goal-meta-item">
+                <label>목표일</label>
+                <input type="date" class="goal-date">
+            </div>
+            <div class="goal-meta-item">
+                <label>달성률</label>
+                <select class="goal-progress">
+                    <option value="0">0%</option>
+                    <option value="25">25%</option>
+                    <option value="50">50%</option>
+                    <option value="75">75%</option>
+                    <option value="100">100% (달성)</option>
+                </select>
+            </div>
+        </div>
+    `;
+    list.appendChild(newItem);
+}
+
+function removeGoalItem(btn) {
+    btn.closest('.goal-item').remove();
+    updateAssessmentSummary();
+}
+
+function selectPrognosis(btn) {
+    document.querySelectorAll('.prognosis-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateAssessmentSummary();
+}
+
+function showGoalTemplates(type, num) {
+    const templates = {
+        stg: [
+            '환자는 2주 내 독립적으로 침상 이동 수행 가능',
+            '환자는 2주 내 VAS 3/10 이하로 통증 감소',
+            '환자는 3주 내 보행기 사용하여 50m 보행 가능',
+            '환자는 2주 내 어깨 굴곡 ROM 120° 이상 달성'
+        ],
+        ltg: [
+            '환자는 6주 내 독립 보행으로 지역사회 활동 복귀',
+            '환자는 8주 내 통증 없이 일상생활 활동 수행',
+            '환자는 3개월 내 직장 복귀 가능한 기능 수준 달성',
+            '환자는 6주 내 낙상 없이 계단 오르내리기 독립 수행'
+        ]
+    };
+
+    const selected = prompt(
+        `${type.toUpperCase()} 목표 템플릿 선택 (번호 입력):\n\n` +
+        templates[type].map((t, i) => `${i + 1}. ${t}`).join('\n')
+    );
+
+    if (selected && templates[type][parseInt(selected) - 1]) {
+        const goalItem = document.querySelector(`[data-goal="${type}-${num}"]`);
+        if (goalItem) {
+            goalItem.querySelector('.goal-textarea').value = templates[type][parseInt(selected) - 1];
+            updateAssessmentSummary();
+        }
+    }
+}
+
+function showAssessmentGuide(type) {
+    const guides = {
+        problem: `ICF (국제기능장애건강분류) 기반 문제 목록 작성법:
+
+1. 신체구조/기능 손상
+   - 예: ROM 제한, 근력 약화, 통증
+
+2. 활동 제한
+   - 예: 보행 장애, 이동 제한
+
+3. 참여 제약
+   - 예: 직장 복귀 불가, 사회활동 제한
+
+각 문제는 구체적이고 측정 가능하게 기술하세요.`
+    };
+
+    alert(guides[type] || '가이드 준비 중입니다.');
+}
+
+function updateAssessmentSummary() {
+    const summaryEl = document.getElementById('assessment-summary-content');
+    const problems = [];
+    const stgs = [];
+    const ltgs = [];
+
+    // Collect problems
+    document.querySelectorAll('.problem-input').forEach(input => {
+        if (input.value.trim()) problems.push(input.value.trim());
+    });
+
+    // Collect STGs
+    document.querySelectorAll('#stg-list .goal-textarea').forEach(textarea => {
+        if (textarea.value.trim()) stgs.push(textarea.value.trim());
+    });
+
+    // Collect LTGs
+    document.querySelectorAll('#ltg-list .goal-textarea').forEach(textarea => {
+        if (textarea.value.trim()) ltgs.push(textarea.value.trim());
+    });
+
+    // Get prognosis
+    const prognosisBtn = document.querySelector('.prognosis-btn.active');
+    const prognosisText = {
+        'excellent': '우수',
+        'good': '양호',
+        'fair': '보통',
+        'guarded': '주의',
+        'poor': '불량'
+    };
+    const prognosis = prognosisBtn ? prognosisText[prognosisBtn.dataset.value] : '보통';
+
+    if (problems.length === 0 && stgs.length === 0 && ltgs.length === 0) {
+        summaryEl.innerHTML = '<p class="summary-empty">문제 목록과 목표를 입력하면 자동 요약됩니다</p>';
+        return;
+    }
+
+    let html = '';
+
+    if (problems.length > 0) {
+        html += '<strong>【문제 목록】</strong><br>';
+        problems.forEach((p, i) => {
+            html += `${i + 1}. ${p}<br>`;
+        });
+        html += '<br>';
+    }
+
+    html += `<strong>【예후】</strong> ${prognosis}<br><br>`;
+
+    if (stgs.length > 0) {
+        html += '<strong>【단기 목표 (STG)】</strong><br>';
+        stgs.forEach((g, i) => {
+            html += `${i + 1}. ${g}<br>`;
+        });
+        html += '<br>';
+    }
+
+    if (ltgs.length > 0) {
+        html += '<strong>【장기 목표 (LTG)】</strong><br>';
+        ltgs.forEach((g, i) => {
+            html += `${i + 1}. ${g}<br>`;
+        });
+    }
+
+    summaryEl.innerHTML = html;
+}
+
+function copyAssessmentSummary() {
+    const summaryEl = document.getElementById('assessment-summary-content');
+    const text = summaryEl.innerText;
+
+    if (text.includes('자동 요약됩니다')) {
+        showToast('요약할 내용이 없습니다');
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Assessment 요약이 복사되었습니다');
+    }).catch(() => {
+        showToast('복사 실패');
+    });
+}
+
+// ============================================
+// Plan Screen Functions
+// ============================================
+let interventionCounter = 1;
+let hepCounter = 1;
+
+function addInterventionItem() {
+    interventionCounter++;
+    const list = document.getElementById('intervention-list');
+    const newItem = document.createElement('div');
+    newItem.className = 'intervention-item';
+    newItem.innerHTML = `
+        <div class="intervention-header">
+            <select class="intervention-category">
+                <option value="">분류 선택</option>
+                <option value="therapeutic-exercise">운동치료</option>
+                <option value="manual-therapy">도수치료</option>
+                <option value="modality">물리적 인자</option>
+                <option value="gait-training">보행훈련</option>
+                <option value="balance">균형훈련</option>
+                <option value="functional">기능훈련</option>
+                <option value="neuromuscular">신경근 재교육</option>
+            </select>
+            <button class="remove-btn" onclick="removeIntervention(this)">✕</button>
+        </div>
+        <input type="text" class="intervention-input" placeholder="중재 내용 입력..." oninput="updatePlanSummary()">
+        <div class="intervention-params">
+            <input type="text" class="param-input" placeholder="세트/횟수">
+            <input type="text" class="param-input" placeholder="강도">
+        </div>
+    `;
+    list.appendChild(newItem);
+}
+
+function removeIntervention(btn) {
+    btn.closest('.intervention-item').remove();
+    updatePlanSummary();
+}
+
+function addHepItem() {
+    hepCounter++;
+    const list = document.getElementById('hep-list');
+    const newItem = document.createElement('div');
+    newItem.className = 'hep-item';
+    newItem.innerHTML = `
+        <input type="text" class="hep-input" placeholder="운동명" oninput="updatePlanSummary()">
+        <input type="text" class="hep-freq" placeholder="빈도">
+        <button class="remove-hep-btn" onclick="removeHepItem(this)">✕</button>
+    `;
+    list.appendChild(newItem);
+}
+
+function removeHepItem(btn) {
+    btn.parentElement.remove();
+    updatePlanSummary();
+}
+
+function toggleEducation(btn) {
+    btn.classList.toggle('active');
+    updatePlanSummary();
+}
+
+function togglePrecaution(btn) {
+    btn.classList.toggle('active');
+    updatePlanSummary();
+}
+
+function showInterventionGuide() {
+    alert(`중재 계획 작성 가이드:
+
+1. 운동치료
+   - 근력강화, ROM 운동, 스트레칭
+
+2. 도수치료
+   - 관절가동술, 연부조직 가동술
+
+3. 물리적 인자
+   - 온열/냉각, 전기자극, 초음파
+
+4. 보행훈련
+   - 평지 보행, 계단, 불균형 지면
+
+5. 균형훈련
+   - 정적/동적 균형, 낙상 예방
+
+각 중재에 세트/횟수/강도를 명시하세요.`);
+}
+
+function updatePlanSummary() {
+    const summaryEl = document.getElementById('plan-summary-content');
+
+    // Get frequency/duration
+    const frequency = document.getElementById('treatment-frequency')?.value || '';
+    const duration = document.getElementById('treatment-duration')?.value || '';
+    const sessionTime = document.getElementById('session-duration')?.value || '';
+
+    // Collect interventions
+    const interventions = [];
+    document.querySelectorAll('.intervention-item').forEach(item => {
+        const category = item.querySelector('.intervention-category')?.value || '';
+        const content = item.querySelector('.intervention-input')?.value || '';
+        const params = Array.from(item.querySelectorAll('.param-input')).map(p => p.value).filter(v => v);
+
+        if (content) {
+            const categoryText = {
+                'therapeutic-exercise': '운동치료',
+                'manual-therapy': '도수치료',
+                'modality': '물리적 인자',
+                'gait-training': '보행훈련',
+                'balance': '균형훈련',
+                'functional': '기능훈련',
+                'neuromuscular': '신경근 재교육'
+            };
+            interventions.push({
+                category: categoryText[category] || '',
+                content,
+                params: params.join(', ')
+            });
+        }
+    });
+
+    // Collect HEP
+    const heps = [];
+    document.querySelectorAll('.hep-item').forEach(item => {
+        const name = item.querySelector('.hep-input')?.value || '';
+        const freq = item.querySelector('.hep-freq')?.value || '';
+        if (name) heps.push({ name, freq });
+    });
+
+    // Collect education
+    const education = [];
+    document.querySelectorAll('.edu-chip.active').forEach(chip => {
+        education.push(chip.textContent);
+    });
+
+    // Collect precautions
+    const precautions = [];
+    document.querySelectorAll('.precaution-chip.active').forEach(chip => {
+        precautions.push(chip.textContent);
+    });
+
+    if (interventions.length === 0) {
+        summaryEl.innerHTML = '<p class="summary-empty">치료 계획을 입력하면 자동 요약됩니다</p>';
+        return;
+    }
+
+    let html = '';
+
+    // Treatment schedule
+    const freqText = {
+        '1x/week': '주 1회',
+        '2x/week': '주 2회',
+        '3x/week': '주 3회',
+        '5x/week': '주 5회'
+    };
+    const durText = {
+        '2weeks': '2주',
+        '4weeks': '4주',
+        '6weeks': '6주',
+        '8weeks': '8주',
+        '12weeks': '12주'
+    };
+
+    html += `<strong>【치료 일정】</strong> ${freqText[frequency] || frequency} × ${durText[duration] || duration} (${sessionTime}/회)<br><br>`;
+
+    // Interventions
+    html += '<strong>【중재 계획】</strong><br>';
+    interventions.forEach((int, i) => {
+        html += `${i + 1}. ${int.category ? `[${int.category}] ` : ''}${int.content}`;
+        if (int.params) html += ` (${int.params})`;
+        html += '<br>';
+    });
+
+    // HEP
+    if (heps.length > 0) {
+        html += '<br><strong>【가정운동(HEP)】</strong><br>';
+        heps.forEach((h, i) => {
+            html += `${i + 1}. ${h.name}${h.freq ? ` - ${h.freq}` : ''}<br>`;
+        });
+    }
+
+    // Education
+    if (education.length > 0) {
+        html += `<br><strong>【환자 교육】</strong> ${education.join(', ')}<br>`;
+    }
+
+    // Precautions
+    if (precautions.length > 0) {
+        html += `<br><strong>【주의사항】</strong> ${precautions.join(', ')}<br>`;
+    }
+
+    summaryEl.innerHTML = html;
+}
+
+function copyPlanSummary() {
+    const summaryEl = document.getElementById('plan-summary-content');
+    const text = summaryEl.innerText;
+
+    if (text.includes('자동 요약됩니다')) {
+        showToast('요약할 내용이 없습니다');
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Plan 요약이 복사되었습니다');
+    }).catch(() => {
+        showToast('복사 실패');
+    });
+}
+
+// Add event listeners for Assessment/Plan inputs
+document.addEventListener('DOMContentLoaded', function() {
+    // Assessment inputs
+    document.querySelectorAll('.problem-input, #clinical-reasoning, #prognosis-reason').forEach(el => {
+        el.addEventListener('input', updateAssessmentSummary);
+    });
+
+    // Plan inputs
+    document.querySelectorAll('.intervention-input, .intervention-category, .param-input, .hep-input, .hep-freq').forEach(el => {
+        el.addEventListener('input', updatePlanSummary);
+    });
+    document.querySelectorAll('#treatment-frequency, #treatment-duration, #session-duration').forEach(el => {
+        el.addEventListener('change', updatePlanSummary);
+    });
+});
