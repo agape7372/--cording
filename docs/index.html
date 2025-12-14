@@ -108,30 +108,64 @@
                     <div class="section-header">
                         <h3>빠른 도구</h3>
                     </div>
-                    <div class="tools-grid">
+                    <div class="tools-grid expanded">
                         <button class="tool-btn primary" onclick="navigateTo('cdss')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                             </svg>
-                            <span>AI Clinical Search</span>
+                            <span>AI 검색</span>
+                        </button>
+                        <button class="tool-btn" onclick="openStopwatch()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M12 5V2"/>
+                            </svg>
+                            <span>스톱워치</span>
+                        </button>
+                        <button class="tool-btn" onclick="openMetronome()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20"/><path d="M2 12h20"/><circle cx="12" cy="12" r="4"/>
+                            </svg>
+                            <span>메트로놈</span>
+                        </button>
+                        <button class="tool-btn" onclick="openCadenceCalc()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/>
+                                <path d="M8 10h8"/><path d="M8 14h8"/>
+                            </svg>
+                            <span>보행수</span>
+                        </button>
+                        <button class="tool-btn" onclick="openDualTask()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            <span>이중과제</span>
                         </button>
                         <button class="tool-btn" onclick="navigateTo('objective')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
                             </svg>
-                            <span>Quick ROM</span>
+                            <span>ROM</span>
+                        </button>
+                        <button class="tool-btn" onclick="navigateTo('objective'); switchObjectiveTab('bbs');">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            <span>BBS</span>
                         </button>
                         <button class="tool-btn" onclick="showHistory()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/>
                             </svg>
-                            <span>History</span>
+                            <span>기록</span>
                         </button>
                         <button class="tool-btn" onclick="showSettings()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
                             </svg>
-                            <span>Settings</span>
+                            <span>설정</span>
                         </button>
                     </div>
                 </div>
@@ -590,6 +624,216 @@
 
     <!-- Toast -->
     <div id="toast" class="toast hidden"></div>
+
+    <!-- Clinical Stopwatch Modal (10MWT/TUG) -->
+    <div id="stopwatch-modal" class="tool-modal hidden">
+        <div class="tool-modal-content">
+            <div class="tool-modal-header">
+                <h2>임상 스톱워치</h2>
+                <button class="close-btn" onclick="closeStopwatch()">×</button>
+            </div>
+            <div class="stopwatch-mode-selector">
+                <button id="mode-10mwt" class="mode-btn active" onclick="setStopwatchMode('10mwt')">10MWT</button>
+                <button id="mode-tug" class="mode-btn" onclick="setStopwatchMode('tug')">TUG</button>
+            </div>
+            <div class="stopwatch-display">
+                <div class="time-display" id="stopwatch-time">00:00.00</div>
+                <div class="result-display hidden" id="stopwatch-result">
+                    <div class="result-value" id="gait-speed">0.00</div>
+                    <div class="result-unit">m/s</div>
+                    <div class="result-label">보행 속도</div>
+                    <div class="result-interpretation" id="speed-interpretation"></div>
+                </div>
+            </div>
+            <div id="tug-laps" class="tug-laps hidden">
+                <div class="lap-item"><span>구간 1 (기립)</span><span id="tug-lap1">--:--</span></div>
+                <div class="lap-item"><span>구간 2 (보행)</span><span id="tug-lap2">--:--</span></div>
+                <div class="lap-item"><span>구간 3 (회전)</span><span id="tug-lap3">--:--</span></div>
+                <div class="lap-item"><span>구간 4 (착석)</span><span id="tug-lap4">--:--</span></div>
+            </div>
+            <div class="stopwatch-controls">
+                <button class="sw-btn start" id="sw-start" onclick="startStopwatch()">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    시작
+                </button>
+                <button class="sw-btn lap hidden" id="sw-lap" onclick="lapStopwatch()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    구간
+                </button>
+                <button class="sw-btn stop hidden" id="sw-stop" onclick="stopStopwatch()">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    정지
+                </button>
+                <button class="sw-btn reset" id="sw-reset" onclick="resetStopwatch()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    초기화
+                </button>
+            </div>
+            <div class="stopwatch-info">
+                <div id="info-10mwt">
+                    <h4>10m 보행검사 (10MWT)</h4>
+                    <p>정상 성인: 1.2~1.4 m/s<br>
+                    지역사회 보행: ≥0.8 m/s<br>
+                    가정내 보행: 0.4~0.8 m/s</p>
+                </div>
+                <div id="info-tug" class="hidden">
+                    <h4>일어나 걸어가기 검사 (TUG)</h4>
+                    <p>정상 성인: &lt;10초<br>
+                    낙상 위험: ≥12초<br>
+                    높은 낙상위험: ≥14초</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pro Metronome Modal -->
+    <div id="metronome-modal" class="tool-modal hidden">
+        <div class="tool-modal-content">
+            <div class="tool-modal-header">
+                <h2>Pro 메트로놈</h2>
+                <button class="close-btn" onclick="closeMetronome()">×</button>
+            </div>
+            <div class="metronome-display">
+                <div class="bpm-display" id="bpm-value">60</div>
+                <div class="bpm-label">BPM</div>
+            </div>
+            <div class="visual-beat" id="visual-beat"></div>
+            <div class="bpm-controls">
+                <button class="bpm-btn" onclick="adjustBpm(-10)">-10</button>
+                <button class="bpm-btn" onclick="adjustBpm(-1)">-1</button>
+                <input type="range" id="bpm-slider" min="20" max="240" value="60" oninput="setBpm(this.value)">
+                <button class="bpm-btn" onclick="adjustBpm(1)">+1</button>
+                <button class="bpm-btn" onclick="adjustBpm(10)">+10</button>
+            </div>
+            <div class="metronome-presets">
+                <button class="preset-btn" onclick="setBpm(40)">40</button>
+                <button class="preset-btn" onclick="setBpm(60)">60</button>
+                <button class="preset-btn active" onclick="setBpm(80)">80</button>
+                <button class="preset-btn" onclick="setBpm(100)">100</button>
+                <button class="preset-btn" onclick="setBpm(120)">120</button>
+            </div>
+            <div class="metronome-actions">
+                <button class="metro-btn tap" onclick="tapTempo()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 1 1 3 0m-3 6a1.5 1.5 0 0 0 3 0m0-6a1.5 1.5 0 1 1 3 0m-3 6v-6a1.5 1.5 0 1 1 3 0"/><path d="M17 11.5V14m0-6v6"/><path d="M12 12h5"/></svg>
+                    탭 템포
+                </button>
+                <button class="metro-btn play" id="metro-play" onclick="toggleMetronome()">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    재생
+                </button>
+            </div>
+            <div class="metronome-options">
+                <label class="option-toggle">
+                    <input type="checkbox" id="visual-cue" checked onchange="toggleVisualCue(this.checked)">
+                    <span>시각적 피드백</span>
+                </label>
+                <label class="option-toggle">
+                    <input type="checkbox" id="sound-cue" checked onchange="toggleSoundCue(this.checked)">
+                    <span>청각적 피드백</span>
+                </label>
+            </div>
+            <div class="metronome-info">
+                <p><strong>보행 케이던스 기준:</strong><br>
+                정상 성인: 100-120 SPM<br>
+                노인: 80-100 SPM</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cadence Calculator Modal -->
+    <div id="cadence-modal" class="tool-modal hidden">
+        <div class="tool-modal-content">
+            <div class="tool-modal-header">
+                <h2>보행수 계산기</h2>
+                <button class="close-btn" onclick="closeCadenceCalc()">×</button>
+            </div>
+            <div class="cadence-display">
+                <div class="cadence-value" id="cadence-spm">0</div>
+                <div class="cadence-unit">SPM</div>
+                <div class="cadence-label">분당 걸음 수 (Steps Per Minute)</div>
+            </div>
+            <div class="cadence-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="step-count">0</span>
+                    <span class="stat-label">총 걸음</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="elapsed-time">0:00</span>
+                    <span class="stat-label">경과 시간</span>
+                </div>
+            </div>
+            <button class="tap-area" id="cadence-tap" ontouchstart="tapCadence(event)" onmousedown="tapCadence(event)">
+                <div class="tap-icon">👆</div>
+                <div class="tap-text">발걸음에 맞춰<br>여기를 탭하세요</div>
+            </button>
+            <div class="cadence-controls">
+                <button class="cadence-btn reset" onclick="resetCadence()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    초기화
+                </button>
+            </div>
+            <div class="cadence-info">
+                <h4>케이던스 정상 범위</h4>
+                <table class="info-table">
+                    <tr><td>정상 성인</td><td>100-120 SPM</td></tr>
+                    <tr><td>노인 (65+)</td><td>80-100 SPM</td></tr>
+                    <tr><td>파킨슨</td><td>동결 시 ↓</td></tr>
+                    <tr><td>뇌졸중</td><td>환측 ↓</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dual Task Generator Modal -->
+    <div id="dualtask-modal" class="tool-modal hidden">
+        <div class="tool-modal-content">
+            <div class="tool-modal-header">
+                <h2>이중과제 생성기</h2>
+                <button class="close-btn" onclick="closeDualTask()">×</button>
+            </div>
+            <div class="dualtask-mode-selector">
+                <button class="dt-mode-btn active" onclick="setDualTaskMode('math')" id="dt-math">산수</button>
+                <button class="dt-mode-btn" onclick="setDualTaskMode('word')" id="dt-word">단어</button>
+                <button class="dt-mode-btn" onclick="setDualTaskMode('color')" id="dt-color">색깔</button>
+            </div>
+            <div class="dualtask-display">
+                <div class="task-prompt" id="task-prompt">시작 버튼을 누르세요</div>
+            </div>
+            <div class="dualtask-settings">
+                <div class="setting-row">
+                    <label>간격 (초)</label>
+                    <div class="interval-control">
+                        <button onclick="adjustInterval(-1)">-</button>
+                        <span id="interval-value">5</span>
+                        <button onclick="adjustInterval(1)">+</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label>음성 출력</label>
+                    <label class="switch">
+                        <input type="checkbox" id="tts-enabled" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="dualtask-controls">
+                <button class="dt-btn play" id="dt-play" onclick="toggleDualTask()">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    시작
+                </button>
+                <button class="dt-btn next" onclick="nextTask()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    다음
+                </button>
+            </div>
+            <div class="dualtask-info">
+                <h4>이중과제 훈련</h4>
+                <p>보행 중 인지과제를 수행하여<br>
+                실제 생활환경에서의 기능을 평가합니다.<br>
+                <strong>낙상 위험 평가</strong>에 유용합니다.</p>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
