@@ -34,13 +34,11 @@ const state = {
     romValues: {},
     romWnl: {},
 
-    // Current screen
-    currentScreen: 'home',
+    // BBS
+    bbsValues: {},
 
-    // Patient Management
-    patients: [],
-    currentPatient: null,
-    newPatientGender: 'M'
+    // Current screen
+    currentScreen: 'home'
 };
 
 // ============================================
@@ -85,7 +83,14 @@ const CONDITIONS = [
     '길랭-바레 증후군', '말초신경병증'
 ];
 
-const MAS_GRADES = ['G0', 'G1', 'G1+', 'G2', 'G3', 'G4'];
+const MAS_GRADES = [
+    { value: 'G0', label: '0', desc: '정상', detail: '근긴장도 증가 없음', color: '#10B981' },
+    { value: 'G1', label: '1', desc: 'ROM 끝 catch', detail: 'ROM 끝에서 걸림(catch) 또는 최소 저항', color: '#34D399' },
+    { value: 'G1+', label: '1+', desc: 'Catch+저항', detail: 'Catch 후 ROM ½ 미만에서 약간의 저항', color: '#FBBF24' },
+    { value: 'G2', label: '2', desc: 'ROM 전반 저항', detail: 'ROM 대부분에서 긴장도↑, 수동운동 가능', color: '#F59E0B' },
+    { value: 'G3', label: '3', desc: '수동운동 곤란', detail: '현저한 긴장도 증가, 수동운동 어려움', color: '#EF4444' },
+    { value: 'G4', label: '4', desc: '강직(Rigid)', detail: '굴곡/신전 고정, 수동운동 불가', color: '#DC2626' }
+];
 
 const MAS_MUSCLES = [
     { name: '팔꿈치 굴곡근', short: 'E.Flx' },
@@ -122,15 +127,55 @@ const ROM_MOVEMENTS = [
     { name: '어깨 신전', min: 0, max: 60, joint: 'shoulder', type: 'extension', short: '어깨신전' },
     { name: '어깨 외전', min: 0, max: 180, joint: 'shoulder', type: 'abduction', short: '어깨외전' },
     { name: '팔꿈치 굴곡', min: 0, max: 150, joint: 'elbow', type: 'flexion', short: '팔꿈치굴곡' },
-    { name: '팔꿈치 신전', min: 0, max: 0, joint: 'elbow', type: 'extension', short: '팔꿈치신전' },
+    { name: '팔꿈치 신전', min: -15, max: 0, joint: 'elbow', type: 'extension', short: '팔꿈치신전' },
     { name: '손목 굴곡', min: 0, max: 80, joint: 'wrist', type: 'flexion', short: '손목굴곡' },
     { name: '손목 신전', min: 0, max: 70, joint: 'wrist', type: 'extension', short: '손목신전' },
     { name: '고관절 굴곡', min: 0, max: 120, joint: 'hip', type: 'flexion', short: '고관절굴곡' },
-    { name: '고관절 신전', min: 0, max: 30, joint: 'hip', type: 'extension', short: '고관절신전' },
+    { name: '고관절 신전', min: 0, max: 20, joint: 'hip', type: 'extension', short: '고관절신전' },
     { name: '무릎 굴곡', min: 0, max: 135, joint: 'knee', type: 'flexion', short: '무릎굴곡' },
-    { name: '무릎 신전', min: 0, max: 0, joint: 'knee', type: 'extension', short: '무릎신전' },
+    { name: '무릎 신전', min: -10, max: 0, joint: 'knee', type: 'extension', short: '무릎신전' },
     { name: '발목 배측굴곡', min: 0, max: 20, joint: 'ankle', type: 'dorsiflexion', short: '발목DF' },
     { name: '발목 저측굴곡', min: 0, max: 50, joint: 'ankle', type: 'plantarflexion', short: '발목PF' }
+];
+
+// BBS (Berg Balance Scale) - 14 items, 0-4 points each, total 56 points
+// Reference: Berg et al. 1992, K-BBS (한글판) Jung et al. 2006
+const BBS_ITEMS = [
+    { id: 1, name: '앉은자세에서 일어서기', short: '앉→서기', category: 'dynamic',
+      desc: ['중등도 이상 도움 필요', '최소 도움으로 기립', '손 사용 여러 번 시도 후 기립', '손 사용하여 독립적 기립', '손 사용 없이 독립적 기립'] },
+    { id: 2, name: '지지 없이 서있기', short: '서기유지', category: 'standing',
+      desc: ['도움 없이 10초 불가', '여러 번 시도로 10초', '30초 유지', '감독하에 2분', '안전하게 2분'] },
+    { id: 3, name: '등받이 없이 앉아있기', short: '앉기유지', category: 'sitting',
+      desc: ['도움 없이 10초 불가', '10초 유지', '30초 유지', '감독하에 2분', '안전하게 2분'] },
+    { id: 4, name: '선자세에서 앉기', short: '서→앉기', category: 'dynamic',
+      desc: ['앉는데 도움 필요', '조절 안 되는 하강', '다리 뒤로 의자 확인 후 하강', '손으로 조절하며 하강', '손 최소 사용으로 안전 착석'] },
+    { id: 5, name: '이동하기', short: '이동', category: 'dynamic',
+      desc: ['2인 도움/감독 필요', '1인 도움 필요', '언어적 지시/감독 필요', '손 확실히 사용하여 안전 이동', '손 약간 사용하여 안전 이동'] },
+    { id: 6, name: '눈 감고 서있기', short: '눈감고서기', category: 'standing',
+      desc: ['넘어지지 않게 도움 필요', '3초 못 버팀, 안전 유지', '3초 유지', '감독하에 10초', '안전하게 10초'] },
+    { id: 7, name: '두 발 모으고 서있기', short: '발모아서기', category: 'standing',
+      desc: ['자세 잡는데 도움, 15초 불가', '자세 도움 필요, 15초 유지', '독립적 자세, 30초 불가', '독립적 자세, 감독하에 1분', '독립적으로 1분'] },
+    { id: 8, name: '팔 뻗어 앞으로 내밀기', short: '팔뻗기', category: 'standing',
+      desc: ['균형 잃음/외부 지지 필요', '앞으로 뻗지만 감독 필요', '5cm 앞으로 뻗기', '12cm 앞으로 뻗기', '자신있게 25cm 앞으로 뻗기'] },
+    { id: 9, name: '바닥에서 물건 집어올리기', short: '물건줍기', category: 'dynamic',
+      desc: ['시도 불가/넘어지지 않게 도움', '시도하나 감독 필요', '물건 2-5cm 앞, 독립적 균형', '감독하에 물건 집기', '쉽고 안전하게 물건 집기'] },
+    { id: 10, name: '뒤돌아보기 (좌/우)', short: '뒤돌아보기', category: 'standing',
+      desc: ['균형 유지/넘어지지 않게 도움', '돌아볼 때 감독 필요', '옆으로만 돌림, 균형 유지', '한쪽만 잘됨, 체중이동 적음', '양쪽 뒤돌아보기, 체중이동 좋음'] },
+    { id: 11, name: '360도 회전', short: '360회전', category: 'dynamic',
+      desc: ['돌 때 도움 필요', '가까운 감독/언어 지시 필요', '360도 안전하나 느림', '한쪽만 4초 이내 안전', '양쪽 4초 이내 안전'] },
+    { id: 12, name: '발 교대로 스툴에 올리기', short: '발올리기', category: 'dynamic',
+      desc: ['넘어지지 않게 도움/시도 불가', '최소 도움으로 2회 이상', '감독하에 4회', '독립적 8회, 20초 초과', '독립적 8회, 20초 이내'] },
+    { id: 13, name: '일렬로 서기 (탠덤)', short: '탠덤서기', category: 'standing',
+      desc: ['발 디딜 때 균형 잃음', '도움 필요, 15초 유지', '작은 발걸음, 30초 유지', '독립적 발 앞에, 30초', '독립적 탠덤, 30초'] },
+    { id: 14, name: '한 발로 서기', short: '한발서기', category: 'standing',
+      desc: ['시도 불가/넘어지지 않게 도움', '시도하나 3초 불가, 독립 유지', '3초 이상', '5-10초', '10초 이상'] }
+];
+
+// BBS score interpretation
+const BBS_INTERPRETATION = [
+    { min: 0, max: 20, level: 'high', label: '휠체어 의존', color: '#DC2626', fallRisk: '높음' },
+    { min: 21, max: 40, level: 'medium', label: '보조기구 보행', color: '#F59E0B', fallRisk: '중등도' },
+    { min: 41, max: 56, level: 'low', label: '독립적', color: '#10B981', fallRisk: '낮음' }
 ];
 
 // ============================================
@@ -154,11 +199,7 @@ function initApp() {
     initMasTab();
     initMmtTab();
     initRomTab();
-
-    // Initialize patient management
-    loadPatients();
-    renderRecentPatients();
-    renderAllPatients();
+    initBbsTab();
 }
 
 // ============================================
@@ -181,27 +222,100 @@ function navigateTo(screen) {
     // Update header title
     const titles = {
         home: '알고PT Pro',
-        patient: '환자 관리',
+        patients: '환자 관리',
         subjective: '주관적 평가',
         objective: '객관적 평가',
         cdss: 'AI 임상 지원'
     };
     document.getElementById('header-title').textContent = titles[screen] || '알고PT Pro';
+}
 
-    // Refresh patient lists when navigating
-    if (screen === 'home') {
-        renderRecentPatients();
-    } else if (screen === 'patient') {
-        renderAllPatients();
+// ============================================
+// Dashboard Functions
+// ============================================
+function loadPatient(patientId) {
+    // TODO: Load patient data from storage
+    showToast('환자 데이터 불러오기 (개발중)');
+    navigateTo('subjective');
+}
+
+function showHistory() {
+    showToast('평가 기록 (개발중)');
+}
+
+function showSettings() {
+    showToast('설정 (개발중)');
+}
+
+// ============================================
+// Patient Management
+// ============================================
+let selectedPatientId = null;
+
+function filterPatients(query) {
+    const items = document.querySelectorAll('.patient-item');
+    const q = query.toLowerCase().trim();
+
+    items.forEach(item => {
+        const name = item.querySelector('.patient-name').textContent.toLowerCase();
+        const info = item.querySelector('.patient-info').textContent.toLowerCase();
+        const visible = name.includes(q) || info.includes(q);
+        item.style.display = visible ? 'flex' : 'none';
+    });
+}
+
+function openPatientMenu(patientId, event) {
+    event.stopPropagation();
+    selectedPatientId = patientId;
+
+    const menu = document.getElementById('patient-menu');
+    const btn = event.currentTarget;
+    const rect = btn.getBoundingClientRect();
+
+    menu.style.top = `${rect.bottom + 8}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+    menu.style.left = 'auto';
+    menu.classList.remove('hidden');
+
+    // Close on outside click
+    setTimeout(() => {
+        document.addEventListener('click', closePatientMenu);
+    }, 0);
+}
+
+function closePatientMenu() {
+    document.getElementById('patient-menu').classList.add('hidden');
+    document.removeEventListener('click', closePatientMenu);
+}
+
+function editPatient() {
+    closePatientMenu();
+    showToast('환자 수정 (개발중)');
+}
+
+function deletePatient() {
+    closePatientMenu();
+    if (confirm('이 환자를 삭제하시겠습니까?')) {
+        const item = document.querySelector(`.patient-item[data-id="${selectedPatientId}"]`);
+        if (item) {
+            item.remove();
+            showToast('환자가 삭제되었습니다');
+        }
     }
+}
+
+function openAddPatientModal() {
+    showToast('환자 추가 (개발중)');
+    navigateTo('subjective');
 }
 
 // ============================================
 // Patient Information
 // ============================================
-function changeAge(delta) {
-    state.age = Math.max(0, Math.min(120, state.age + delta));
-    document.getElementById('age-value').textContent = `${state.age}세`;
+function updateAge(value) {
+    const age = parseInt(value) || 0;
+    state.age = Math.max(1, Math.min(120, age));
+    document.getElementById('age-input').value = state.age;
 }
 
 function setGender(gender) {
@@ -259,34 +373,100 @@ function updateComplaintUI() {
         countEl.textContent = count > 0 ? count : '';
     });
 
-    // Update total count
-    const selectedInfo = document.getElementById('cc-selected');
-    const count = state.selectedComplaints.size;
-    if (count > 0) {
-        selectedInfo.classList.remove('hidden');
-        document.getElementById('cc-count').textContent = count;
-    } else {
-        selectedInfo.classList.add('hidden');
-    }
 }
 
 // ============================================
-// Body Map & Pain Assessment
+// Body Map & Pain Assessment (Image-based Marker System)
 // ============================================
+let markerIdCounter = 0;
+
 function initBodyMap() {
-    document.querySelectorAll('.body-part').forEach(part => {
-        part.addEventListener('click', () => {
-            const partName = part.getAttribute('data-part');
-            openVasModal(partName);
-        });
-    });
+    const container = document.getElementById('body-chart-container');
+    if (!container) return;
+
+    // Click/Touch event for adding markers
+    container.addEventListener('click', handleBodyChartClick);
+    container.addEventListener('touchend', handleBodyChartTouch);
 }
 
-function openVasModal(partName) {
-    state.currentVasPart = partName;
-    state.currentVasValue = state.painLocations.get(partName) || 0;
+function handleBodyChartClick(e) {
+    // Ignore clicks on existing markers
+    if (e.target.closest('.pain-marker')) return;
 
-    document.getElementById('vas-part-name').textContent = partName;
+    const container = document.getElementById('body-chart-container');
+    const rect = container.getBoundingClientRect();
+
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    addPainMarker(x, y);
+}
+
+function handleBodyChartTouch(e) {
+    // Ignore touches on existing markers
+    if (e.target.closest('.pain-marker')) return;
+
+    e.preventDefault();
+    const container = document.getElementById('body-chart-container');
+    const rect = container.getBoundingClientRect();
+    const touch = e.changedTouches[0];
+
+    const x = ((touch.clientX - rect.left) / rect.width) * 100;
+    const y = ((touch.clientY - rect.top) / rect.height) * 100;
+
+    addPainMarker(x, y);
+}
+
+function addPainMarker(x, y) {
+    const markerId = `marker-${++markerIdCounter}`;
+
+    // Store marker data with position
+    state.painLocations.set(markerId, { x, y, vas: 5 });
+    state.currentVasPart = markerId;
+    state.currentVasValue = 5;
+
+    // Render marker and open VAS modal
+    renderPainMarkers();
+    openVasModal(markerId);
+}
+
+function renderPainMarkers() {
+    const markersContainer = document.getElementById('pain-markers');
+    if (!markersContainer) return;
+
+    let html = '';
+    state.painLocations.forEach((data, markerId) => {
+        const level = data.vas <= 3 ? 'low' : data.vas <= 6 ? 'medium' : 'high';
+        html += `
+            <div class="pain-marker ${level}"
+                 id="${markerId}"
+                 style="left: ${data.x}%; top: ${data.y}%;"
+                 onclick="editMarker('${markerId}')">
+                <div class="pain-marker-dot"></div>
+                <span class="pain-marker-label">${data.vas}</span>
+            </div>
+        `;
+    });
+    markersContainer.innerHTML = html;
+
+    updatePainList();
+}
+
+function editMarker(markerId) {
+    const data = state.painLocations.get(markerId);
+    if (!data) return;
+
+    state.currentVasPart = markerId;
+    state.currentVasValue = data.vas;
+    openVasModal(markerId);
+}
+
+function openVasModal(markerId) {
+    const data = state.painLocations.get(markerId);
+    state.currentVasPart = markerId;
+    state.currentVasValue = data ? data.vas : 5;
+
+    document.getElementById('vas-part-name').textContent = `통증 마커 #${markerId.split('-')[1]}`;
     document.getElementById('vas-range').value = state.currentVasValue;
     updateVasValue(state.currentVasValue);
 
@@ -330,21 +510,23 @@ function updateVasValue(value) {
 }
 
 function saveVasPain() {
-    if (state.currentVasValue > 0) {
-        state.painLocations.set(state.currentVasPart, state.currentVasValue);
-    } else {
-        state.painLocations.delete(state.currentVasPart);
+    const markerId = state.currentVasPart;
+    const data = state.painLocations.get(markerId);
+
+    if (data && state.currentVasValue > 0) {
+        data.vas = state.currentVasValue;
+        state.painLocations.set(markerId, data);
+    } else if (state.currentVasValue === 0) {
+        state.painLocations.delete(markerId);
     }
 
-    updatePainList();
-    updateBodyMapColors();
+    renderPainMarkers();
     closeVasModal();
 }
 
 function removeVasPain() {
     state.painLocations.delete(state.currentVasPart);
-    updatePainList();
-    updateBodyMapColors();
+    renderPainMarkers();
     closeVasModal();
 }
 
@@ -359,50 +541,54 @@ document.getElementById('vas-modal')?.addEventListener('click', (e) => {
     }
 });
 
+function clearAllMarkers() {
+    state.painLocations.clear();
+    markerIdCounter = 0;
+    renderPainMarkers();
+    showToast('모든 마커가 초기화되었습니다');
+}
+
 function updatePainList() {
     const container = document.getElementById('pain-locations');
+    const countBadge = document.getElementById('pain-count');
+
+    // Update count badge
+    if (countBadge) {
+        countBadge.textContent = state.painLocations.size;
+        countBadge.style.display = state.painLocations.size > 0 ? 'inline' : 'none';
+    }
 
     if (state.painLocations.size === 0) {
-        container.innerHTML = '<p class="empty-hint">신체를 탭하여 추가</p>';
+        container.innerHTML = '<p class="empty-hint">이미지를 탭하여 마커 추가</p>';
         return;
     }
 
     let html = '';
-    state.painLocations.forEach((value, part) => {
-        const level = value <= 3 ? 'low' : value <= 6 ? 'medium' : 'high';
+    state.painLocations.forEach((data, markerId) => {
+        const level = data.vas <= 3 ? 'low' : data.vas <= 6 ? 'medium' : 'high';
+        const markerNum = markerId.split('-')[1];
         html += `
-            <div class="pain-item">
+            <div class="pain-item" onclick="editMarker('${markerId}')">
                 <div class="pain-bar ${level}"></div>
                 <div class="pain-item-info">
-                    <strong>${part}</strong>
-                    <small class="${level}">VAS: ${value}/10</small>
+                    <strong>마커 #${markerNum}</strong>
+                    <small class="${level}">VAS: ${data.vas}/10</small>
                 </div>
-                <button class="pain-remove" onclick="removePainItem('${part}')">×</button>
+                <button class="pain-remove" onclick="event.stopPropagation(); removePainItem('${markerId}')">×</button>
             </div>
         `;
     });
     container.innerHTML = html;
 }
 
-function removePainItem(part) {
-    state.painLocations.delete(part);
-    updatePainList();
-    updateBodyMapColors();
+function removePainItem(markerId) {
+    state.painLocations.delete(markerId);
+    renderPainMarkers();
 }
 
 function updateBodyMapColors() {
-    document.querySelectorAll('.body-part').forEach(part => {
-        const partName = part.getAttribute('data-part');
-        const value = state.painLocations.get(partName);
-
-        part.classList.remove('pain-low', 'pain-medium', 'pain-high');
-
-        if (value) {
-            if (value <= 3) part.classList.add('pain-low');
-            else if (value <= 6) part.classList.add('pain-medium');
-            else part.classList.add('pain-high');
-        }
-    });
+    // Legacy function - no longer needed for image-based markers
+    renderPainMarkers();
 }
 
 // ============================================
@@ -423,33 +609,46 @@ function initMasTab() {
     renderMasList();
 }
 
-function setMasSide(side) {
-    state.masSide = side;
-    document.getElementById('mas-side-r').classList.toggle('active', side === 'R');
-    document.getElementById('mas-side-l').classList.toggle('active', side === 'L');
-    renderMasList();
-}
-
 function renderMasList() {
     const container = document.getElementById('mas-list');
-    const side = state.masSide;
-    const sideLabel = side === 'R' ? '우' : '좌';
 
     container.innerHTML = MAS_MUSCLES.map(muscle => {
-        const key = `${side}.${muscle.short}`;
-        const currentValue = state.masValues[key];
+        const keyR = `R.${muscle.short}`;
+        const keyL = `L.${muscle.short}`;
+        const valueR = state.masValues[keyR];
+        const valueL = state.masValues[keyL];
+
+        const getGradeColor = (val) => {
+            const grade = MAS_GRADES.find(g => g.value === val);
+            return grade ? grade.color : '#9CA3AF';
+        };
 
         return `
             <div class="assessment-item">
                 <div class="assessment-item-header">
-                    <strong>${sideLabel}. ${muscle.name}</strong>
-                    <span>${currentValue || '-'}</span>
+                    <strong>${muscle.name}</strong>
                 </div>
-                <div class="grade-buttons">
-                    ${MAS_GRADES.map(grade => `
-                        <button class="grade-btn ${currentValue === grade ? 'selected' : ''}"
-                                onclick="setMasGrade('${key}', '${grade}')">${grade}</button>
-                    `).join('')}
+                <div class="bilateral-row mas">
+                    <div class="side-group mas">
+                        <span class="side-label">Rt.</span>
+                        <div class="grade-buttons mas-grid">
+                            ${MAS_GRADES.map(grade => `
+                                <button class="grade-btn-mas ${valueR === grade.value ? 'selected' : ''}"
+                                        style="${valueR === grade.value ? `background:${grade.color};color:white;border-color:${grade.color};` : ''}"
+                                        onclick="setMasGrade('${keyR}', '${grade.value}')">${grade.label}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="side-group mas">
+                        <span class="side-label">Lt.</span>
+                        <div class="grade-buttons mas-grid">
+                            ${MAS_GRADES.map(grade => `
+                                <button class="grade-btn-mas ${valueL === grade.value ? 'selected' : ''}"
+                                        style="${valueL === grade.value ? `background:${grade.color};color:white;border-color:${grade.color};` : ''}"
+                                        onclick="setMasGrade('${keyL}', '${grade.value}')">${grade.label}</button>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -461,40 +660,90 @@ function setMasGrade(key, grade) {
     renderMasList();
 }
 
+function setAllMasNormal() {
+    MAS_MUSCLES.forEach(muscle => {
+        state.masValues[`R.${muscle.short}`] = 'G0';
+        state.masValues[`L.${muscle.short}`] = 'G0';
+    });
+    renderMasList();
+    showToast('모든 근육이 정상(G0)으로 설정되었습니다');
+}
+
+function clearAllMas() {
+    MAS_MUSCLES.forEach(muscle => {
+        delete state.masValues[`R.${muscle.short}`];
+        delete state.masValues[`L.${muscle.short}`];
+    });
+    renderMasList();
+    showToast('MAS 평가가 초기화되었습니다');
+}
+
 // ============================================
 // MMT Tab
 // ============================================
-function initMmtTab() {
-    renderMmtList();
-}
+const MMT_GRADE_INFO = {
+    '0': { desc: 'Zero', detail: '근수축 없음 (시진/촉진 불가)', level: 0 },
+    'T': { desc: 'Trace', detail: '촉진 시 수축 감지, 관절움직임 없음', level: 1 },
+    'P-': { desc: 'Poor-', detail: '중력제거 상태에서 부분 ROM', level: 2 },
+    'P': { desc: 'Poor', detail: '중력제거 상태에서 완전 ROM', level: 3 },
+    'P+': { desc: 'Poor+', detail: '중력제거 + 약간의 저항', level: 4 },
+    'F-': { desc: 'Fair-', detail: '중력 저항하여 부분 ROM', level: 5 },
+    'F': { desc: 'Fair', detail: '중력 저항하여 완전 ROM', level: 6 },
+    'F+': { desc: 'Fair+', detail: '중력 + 약간의 저항', level: 7 },
+    'G-': { desc: 'Good-', detail: '중력 + 중등도 저항에서 부분 ROM', level: 8 },
+    'G': { desc: 'Good', detail: '중력 + 중등도 저항에서 완전 ROM', level: 9 },
+    'G+': { desc: 'Good+', detail: '중력 + 중등도 이상 저항', level: 10 },
+    'N': { desc: 'Normal', detail: '중력 + 최대 저항에서 완전 ROM', level: 11 }
+};
 
-function setMmtSide(side) {
-    state.mmtSide = side;
-    document.getElementById('mmt-side-r').classList.toggle('active', side === 'R');
-    document.getElementById('mmt-side-l').classList.toggle('active', side === 'L');
+function initMmtTab() {
     renderMmtList();
 }
 
 function renderMmtList() {
     const container = document.getElementById('mmt-list');
-    const side = state.mmtSide;
-    const sideLabel = side === 'R' ? '우' : '좌';
+
+    const getColor = (val) => {
+        if (!val) return '#9CA3AF';
+        const level = MMT_GRADE_INFO[val]?.level || 0;
+        if (level >= 9) return '#10B981';
+        if (level >= 6) return '#34D399';
+        if (level >= 3) return '#FBBF24';
+        return '#EF4444';
+    };
 
     container.innerHTML = MMT_MUSCLES.map(muscle => {
-        const key = `${side}.${muscle.short}`;
-        const currentValue = state.mmtValues[key];
+        const keyR = `R.${muscle.short}`;
+        const keyL = `L.${muscle.short}`;
+        const valueR = state.mmtValues[keyR];
+        const valueL = state.mmtValues[keyL];
 
         return `
             <div class="assessment-item">
                 <div class="assessment-item-header">
-                    <strong>${sideLabel}. ${muscle.name}</strong>
-                    <span>${currentValue || '-'}</span>
+                    <strong>${muscle.name}</strong>
                 </div>
-                <div class="grade-buttons">
-                    ${MMT_GRADES.map(grade => `
-                        <button class="grade-btn ${currentValue === grade ? 'selected' : ''}"
-                                onclick="setMmtGrade('${key}', '${grade}')">${grade}</button>
-                    `).join('')}
+                <div class="bilateral-row mmt">
+                    <div class="side-group mmt">
+                        <span class="side-label">Rt.</span>
+                        <div class="grade-buttons mmt-grid">
+                            ${MMT_GRADES.map(g => `
+                                <button class="grade-btn-mmt ${valueR === g ? 'selected' : ''}"
+                                        style="${valueR === g ? `background:${getColor(g)};color:white;border-color:${getColor(g)};` : ''}"
+                                        onclick="setMmtGrade('${keyR}', '${g}')">${g}</button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="side-group mmt">
+                        <span class="side-label">Lt.</span>
+                        <div class="grade-buttons mmt-grid">
+                            ${MMT_GRADES.map(g => `
+                                <button class="grade-btn-mmt ${valueL === g ? 'selected' : ''}"
+                                        style="${valueL === g ? `background:${getColor(g)};color:white;border-color:${getColor(g)};` : ''}"
+                                        onclick="setMmtGrade('${keyL}', '${g}')">${g}</button>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -502,27 +751,30 @@ function renderMmtList() {
 }
 
 function setMmtGrade(key, grade) {
-    state.mmtValues[key] = grade;
+    if (grade) {
+        state.mmtValues[key] = grade;
+    } else {
+        delete state.mmtValues[key];
+    }
     renderMmtList();
 }
 
 function setAllMmtNormal() {
-    const side = state.mmtSide;
     MMT_MUSCLES.forEach(muscle => {
-        const key = `${side}.${muscle.short}`;
-        state.mmtValues[key] = 'N';
+        state.mmtValues[`R.${muscle.short}`] = 'N';
+        state.mmtValues[`L.${muscle.short}`] = 'N';
     });
     renderMmtList();
     showToast('모든 근육이 정상(N)으로 설정되었습니다');
 }
 
 function clearAllMmt() {
-    const side = state.mmtSide;
     MMT_MUSCLES.forEach(muscle => {
-        const key = `${side}.${muscle.short}`;
-        delete state.mmtValues[key];
+        delete state.mmtValues[`R.${muscle.short}`];
+        delete state.mmtValues[`L.${muscle.short}`];
     });
     renderMmtList();
+    showToast('MMT 평가가 초기화되었습니다');
 }
 
 // ============================================
@@ -532,6 +784,97 @@ function initRomTab() {
     renderRomMovements();
     const firstMov = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint)[0];
     if (firstMov) selectRomMovement(firstMov);
+
+    // Initialize circular dial interaction
+    initDialInteraction();
+}
+
+// Circular dial touch/drag interaction
+function initDialInteraction() {
+    const dialSvg = document.querySelector('.dial-svg');
+    if (!dialSvg) return;
+
+    let isDragging = false;
+
+    const getAngleFromEvent = (e) => {
+        const rect = dialSvg.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let clientX, clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        const dx = clientX - centerX;
+        const dy = clientY - centerY;
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+
+        if (angle < 0) angle += 360;
+        if (angle > 360) angle -= 360;
+
+        return angle;
+    };
+
+    const updateFromDial = (e) => {
+        const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
+        if (!movement) return;
+
+        const min = movement.min;
+        const max = movement.max;
+        const range = max - min;
+        let angle = getAngleFromEvent(e);
+
+        // Convert angle to ROM value (0-360 -> min-max)
+        let value = (angle / 360) * range + min;
+
+        // Snap to 5-degree increments
+        value = Math.round(value / 5) * 5;
+        value = Math.max(min, Math.min(max, value));
+
+        // Update slider and ROM
+        document.getElementById('rom-slider').value = value;
+        updateRomAngle(value);
+    };
+
+    // Mouse events
+    dialSvg.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        updateFromDial(e);
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            updateFromDial(e);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    // Touch events
+    dialSvg.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        updateFromDial(e);
+        e.preventDefault();
+    }, { passive: false });
+
+    dialSvg.addEventListener('touchmove', (e) => {
+        if (isDragging) {
+            updateFromDial(e);
+            e.preventDefault();
+        }
+    }, { passive: false });
+
+    dialSvg.addEventListener('touchend', () => {
+        isDragging = false;
+    });
 }
 
 function setRomSide(side) {
@@ -554,21 +897,29 @@ function selectRomJoint(joint) {
 
 function renderRomMovements() {
     const container = document.getElementById('rom-movement-list');
-    const side = state.romSide;
     const movements = ROM_MOVEMENTS.filter(m => m.joint === state.currentJoint);
 
     container.innerHTML = movements.map(mov => {
-        const key = `${side}.${mov.name}`;
+        const keyR = `R.${mov.name}`;
+        const keyL = `L.${mov.name}`;
         const isActive = state.currentRomMovement === mov.name;
-        const isWnl = state.romWnl[key];
-        const value = state.romValues[key];
-        const displayValue = isWnl ? 'WNL' : (value ? `${value}°` : '-');
+
+        const isWnlR = state.romWnl[keyR];
+        const isWnlL = state.romWnl[keyL];
+        const valueR = state.romValues[keyR];
+        const valueL = state.romValues[keyL];
+
+        const displayR = isWnlR ? 'Full' : (valueR ? `${valueR}°` : '-');
+        const displayL = isWnlL ? 'Full' : (valueL ? `${valueL}°` : '-');
 
         return `
-            <div class="movement-item ${isActive ? 'active' : ''} ${isWnl ? 'wnl' : ''}"
+            <div class="movement-item bilateral ${isActive ? 'active' : ''}"
                  onclick="selectRomMovement(ROM_MOVEMENTS.find(m => m.name === '${mov.name}'))">
                 <span class="mov-name">${mov.short}</span>
-                <span class="mov-value">${displayValue}</span>
+                <div class="mov-values">
+                    <span class="mov-val ${isWnlR ? 'wnl' : ''} ${state.romSide === 'R' ? 'current' : ''}">Rt. ${displayR}</span>
+                    <span class="mov-val ${isWnlL ? 'wnl' : ''} ${state.romSide === 'L' ? 'current' : ''}">Lt. ${displayL}</span>
+                </div>
             </div>
         `;
     }).join('');
@@ -583,7 +934,7 @@ function selectRomMovement(movement) {
 function updateRomCard() {
     const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
     const side = state.romSide;
-    const sideLabel = side === 'R' ? '우측' : '좌측';
+    const sideLabel = side === 'R' ? 'Rt.' : 'Lt.';
     const key = `${side}.${movement.name}`;
 
     document.getElementById('rom-movement-title').textContent = `${sideLabel} ${movement.name}`;
@@ -597,14 +948,12 @@ function updateRomCard() {
 
     // Update slider
     const slider = document.getElementById('rom-slider');
-    slider.max = movement.max || 180;
-    slider.value = state.romValues[key] || 0;
+    slider.min = movement.min;
+    slider.max = movement.max;
+    slider.value = state.romValues[key] ?? movement.min;
 
     // Update display
     updateRomAngle(slider.value);
-
-    // Show/hide slider container based on WNL
-    document.getElementById('rom-slider-container').style.display = isWnl ? 'none' : 'block';
 }
 
 function toggleRomWnl() {
@@ -632,28 +981,45 @@ function setAllRomWnl() {
     });
     renderRomMovements();
     updateRomCard();
-    showToast('해당 관절 ROM 전체 WNL 설정');
+    showToast('해당 관절 ROM 전체 Full 설정');
 }
 
 function updateRomAngle(value) {
-    const angle = parseInt(value);
+    const angle = Math.round(parseInt(value) / 5) * 5; // 5도 단위로 스냅
     const movement = ROM_MOVEMENTS.find(m => m.name === state.currentRomMovement);
     const side = state.romSide;
     const key = `${side}.${movement.name}`;
 
     state.romValues[key] = angle;
+
+    // Auto-toggle WNL when reaching max value
+    const min = movement.min;
+    const max = movement.max;
+    if (angle >= max) {
+        state.romWnl[key] = true;
+        // Update WNL button UI
+        const wnlBtn = document.getElementById('rom-wnl-btn');
+        wnlBtn.classList.add('active');
+        wnlBtn.querySelector('.wnl-check').textContent = '✓';
+    } else if (state.romWnl[key]) {
+        state.romWnl[key] = false;
+        // Update WNL button UI
+        const wnlBtn = document.getElementById('rom-wnl-btn');
+        wnlBtn.classList.remove('active');
+        wnlBtn.querySelector('.wnl-check').textContent = '○';
+    }
+
     renderRomMovements();
 
     // Update angle display
     document.getElementById('angle-value').textContent = `${angle}°`;
-
-    // Update dial progress
-    const max = movement.max || 180;
-    const progress = (angle / max) * 377;
+    const range = max - min;
+    const normalizedValue = angle - min;
+    const progress = range > 0 ? (normalizedValue / range) * 377 : 0;
     document.getElementById('dial-progress').style.strokeDashoffset = 377 - progress;
 
     // Update dial thumb position
-    const thumbAngle = (angle / max) * 360 - 90;
+    const thumbAngle = range > 0 ? (normalizedValue / range) * 360 - 90 : -90;
     const thumbRad = thumbAngle * Math.PI / 180;
     const thumbX = 75 + 60 * Math.cos(thumbRad);
     const thumbY = 75 + 60 * Math.sin(thumbRad);
@@ -695,6 +1061,93 @@ function updateMannequin(movement, angle) {
 }
 
 // ============================================
+// BBS Tab (Berg Balance Scale)
+// ============================================
+function initBbsTab() {
+    renderBbsList();
+}
+
+function renderBbsList() {
+    const container = document.getElementById('bbs-list');
+    if (!container) return;
+
+    const scoreColors = ['#DC2626', '#F59E0B', '#EAB308', '#10B981', '#06B6D4'];
+
+    container.innerHTML = BBS_ITEMS.map(item => {
+        const value = state.bbsValues[item.id];
+        const hasValue = value !== undefined;
+
+        return `
+            <div class="bbs-item">
+                <div class="bbs-item-header">
+                    <span class="bbs-num">${item.id}</span>
+                    <strong>${item.name}</strong>
+                    ${hasValue ? `<span class="bbs-score-badge" style="background:${scoreColors[value]}">${value}점</span>` : ''}
+                </div>
+                <div class="bbs-buttons">
+                    ${[0, 1, 2, 3, 4].map(score => `
+                        <button class="bbs-btn ${value === score ? 'selected' : ''}"
+                                style="${value === score ? `background:${scoreColors[score]};border-color:${scoreColors[score]};color:white;` : ''}"
+                                onclick="setBbsScore(${item.id}, ${score})">
+                            ${score}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="bbs-desc-list">
+                    ${item.desc.map((desc, idx) => `
+                        <div class="bbs-desc-row ${value === idx ? 'active' : ''}"
+                             style="${value === idx ? `color:${scoreColors[idx]};` : ''}">
+                            <span class="bbs-desc-num">${idx}:</span>
+                            <span>${desc}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    updateBbsTotal();
+}
+
+function getScoreColor(score) {
+    const colors = ['#DC2626', '#F59E0B', '#FBBF24', '#34D399', '#10B981'];
+    return colors[score];
+}
+
+function setBbsScore(itemId, score) {
+    state.bbsValues[itemId] = score;
+    renderBbsList();
+}
+
+function updateBbsTotal() {
+    const totalEl = document.getElementById('bbs-total');
+    const interpretEl = document.getElementById('bbs-interpret');
+    if (!totalEl) return;
+
+    const values = Object.values(state.bbsValues);
+    const total = values.reduce((sum, v) => sum + v, 0);
+    const count = values.length;
+
+    totalEl.textContent = `${total}/56`;
+
+    // Find interpretation
+    const interp = BBS_INTERPRETATION.find(i => total >= i.min && total <= i.max);
+    if (interp && interpretEl) {
+        interpretEl.innerHTML = `
+            <span class="bbs-level" style="background:${interp.color}">${interp.label}</span>
+            <span class="bbs-fall-risk">낙상위험: ${interp.fallRisk}</span>
+            <span class="bbs-count">(${count}/14 항목)</span>
+        `;
+    }
+}
+
+function clearAllBbs() {
+    state.bbsValues = {};
+    renderBbsList();
+    showToast('BBS 평가가 초기화되었습니다');
+}
+
+// ============================================
 // CDSS Screen
 // ============================================
 function initConditionChips() {
@@ -721,34 +1174,94 @@ function searchCondition(condition) {
         document.getElementById('cdss-result').classList.remove('hidden');
 
         document.getElementById('result-content').innerHTML = `
+<div class="ai-disclaimer">
+    ⚠️ <strong>AI 생성 권고</strong> - 임상적 판단의 보조 자료로만 활용하세요. 최종 결정은 담당 임상의의 책임입니다.
+</div>
+
 <strong>질환: ${condition}</strong>
 
-<strong>1. 근거 기반 중재법 (Grade A-B)</strong>
-• 과제 지향적 훈련: 고강도, 반복적 과제 연습 (근거: 강함)
-• 강제유도 운동치료 (CIMT): 상지 편마비 환자에게 권장
-• 체중 지지 트레드밀 훈련: 보행 재활에 권장
-• 신경발달치료 (NDT/Bobath): 운동조절 및 자세 정렬
+<div class="evidence-section">
+    <div class="evidence-header">
+        <strong>1. 근거 기반 중재법</strong>
+        <span class="evidence-badge grade-a">Level A-B</span>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">과제 지향적 훈련</span>
+        <span class="evidence-level level-a">A</span>
+        <p>고강도, 반복적 과제 연습</p>
+        <cite>출처: Stroke Rehab Guidelines (2023) | Cochrane Review</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">강제유도 운동치료 (CIMT)</span>
+        <span class="evidence-level level-a">A</span>
+        <p>상지 편마비 환자에게 권장</p>
+        <cite>출처: APTA CPG (2022) | RCT 메타분석</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">체중 지지 트레드밀 훈련</span>
+        <span class="evidence-level level-b">B</span>
+        <p>보행 재활에 권장</p>
+        <cite>출처: KSNR Guidelines (2023)</cite>
+    </div>
+    <div class="evidence-item">
+        <span class="intervention">신경발달치료 (NDT/Bobath)</span>
+        <span class="evidence-level level-c">C</span>
+        <p>운동조절 및 자세 정렬</p>
+        <cite>출처: Expert Consensus (2021)</cite>
+    </div>
+</div>
 
-<strong>2. 권장 평가 도구</strong>
-• 버그 균형 척도 (BBS): 낙상 위험 평가
-• 기능적 독립성 측정 (FIM): ADL 평가
-• 수정 애쉬워스 척도 (MAS): 경직 등급
-• 10m 보행 검사: 보행 속도 평가
+<div class="evidence-section">
+    <strong>2. 권장 평가 도구</strong>
+    <div class="tool-grid">
+        <div class="tool-item">
+            <span class="tool-name">BBS</span>
+            <span class="tool-desc">균형/낙상위험</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">FIM</span>
+            <span class="tool-desc">ADL 독립성</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">MAS</span>
+            <span class="tool-desc">경직 평가</span>
+        </div>
+        <div class="tool-item">
+            <span class="tool-name">10mWT</span>
+            <span class="tool-desc">보행 속도</span>
+        </div>
+    </div>
+</div>
 
-<strong>3. 치료 빈도 가이드라인</strong>
-• 급성기: 1-2회/일, 주 5-7일
-• 아급성기: 1회/일, 주 5일
-• 만성기: 주 2-3회, 유지 치료
+<div class="evidence-section">
+    <strong>3. 치료 빈도 가이드라인</strong>
+    <table class="freq-table">
+        <tr><th>단계</th><th>빈도</th><th>근거</th></tr>
+        <tr><td>급성기</td><td>1-2회/일, 주 5-7일</td><td>Level A</td></tr>
+        <tr><td>아급성기</td><td>1회/일, 주 5일</td><td>Level B</td></tr>
+        <tr><td>만성기</td><td>주 2-3회</td><td>Level C</td></tr>
+    </table>
+</div>
 
-<strong>4. 주요 주의사항</strong>
-• 활동 중 활력징후 모니터링
-• 기립성 저혈압 평가
-• 수동 ROM 시 관절 보호
-• 감각 장애 환자 피부 상태 확인
+<div class="evidence-section warning">
+    <strong>4. 주의사항</strong>
+    <ul>
+        <li>활동 중 활력징후 모니터링</li>
+        <li>기립성 저혈압 평가</li>
+        <li>수동 ROM 시 관절 보호</li>
+        <li>감각 장애 환자 피부 상태 확인</li>
+    </ul>
+</div>
 
-<strong>참고문헌:</strong>
-- 뇌졸중 재활 임상 가이드라인 (2023)
-- Cochrane Systematic Review: 물리치료 중재
+<div class="references">
+    <strong>📚 참고문헌</strong>
+    <ol>
+        <li>대한뇌신경재활학회. 뇌졸중 재활 임상 가이드라인 4판. 2023.</li>
+        <li>Cochrane Database Syst Rev. Physical therapy interventions. 2023.</li>
+        <li>APTA. Clinical Practice Guideline for Stroke Rehabilitation. 2022.</li>
+    </ol>
+    <p class="ref-note">근거수준: A=강한근거(RCT) B=중등도(대조연구) C=전문가합의</p>
+</div>
 `;
     }, 2000);
 }
@@ -825,7 +1338,10 @@ function generateSoapNote() {
    • 치료 빈도: 주 3-5회, 45-60분/회
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-알고PT Pro에서 생성됨
+⚠️ AI 초안 - 최종 임상적 판단 및
+   책임은 담당 치료사에게 있습니다.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+알고PT Pro | ${new Date().toLocaleDateString('ko-KR')}
 `;
 
     // Scroll to SOAP note
@@ -884,592 +1400,4 @@ if ('serviceWorker' in navigator) {
             .then(reg => console.log('SW registered'))
             .catch(err => console.log('SW registration failed'));
     });
-}
-
-// ============================================
-// Patient Management
-// ============================================
-function loadPatients() {
-    const saved = localStorage.getItem('algopt_patients');
-    if (saved) {
-        state.patients = JSON.parse(saved);
-    } else {
-        // Add sample patients for demo
-        state.patients = [
-            { id: 1, name: '김영수', age: 65, gender: 'M', diagnosis: 'Lt. hemiplegia (CVA)', lastVisit: '2024-12-14', sessions: 12 },
-            { id: 2, name: '박순자', age: 72, gender: 'F', diagnosis: "Parkinson's disease", lastVisit: '2024-12-13', sessions: 8 },
-            { id: 3, name: '이철호', age: 58, gender: 'M', diagnosis: 'Rt. hemiplegia (CVA)', lastVisit: '2024-12-12', sessions: 15 }
-        ];
-        savePatients();
-    }
-}
-
-function savePatients() {
-    localStorage.setItem('algopt_patients', JSON.stringify(state.patients));
-}
-
-function renderRecentPatients() {
-    const container = document.getElementById('recent-patients');
-    if (!container) return;
-
-    const recentPatients = state.patients.slice(0, 3);
-
-    if (recentPatients.length === 0) {
-        container.innerHTML = '<p class="empty-hint">등록된 환자가 없습니다</p>';
-        return;
-    }
-
-    container.innerHTML = recentPatients.map(patient => `
-        <div class="patient-card" onclick="selectPatient(${patient.id})">
-            <div class="patient-avatar ${patient.gender === 'M' ? 'male' : 'female'}">
-                ${patient.gender === 'M' ? '♂' : '♀'}
-            </div>
-            <div class="patient-info">
-                <div class="patient-name">${patient.name}</div>
-                <div class="patient-detail">${patient.age}세 · ${patient.diagnosis}</div>
-                <div class="patient-meta">마지막 치료: ${patient.lastVisit} · ${patient.sessions}회</div>
-            </div>
-            <div class="patient-arrow">→</div>
-        </div>
-    `).join('');
-}
-
-function renderAllPatients(searchQuery = '') {
-    const container = document.getElementById('all-patients');
-    if (!container) return;
-
-    let filteredPatients = state.patients;
-    if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        filteredPatients = state.patients.filter(p =>
-            p.name.toLowerCase().includes(query) ||
-            p.diagnosis.toLowerCase().includes(query)
-        );
-    }
-
-    if (filteredPatients.length === 0) {
-        container.innerHTML = searchQuery
-            ? '<p class="empty-hint">검색 결과가 없습니다</p>'
-            : '<p class="empty-hint">등록된 환자가 없습니다</p>';
-        return;
-    }
-
-    container.innerHTML = filteredPatients.map(patient => `
-        <div class="patient-card" onclick="selectPatient(${patient.id})">
-            <div class="patient-avatar ${patient.gender === 'M' ? 'male' : 'female'}">
-                ${patient.gender === 'M' ? '♂' : '♀'}
-            </div>
-            <div class="patient-info">
-                <div class="patient-name">${patient.name}</div>
-                <div class="patient-detail">${patient.age}세 · ${patient.diagnosis}</div>
-                <div class="patient-meta">마지막 치료: ${patient.lastVisit} · ${patient.sessions}회</div>
-            </div>
-            <div class="patient-actions">
-                <button class="patient-action-btn" onclick="event.stopPropagation(); editPatient(${patient.id})">✏️</button>
-                <button class="patient-action-btn delete" onclick="event.stopPropagation(); deletePatient(${patient.id})">🗑️</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-function searchPatients(query) {
-    renderAllPatients(query);
-}
-
-function selectPatient(id) {
-    const patient = state.patients.find(p => p.id === id);
-    if (patient) {
-        state.currentPatient = patient;
-        state.age = patient.age;
-        state.gender = patient.gender;
-
-        // Update UI
-        document.getElementById('age-value').textContent = `${patient.age}세`;
-        setGender(patient.gender);
-
-        showToast(`${patient.name} 환자 선택됨`);
-        navigateTo('subjective');
-    }
-}
-
-function openNewPatientModal() {
-    state.newPatientGender = 'M';
-    document.getElementById('patient-name').value = '';
-    document.getElementById('patient-age').value = '50';
-    document.getElementById('patient-diagnosis').value = '';
-    document.getElementById('new-gender-m').classList.add('active');
-    document.getElementById('new-gender-f').classList.remove('active');
-    document.getElementById('patient-modal').classList.remove('hidden');
-}
-
-function closePatientModal() {
-    document.getElementById('patient-modal').classList.add('hidden');
-}
-
-function setNewPatientGender(gender) {
-    state.newPatientGender = gender;
-    document.getElementById('new-gender-m').classList.toggle('active', gender === 'M');
-    document.getElementById('new-gender-f').classList.toggle('active', gender === 'F');
-}
-
-function saveNewPatient() {
-    const name = document.getElementById('patient-name').value.trim();
-    const age = parseInt(document.getElementById('patient-age').value);
-    const diagnosis = document.getElementById('patient-diagnosis').value.trim();
-
-    if (!name) {
-        showToast('환자 이름을 입력해주세요');
-        return;
-    }
-
-    const newPatient = {
-        id: Date.now(),
-        name: name,
-        age: age || 50,
-        gender: state.newPatientGender,
-        diagnosis: diagnosis || '미입력',
-        lastVisit: new Date().toISOString().split('T')[0],
-        sessions: 1
-    };
-
-    state.patients.unshift(newPatient);
-    savePatients();
-    renderRecentPatients();
-    renderAllPatients();
-    closePatientModal();
-    showToast('새 환자가 등록되었습니다');
-}
-
-function editPatient(id) {
-    const patient = state.patients.find(p => p.id === id);
-    if (patient) {
-        state.newPatientGender = patient.gender;
-        document.getElementById('patient-name').value = patient.name;
-        document.getElementById('patient-age').value = patient.age;
-        document.getElementById('patient-diagnosis').value = patient.diagnosis;
-        document.getElementById('new-gender-m').classList.toggle('active', patient.gender === 'M');
-        document.getElementById('new-gender-f').classList.toggle('active', patient.gender === 'F');
-        document.getElementById('patient-modal').classList.remove('hidden');
-
-        // Change save button to update
-        const saveBtn = document.querySelector('#patient-modal .primary-btn');
-        saveBtn.textContent = '수정';
-        saveBtn.onclick = () => updatePatient(id);
-    }
-}
-
-function updatePatient(id) {
-    const patient = state.patients.find(p => p.id === id);
-    if (patient) {
-        patient.name = document.getElementById('patient-name').value.trim();
-        patient.age = parseInt(document.getElementById('patient-age').value) || 50;
-        patient.gender = state.newPatientGender;
-        patient.diagnosis = document.getElementById('patient-diagnosis').value.trim() || '미입력';
-
-        savePatients();
-        renderRecentPatients();
-        renderAllPatients();
-        closePatientModal();
-
-        // Reset save button
-        const saveBtn = document.querySelector('#patient-modal .primary-btn');
-        saveBtn.textContent = '저장';
-        saveBtn.onclick = saveNewPatient;
-
-        showToast('환자 정보가 수정되었습니다');
-    }
-}
-
-function deletePatient(id) {
-    if (confirm('이 환자를 삭제하시겠습니까?')) {
-        state.patients = state.patients.filter(p => p.id !== id);
-        savePatients();
-        renderRecentPatients();
-        renderAllPatients();
-        showToast('환자가 삭제되었습니다');
-    }
-}
-
-// Close patient modal when clicking outside
-document.getElementById('patient-modal')?.addEventListener('click', (e) => {
-    if (e.target.id === 'patient-modal') {
-        closePatientModal();
-    }
-});
-
-// ============================================
-// Clinical Tools
-// ============================================
-let currentTool = null;
-
-function openTool(tool) {
-    currentTool = tool;
-    document.getElementById(`tool-${tool}`).classList.remove('hidden');
-
-    // Reset tool state when opening
-    if (tool === 'stopwatch') resetStopwatch();
-    if (tool === 'cadence') resetCadence();
-    if (tool === 'dualtask') resetDualTask();
-}
-
-function closeTool() {
-    if (currentTool) {
-        document.getElementById(`tool-${currentTool}`).classList.add('hidden');
-
-        // Stop any running timers
-        if (currentTool === 'stopwatch') stopStopwatch();
-        if (currentTool === 'metronome') stopMetronome();
-        if (currentTool === 'dualtask') stopDualTask();
-
-        currentTool = null;
-    }
-}
-
-// ============================================
-// Stopwatch Tool
-// ============================================
-let stopwatchInterval = null;
-let stopwatchMs = 0;
-let stopwatchMode = 0; // 0: 10MWT, 1: TUG
-let stopwatchRunning = false;
-
-function setStopwatchMode(mode) {
-    stopwatchMode = mode;
-    document.querySelectorAll('#tool-stopwatch .mode-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', i === mode);
-    });
-    resetStopwatch();
-}
-
-function startStopwatch() {
-    if (!stopwatchRunning) {
-        stopwatchRunning = true;
-        stopwatchInterval = setInterval(() => {
-            stopwatchMs += 10;
-            updateStopwatchDisplay();
-        }, 10);
-
-        document.getElementById('stopwatch-start-controls').classList.add('hidden');
-        document.getElementById('stopwatch-paused-controls').classList.add('hidden');
-        document.getElementById('stopwatch-running-controls').classList.remove('hidden');
-    }
-}
-
-function stopStopwatch() {
-    if (stopwatchRunning) {
-        clearInterval(stopwatchInterval);
-        stopwatchRunning = false;
-
-        document.getElementById('stopwatch-running-controls').classList.add('hidden');
-        document.getElementById('stopwatch-paused-controls').classList.remove('hidden');
-
-        // Show results for 10MWT
-        if (stopwatchMode === 0 && stopwatchMs > 0) {
-            const speed = 10 / (stopwatchMs / 1000);
-            document.getElementById('stopwatch-speed').textContent = speed.toFixed(2) + ' m/s';
-
-            let badge = document.getElementById('stopwatch-badge');
-            if (speed >= 1.2) {
-                badge.textContent = '정상 (Community Ambulator)';
-                badge.className = 'tool-result-badge success';
-            } else if (speed >= 0.8) {
-                badge.textContent = '제한적 지역사회 보행';
-                badge.className = 'tool-result-badge warning';
-            } else if (speed >= 0.4) {
-                badge.textContent = '가정 내 보행';
-                badge.className = 'tool-result-badge error';
-            } else {
-                badge.textContent = '심각한 보행 장애';
-                badge.className = 'tool-result-badge error';
-            }
-
-            document.getElementById('stopwatch-result').classList.remove('hidden');
-        }
-    }
-}
-
-function resetStopwatch() {
-    clearInterval(stopwatchInterval);
-    stopwatchRunning = false;
-    stopwatchMs = 0;
-    updateStopwatchDisplay();
-
-    document.getElementById('stopwatch-result').classList.add('hidden');
-    document.getElementById('stopwatch-running-controls').classList.add('hidden');
-    document.getElementById('stopwatch-paused-controls').classList.add('hidden');
-    document.getElementById('stopwatch-start-controls').classList.remove('hidden');
-}
-
-function saveStopwatch() {
-    showToast('✓ 결과가 저장되었습니다');
-    resetStopwatch();
-}
-
-function updateStopwatchDisplay() {
-    const min = Math.floor(stopwatchMs / 60000).toString().padStart(2, '0');
-    const sec = Math.floor((stopwatchMs % 60000) / 1000).toString().padStart(2, '0');
-    const ms = Math.floor((stopwatchMs % 1000) / 10).toString().padStart(2, '0');
-    document.getElementById('stopwatch-timer').textContent = `${min}:${sec}.${ms}`;
-}
-
-// ============================================
-// Metronome Tool
-// ============================================
-let metronomeBpm = 60;
-let metronomeInterval = null;
-let metronomeRunning = false;
-let audioContext = null;
-
-function changeBpm(delta) {
-    setBpm(metronomeBpm + delta);
-}
-
-function setBpm(value) {
-    metronomeBpm = Math.max(20, Math.min(240, parseInt(value)));
-    document.getElementById('metronome-bpm').textContent = metronomeBpm;
-    document.getElementById('bpm-slider').value = metronomeBpm;
-
-    // Restart if running
-    if (metronomeRunning) {
-        stopMetronome();
-        startMetronome();
-    }
-}
-
-function toggleMetronome() {
-    if (metronomeRunning) {
-        stopMetronome();
-    } else {
-        startMetronome();
-    }
-}
-
-function startMetronome() {
-    metronomeRunning = true;
-    document.getElementById('metronome-btn').textContent = '⏹  정지';
-    document.getElementById('metronome-btn').classList.remove('start');
-    document.getElementById('metronome-btn').classList.add('stop');
-
-    // Initialize audio context
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    playTick();
-    metronomeInterval = setInterval(playTick, 60000 / metronomeBpm);
-}
-
-function stopMetronome() {
-    metronomeRunning = false;
-    clearInterval(metronomeInterval);
-    document.getElementById('metronome-btn').textContent = '▶  시작';
-    document.getElementById('metronome-btn').classList.remove('stop');
-    document.getElementById('metronome-btn').classList.add('start');
-}
-
-function playTick() {
-    if (!audioContext) return;
-
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-
-    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-
-    // Visual feedback
-    document.getElementById('metronome-bpm').style.transform = 'scale(1.1)';
-    setTimeout(() => {
-        document.getElementById('metronome-bpm').style.transform = 'scale(1)';
-    }, 100);
-
-    // Haptic feedback
-    if (navigator.vibrate) navigator.vibrate(30);
-}
-
-// ============================================
-// Cadence Calculator Tool
-// ============================================
-let cadenceTaps = [];
-
-function tapCadence() {
-    const now = Date.now();
-    cadenceTaps.push(now);
-
-    // Keep only last 6 taps
-    if (cadenceTaps.length > 6) cadenceTaps.shift();
-
-    // Calculate SPM from rolling average
-    if (cadenceTaps.length >= 2) {
-        const intervals = [];
-        for (let i = 1; i < cadenceTaps.length; i++) {
-            intervals.push(cadenceTaps[i] - cadenceTaps[i-1]);
-        }
-        const avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
-        const spm = Math.round(60000 / avgInterval);
-
-        document.getElementById('cadence-spm').textContent = spm;
-
-        const badge = document.getElementById('cadence-badge');
-        if (spm >= 100 && spm <= 130) {
-            badge.textContent = '정상 보행';
-            badge.className = 'tool-result-badge success';
-        } else if (spm > 130) {
-            badge.textContent = '빠른 보행';
-            badge.className = 'tool-result-badge warning';
-        } else if (spm >= 80) {
-            badge.textContent = '느린 보행';
-            badge.className = 'tool-result-badge warning';
-        } else {
-            badge.textContent = '매우 느린 보행';
-            badge.className = 'tool-result-badge error';
-        }
-    }
-
-    // Visual feedback
-    if (navigator.vibrate) navigator.vibrate(30);
-}
-
-function resetCadence() {
-    cadenceTaps = [];
-    document.getElementById('cadence-spm').textContent = '0';
-    document.getElementById('cadence-badge').textContent = '측정 대기';
-    document.getElementById('cadence-badge').className = 'tool-result-badge';
-}
-
-// ============================================
-// Dual Task Tool
-// ============================================
-let dualTaskMode = 0; // 0: math, 1: words, 2: colors
-let dualTaskInterval = null;
-let dualTaskRunning = false;
-let dualTaskNumber = 100;
-let dualTaskCount = 0;
-let dualTaskCurrentAnswer = '';
-let dualTaskIntervalSec = 5;
-
-const wordCategories = [
-    { name: '동물', words: ['호랑이', '사자', '코끼리', '기린', '원숭이', '펭귄', '독수리', '상어', '돌고래', '토끼'] },
-    { name: '과일', words: ['사과', '바나나', '오렌지', '포도', '딸기', '수박', '참외', '복숭아', '배', '감'] },
-    { name: '색깔', words: ['빨강', '파랑', '노랑', '초록', '보라', '주황', '분홍', '하양', '검정', '회색'] },
-    { name: '도시', words: ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '수원', '제주', '춘천'] }
-];
-
-const colorData = [
-    { name: '빨강', color: '#EF4444' },
-    { name: '파랑', color: '#3B82F6' },
-    { name: '노랑', color: '#EAB308' },
-    { name: '초록', color: '#22C55E' },
-    { name: '보라', color: '#A855F7' },
-    { name: '주황', color: '#F97316' },
-    { name: '분홍', color: '#EC4899' }
-];
-
-function setDualTaskMode(mode) {
-    if (dualTaskRunning) return;
-
-    dualTaskMode = mode;
-    document.querySelectorAll('#tool-dualtask .mode-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', i === mode);
-    });
-
-    const titles = ['Serial 7s Test', 'Verbal Fluency', 'Stroop Test'];
-    const descs = [
-        '100에서 시작하여 7씩 빼는 계산을 합니다. 인지 기능 평가에 널리 사용됩니다.',
-        '주어진 카테고리에 맞는 단어를 말합니다. 의미적 언어 유창성을 평가합니다.',
-        '글자의 색깔을 말합니다 (글자 내용 무시). 선택적 주의력을 평가합니다.'
-    ];
-
-    document.getElementById('dualtask-mode-title').textContent = '💡 ' + titles[mode];
-    document.getElementById('dualtask-mode-desc').textContent = descs[mode];
-}
-
-function setDualTaskInterval(value) {
-    dualTaskIntervalSec = parseInt(value);
-    document.getElementById('dualtask-interval-display').textContent = value + '초';
-}
-
-function startDualTask() {
-    dualTaskRunning = true;
-    dualTaskNumber = 100;
-    dualTaskCount = 0;
-
-    document.getElementById('dualtask-start-controls').classList.add('hidden');
-    document.getElementById('dualtask-running-controls').classList.remove('hidden');
-
-    generateDualTaskQuestion();
-    dualTaskInterval = setInterval(generateDualTaskQuestion, dualTaskIntervalSec * 1000);
-}
-
-function stopDualTask() {
-    dualTaskRunning = false;
-    clearInterval(dualTaskInterval);
-
-    document.getElementById('dualtask-running-controls').classList.add('hidden');
-    document.getElementById('dualtask-start-controls').classList.remove('hidden');
-
-    document.getElementById('dualtask-display').innerHTML = `
-        <div style="font-size:64px">🧠</div>
-        <p style="opacity:0.7;margin-top:16px">시작 버튼을 눌러주세요</p>
-    `;
-}
-
-function resetDualTask() {
-    stopDualTask();
-    dualTaskNumber = 100;
-    dualTaskCount = 0;
-}
-
-function nextDualTask() {
-    clearInterval(dualTaskInterval);
-    generateDualTaskQuestion();
-    dualTaskInterval = setInterval(generateDualTaskQuestion, dualTaskIntervalSec * 1000);
-}
-
-function generateDualTaskQuestion() {
-    dualTaskCount++;
-    let display = '';
-
-    if (dualTaskMode === 0) {
-        // Math (Serial 7s)
-        const answer = dualTaskNumber - 7;
-        display = `<div class="question-text">${dualTaskNumber} - 7 = ?</div>`;
-        dualTaskCurrentAnswer = answer.toString();
-        dualTaskNumber = answer > 0 ? answer : 100;
-    } else if (dualTaskMode === 1) {
-        // Words
-        const category = wordCategories[Math.floor(Math.random() * wordCategories.length)];
-        display = `<div class="question-text" style="font-size:32px">${category.name} 이름을<br>말해보세요</div>`;
-        dualTaskCurrentAnswer = category.words[Math.floor(Math.random() * category.words.length)];
-    } else {
-        // Colors (Stroop)
-        const textColor = colorData[Math.floor(Math.random() * colorData.length)];
-        const displayColor = colorData[Math.floor(Math.random() * colorData.length)];
-        display = `<div class="question-text" style="color:${displayColor.color}">${textColor.name}</div>`;
-        dualTaskCurrentAnswer = displayColor.name;
-    }
-
-    display += `<div class="question-count">문제 #${dualTaskCount}</div>`;
-    document.getElementById('dualtask-display').innerHTML = display;
-
-    if (navigator.vibrate) navigator.vibrate(50);
-}
-
-function showDualTaskAnswer() {
-    const currentDisplay = document.getElementById('dualtask-display').innerHTML;
-    if (!currentDisplay.includes('정답:')) {
-        document.getElementById('dualtask-display').innerHTML += `
-            <div style="margin-top:24px;padding:12px 24px;background:rgba(0,200,150,0.2);border-radius:12px;display:inline-block">
-                <span style="color:#00C896;font-weight:bold">정답: ${dualTaskCurrentAnswer}</span>
-            </div>
-        `;
-    }
 }
