@@ -130,11 +130,11 @@ const LandingPage = ({ onNavigate }) => {
             </button>
             <button
               className="btn btn-secondary btn-lg"
-              onClick={() => {
-                document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
-              }}
+              onClick={() => onNavigate('tools')}
+              style={{ gap: '0.5rem' }}
             >
-              기능 살펴보기
+              <span>⚡</span>
+              <span>빠른 도구</span>
             </button>
           </div>
 
