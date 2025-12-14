@@ -2633,6 +2633,12 @@ function initGoniometer() {
     document.getElementById('gonio-permission').classList.add('hidden');
     document.getElementById('gonio-display').classList.remove('hidden');
 
+    // 초기 가이드 애니메이션 설정
+    const guidePhone = document.getElementById('guide-phone');
+    if (guidePhone) {
+        guidePhone.classList.add('tilt-mode');
+    }
+
     window.addEventListener('deviceorientation', handleOrientation);
 }
 
@@ -2666,9 +2672,13 @@ function updateGonioDisplay(angle) {
     const needleEl = document.getElementById('gonio-needle');
     const xEl = document.getElementById('gonio-x');
     const yEl = document.getElementById('gonio-y');
+    const levelEl = document.getElementById('gonio-level');
+    const levelTextEl = document.getElementById('gonio-level-text');
+
+    const absAngle = Math.abs(angle);
 
     // 값 표시
-    valueEl.textContent = Math.abs(angle).toFixed(1);
+    valueEl.textContent = absAngle.toFixed(1);
 
     // 바늘 회전
     if (needleEl) {
@@ -2678,6 +2688,43 @@ function updateGonioDisplay(angle) {
     // 축별 정보
     if (xEl) xEl.textContent = `${gonioState.currentAngles.x.toFixed(1)}°`;
     if (yEl) yEl.textContent = `${gonioState.currentAngles.y.toFixed(1)}°`;
+
+    // 수평/각도 피드백
+    if (levelEl && levelTextEl) {
+        if (gonioState.mode === 'incline') {
+            // 수평계 모드: 0°에 가까우면 수평 표시
+            if (absAngle < 2) {
+                levelEl.classList.add('level');
+                levelTextEl.classList.add('level');
+                levelTextEl.textContent = '✓ 수평';
+            } else if (absAngle < 5) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '거의 수평';
+            } else if (angle > 0) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '→ 오른쪽 기울임';
+            } else {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '← 왼쪽 기울임';
+            }
+        } else {
+            // 각도계 모드
+            levelEl.classList.remove('level');
+            levelTextEl.classList.remove('level');
+            if (absAngle < 5) {
+                levelTextEl.textContent = '시작 위치';
+            } else if (absAngle < 45) {
+                levelTextEl.textContent = '경도 굴곡';
+            } else if (absAngle < 90) {
+                levelTextEl.textContent = '중등도 굴곡';
+            } else {
+                levelTextEl.textContent = '고도 굴곡';
+            }
+        }
+    }
 
     // ROM 비교 업데이트
     updateRomComparison();
@@ -2691,10 +2738,20 @@ function setGonioMode(mode) {
     });
 
     const romSection = document.getElementById('gonio-rom-section');
+    const guidePhone = document.getElementById('guide-phone');
+    const guideArrow = document.getElementById('guide-arrow');
+    const guideText = document.getElementById('guide-text');
+
     if (mode === 'angle') {
         romSection.classList.remove('hidden');
+        guidePhone.className = 'guide-phone rotate-mode';
+        guideArrow.textContent = '↕';
+        guideText.textContent = '폰을 세워서 관절에 대고 앞뒤로 움직이세요';
     } else {
         romSection.classList.add('hidden');
+        guidePhone.className = 'guide-phone tilt-mode';
+        guideArrow.textContent = '↔';
+        guideText.textContent = '폰을 테이블에 놓고 좌우로 기울이세요';
     }
 }
 

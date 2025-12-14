@@ -893,20 +893,33 @@
                     <button class="gonio-tab" data-mode="angle" onclick="setGonioMode('angle')">각도계</button>
                 </div>
 
+                <!-- 사용 가이드 -->
+                <div class="gonio-guide" id="gonio-guide">
+                    <div class="guide-phone" id="guide-phone">
+                        <div class="phone-body">
+                            <div class="phone-screen"></div>
+                        </div>
+                        <div class="guide-arrow" id="guide-arrow">↔</div>
+                    </div>
+                    <p class="guide-text" id="guide-text">폰을 테이블에 놓고 좌우로 기울이세요</p>
+                </div>
+
                 <div class="gonio-visual">
                     <div class="gonio-circle">
                         <div class="gonio-needle" id="gonio-needle"></div>
                         <div class="gonio-center"></div>
+                        <div class="gonio-level-indicator" id="gonio-level"></div>
                     </div>
                     <div class="gonio-value-display">
                         <span class="gonio-value" id="gonio-value">0.0</span>
                         <span class="gonio-unit">°</span>
                     </div>
+                    <div class="gonio-level-text" id="gonio-level-text">기울임</div>
                 </div>
 
                 <div class="gonio-axis-info" id="gonio-axis-info">
-                    <div class="axis-item"><span>X (좌우)</span><span id="gonio-x">0°</span></div>
-                    <div class="axis-item"><span>Y (앞뒤)</span><span id="gonio-y">0°</span></div>
+                    <div class="axis-item"><span>↔ 좌우</span><span id="gonio-x">0°</span></div>
+                    <div class="axis-item"><span>↕ 앞뒤</span><span id="gonio-y">0°</span></div>
                 </div>
 
                 <div class="gonio-controls">
