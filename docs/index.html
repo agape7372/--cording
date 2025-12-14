@@ -893,18 +893,13 @@
                     <button class="gonio-tab" data-mode="angle" onclick="setGonioMode('angle')">각도계</button>
                 </div>
 
-                <!-- 사용 가이드 -->
-                <div class="gonio-guide" id="gonio-guide">
-                    <div class="guide-phone" id="guide-phone">
-                        <div class="phone-body">
-                            <div class="phone-screen"></div>
-                        </div>
-                        <div class="guide-arrow" id="guide-arrow">↔</div>
-                    </div>
-                    <p class="guide-text" id="guide-text">폰을 테이블에 놓고 좌우로 기울이세요</p>
+                <!-- 사용 가이드 (인라인 컴팩트) -->
+                <div class="gonio-guide-inline" id="gonio-guide">
+                    <span class="guide-icon" id="guide-icon">📱↔</span>
+                    <span class="guide-text" id="guide-text">좌우로 기울이세요</span>
                 </div>
 
-                <div class="gonio-visual">
+                <div class="gonio-visual" id="gonio-tap-area">
                     <div class="gonio-circle">
                         <div class="gonio-needle" id="gonio-needle"></div>
                         <div class="gonio-center"></div>
@@ -915,6 +910,7 @@
                         <span class="gonio-unit">°</span>
                     </div>
                     <div class="gonio-level-text" id="gonio-level-text">기울임</div>
+                    <div class="gonio-hold-indicator hidden" id="gonio-hold-indicator">🔒 고정됨</div>
                 </div>
 
                 <div class="gonio-axis-info" id="gonio-axis-info">
@@ -925,6 +921,32 @@
                 <div class="gonio-controls">
                     <button class="gonio-btn" onclick="zeroGoniometer()">🎯 영점</button>
                     <button class="gonio-btn" id="gonio-hold-btn" onclick="toggleGonioHold()">⏸ 고정</button>
+                </div>
+
+                <!-- 고정 방식 설정 -->
+                <div class="gonio-hold-settings">
+                    <div class="hold-settings-header">
+                        <span>⚙️ 고정 방식</span>
+                        <span class="hold-status" id="hold-status"></span>
+                    </div>
+                    <div class="hold-options">
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-tap" onchange="saveGonioSettings()">
+                            <span>👆 화면탭</span>
+                        </label>
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-volume" onchange="saveGonioSettings()">
+                            <span>🔊 볼륨키</span>
+                        </label>
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-auto" onchange="saveGonioSettings()">
+                            <span>⏱️ 자동3초</span>
+                        </label>
+                        <label class="hold-option">
+                            <input type="checkbox" id="hold-voice" onchange="saveGonioSettings()">
+                            <span>🎤 음성</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="gonio-rom-section hidden" id="gonio-rom-section">

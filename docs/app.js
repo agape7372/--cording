@@ -2596,7 +2596,20 @@ const gonioState = {
     zeroOffset: { alpha: 0, beta: 0, gamma: 0 },
     isHeld: false,
     heldValue: 0,
-    currentAngles: { x: 0, y: 0, z: 0 }
+    currentAngles: { x: 0, y: 0, z: 0 },
+    // 고정 방식 설정
+    holdSettings: {
+        tap: true,      // 화면 탭
+        volume: false,  // 볼륨 버튼
+        auto: false,    // 자동 고정
+        voice: false    // 음성 명령
+    },
+    // 자동 고정용
+    autoHoldTimer: null,
+    stableStartTime: null,
+    lastAngle: null,
+    // 음성 인식
+    voiceRecognition: null
 };
 
 // AAOS 기준 정상 ROM (단위: 도)
@@ -2627,19 +2640,209 @@ function openGoniometer() {
 function closeGoniometer() {
     document.getElementById('goniometer-modal').classList.add('hidden');
     window.removeEventListener('deviceorientation', handleOrientation);
+    cleanupGonioHoldMethods();
 }
 
 function initGoniometer() {
     document.getElementById('gonio-permission').classList.add('hidden');
     document.getElementById('gonio-display').classList.remove('hidden');
 
-    // 초기 가이드 애니메이션 설정
-    const guidePhone = document.getElementById('guide-phone');
-    if (guidePhone) {
-        guidePhone.classList.add('tilt-mode');
-    }
+    // 설정 불러오기
+    loadGonioSettings();
+
+    // 고정 방식 초기화
+    setupGonioHoldMethods();
 
     window.addEventListener('deviceorientation', handleOrientation);
+}
+
+// 설정 저장/불러오기
+function loadGonioSettings() {
+    const saved = localStorage.getItem('gonioHoldSettings');
+    if (saved) {
+        gonioState.holdSettings = JSON.parse(saved);
+    }
+
+    // UI 체크박스 업데이트
+    document.getElementById('hold-tap').checked = gonioState.holdSettings.tap;
+    document.getElementById('hold-volume').checked = gonioState.holdSettings.volume;
+    document.getElementById('hold-auto').checked = gonioState.holdSettings.auto;
+    document.getElementById('hold-voice').checked = gonioState.holdSettings.voice;
+
+    updateHoldStatus();
+}
+
+function saveGonioSettings() {
+    gonioState.holdSettings = {
+        tap: document.getElementById('hold-tap').checked,
+        volume: document.getElementById('hold-volume').checked,
+        auto: document.getElementById('hold-auto').checked,
+        voice: document.getElementById('hold-voice').checked
+    };
+
+    localStorage.setItem('gonioHoldSettings', JSON.stringify(gonioState.holdSettings));
+
+    // 고정 방식 재설정
+    cleanupGonioHoldMethods();
+    setupGonioHoldMethods();
+    updateHoldStatus();
+}
+
+function updateHoldStatus() {
+    const statusEl = document.getElementById('hold-status');
+    if (!statusEl) return;
+
+    const active = [];
+    if (gonioState.holdSettings.tap) active.push('탭');
+    if (gonioState.holdSettings.volume) active.push('볼륨');
+    if (gonioState.holdSettings.auto) active.push('자동');
+    if (gonioState.holdSettings.voice) active.push('음성');
+
+    statusEl.textContent = active.length ? `활성: ${active.join(', ')}` : '버튼만 사용';
+}
+
+// 고정 방식 설정
+function setupGonioHoldMethods() {
+    // A: 화면 탭
+    if (gonioState.holdSettings.tap) {
+        const tapArea = document.getElementById('gonio-tap-area');
+        if (tapArea) {
+            tapArea.addEventListener('click', handleGonioTap);
+            tapArea.style.cursor = 'pointer';
+        }
+    }
+
+    // B: 볼륨 버튼
+    if (gonioState.holdSettings.volume) {
+        window.addEventListener('keydown', handleGonioVolumeKey);
+    }
+
+    // D: 자동 고정 (3초 안정)
+    if (gonioState.holdSettings.auto) {
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
+    }
+
+    // E: 음성 명령
+    if (gonioState.holdSettings.voice) {
+        setupVoiceRecognition();
+    }
+}
+
+function cleanupGonioHoldMethods() {
+    // 탭 이벤트 제거
+    const tapArea = document.getElementById('gonio-tap-area');
+    if (tapArea) {
+        tapArea.removeEventListener('click', handleGonioTap);
+        tapArea.style.cursor = '';
+    }
+
+    // 볼륨 키 이벤트 제거
+    window.removeEventListener('keydown', handleGonioVolumeKey);
+
+    // 자동 고정 타이머 제거
+    if (gonioState.autoHoldTimer) {
+        clearTimeout(gonioState.autoHoldTimer);
+        gonioState.autoHoldTimer = null;
+    }
+
+    // 음성 인식 중지
+    if (gonioState.voiceRecognition) {
+        gonioState.voiceRecognition.stop();
+        gonioState.voiceRecognition = null;
+    }
+}
+
+// A: 화면 탭 핸들러
+function handleGonioTap(e) {
+    // 버튼 클릭은 제외
+    if (e.target.closest('.gonio-btn') || e.target.closest('.gonio-hold-settings')) return;
+    toggleGonioHold();
+}
+
+// B: 볼륨 버튼 핸들러
+function handleGonioVolumeKey(e) {
+    if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
+        e.key === 'VolumeUp' || e.key === 'VolumeDown' ||
+        e.keyCode === 175 || e.keyCode === 174) {
+        e.preventDefault();
+        toggleGonioHold();
+    }
+}
+
+// D: 자동 고정 체크 (handleOrientation에서 호출)
+function checkAutoHold(currentAngle) {
+    if (!gonioState.holdSettings.auto || gonioState.isHeld) return;
+
+    const threshold = 0.5; // 0.5도 이내 변화면 안정으로 판단
+    const holdTime = 3000; // 3초
+
+    if (gonioState.lastAngle !== null) {
+        const diff = Math.abs(currentAngle - gonioState.lastAngle);
+
+        if (diff < threshold) {
+            // 안정 상태
+            if (!gonioState.stableStartTime) {
+                gonioState.stableStartTime = Date.now();
+            } else if (Date.now() - gonioState.stableStartTime >= holdTime) {
+                // 3초 동안 안정 → 자동 고정
+                toggleGonioHold();
+                playClick(1000, 0.1); // 알림음
+                gonioState.stableStartTime = null;
+            }
+        } else {
+            // 움직임 감지 → 타이머 리셋
+            gonioState.stableStartTime = null;
+        }
+    }
+
+    gonioState.lastAngle = currentAngle;
+}
+
+// E: 음성 인식 설정
+function setupVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        console.log('음성 인식 미지원');
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    gonioState.voiceRecognition = new SpeechRecognition();
+    gonioState.voiceRecognition.continuous = true;
+    gonioState.voiceRecognition.interimResults = false;
+    gonioState.voiceRecognition.lang = 'ko-KR';
+
+    gonioState.voiceRecognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript.toLowerCase().trim();
+
+        if (text.includes('고정') || text.includes('홀드') || text.includes('hold') || text.includes('잠금')) {
+            toggleGonioHold();
+            playClick(1000, 0.1);
+        }
+    };
+
+    gonioState.voiceRecognition.onerror = (e) => {
+        if (e.error !== 'no-speech') {
+            console.log('음성 인식 오류:', e.error);
+        }
+    };
+
+    gonioState.voiceRecognition.onend = () => {
+        // 계속 듣기
+        if (gonioState.holdSettings.voice && document.getElementById('goniometer-modal') &&
+            !document.getElementById('goniometer-modal').classList.contains('hidden')) {
+            try {
+                gonioState.voiceRecognition.start();
+            } catch (e) {}
+        }
+    };
+
+    try {
+        gonioState.voiceRecognition.start();
+    } catch (e) {
+        console.log('음성 인식 시작 실패:', e);
+    }
 }
 
 function handleOrientation(event) {
@@ -2665,6 +2868,9 @@ function handleOrientation(event) {
     }
 
     updateGonioDisplay(displayValue);
+
+    // 자동 고정 체크
+    checkAutoHold(displayValue);
 }
 
 function updateGonioDisplay(angle) {
@@ -2738,21 +2944,22 @@ function setGonioMode(mode) {
     });
 
     const romSection = document.getElementById('gonio-rom-section');
-    const guidePhone = document.getElementById('guide-phone');
-    const guideArrow = document.getElementById('guide-arrow');
+    const guideIcon = document.getElementById('guide-icon');
     const guideText = document.getElementById('guide-text');
 
     if (mode === 'angle') {
         romSection.classList.remove('hidden');
-        guidePhone.className = 'guide-phone rotate-mode';
-        guideArrow.textContent = '↕';
-        guideText.textContent = '폰을 세워서 관절에 대고 앞뒤로 움직이세요';
+        if (guideIcon) guideIcon.textContent = '📱↕';
+        if (guideText) guideText.textContent = '관절에 대고 앞뒤로';
     } else {
         romSection.classList.add('hidden');
-        guidePhone.className = 'guide-phone tilt-mode';
-        guideArrow.textContent = '↔';
-        guideText.textContent = '폰을 테이블에 놓고 좌우로 기울이세요';
+        if (guideIcon) guideIcon.textContent = '📱↔';
+        if (guideText) guideText.textContent = '좌우로 기울이세요';
     }
+
+    // 자동 고정 타이머 리셋
+    gonioState.stableStartTime = null;
+    gonioState.lastAngle = null;
 }
 
 function zeroGoniometer() {
@@ -2767,14 +2974,24 @@ function zeroGoniometer() {
 function toggleGonioHold() {
     gonioState.isHeld = !gonioState.isHeld;
     const btn = document.getElementById('gonio-hold-btn');
+    const indicator = document.getElementById('gonio-hold-indicator');
 
     if (gonioState.isHeld) {
         btn.textContent = '▶ 재개';
         btn.classList.add('active');
         gonioState.heldValue = parseFloat(document.getElementById('gonio-value').textContent);
+        if (indicator) indicator.classList.remove('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
     } else {
         btn.textContent = '⏸ 고정';
         btn.classList.remove('active');
+        if (indicator) indicator.classList.add('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
     }
     playClick(600, 0.05);
 }
