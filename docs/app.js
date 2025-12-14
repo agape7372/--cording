@@ -3838,3 +3838,242 @@ if (window.speechSynthesis) {
         // Voices loaded
     };
 }
+
+// =====================================================
+// Visual Neglect Test (편측 무시 검사)
+// Based on Star Cancellation Test (Wilson, Cockburn & Halligan, 1987)
+// Reference: Halligan et al. cutoff: ≤51/54 indicates USN
+// =====================================================
+
+let neglectState = {
+    totalStars: 54,
+    timeLimit: 120,
+    stars: [],
+    found: { left: 0, right: 0 },
+    total: { left: 0, right: 0 },
+    timer: null,
+    timeRemaining: 120,
+    isRunning: false
+};
+
+function openNeglectTest() {
+    document.getElementById('neglect-modal').classList.remove('hidden');
+    resetNeglectTest();
+}
+
+function closeNeglectTest() {
+    document.getElementById('neglect-modal').classList.add('hidden');
+    stopNeglectTimer();
+}
+
+function resetNeglectTest() {
+    stopNeglectTimer();
+    
+    document.getElementById('neglect-intro').classList.remove('hidden');
+    document.getElementById('neglect-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.add('hidden');
+    
+    neglectState.found = { left: 0, right: 0 };
+    neglectState.stars = [];
+    neglectState.isRunning = false;
+}
+
+function restartNeglectTest() {
+    resetNeglectTest();
+}
+
+function startNeglectTest() {
+    const starCount = parseInt(document.getElementById('neglect-star-count').value);
+    const timeLimit = parseInt(document.getElementById('neglect-time-limit').value);
+    
+    neglectState.totalStars = starCount;
+    neglectState.timeLimit = timeLimit;
+    neglectState.timeRemaining = timeLimit;
+    neglectState.found = { left: 0, right: 0 };
+    neglectState.total = { left: 0, right: 0 };
+    neglectState.stars = [];
+    neglectState.isRunning = true;
+    
+    document.getElementById('neglect-intro').classList.add('hidden');
+    document.getElementById('neglect-test-area').classList.remove('hidden');
+    document.getElementById('neglect-result').classList.add('hidden');
+    
+    document.getElementById('neglect-total').textContent = starCount;
+    document.getElementById('neglect-found').textContent = '0';
+    
+    generateNeglectStars();
+    
+    if (timeLimit > 0) {
+        updateTimerDisplay();
+        neglectState.timer = setInterval(updateNeglectTimer, 1000);
+    } else {
+        document.getElementById('neglect-timer').textContent = '--:--';
+    }
+}
+
+function generateNeglectStars() {
+    const field = document.getElementById('neglect-field');
+    field.innerHTML = '';
+    
+    const rect = field.getBoundingClientRect();
+    const width = rect.width || 300;
+    const height = rect.height || 300;
+    
+    const padding = 30;
+    const starSize = 28;
+    const distractorCount = Math.floor(neglectState.totalStars * 0.4);
+    
+    const leftCount = Math.floor(neglectState.totalStars / 2);
+    const rightCount = neglectState.totalStars - leftCount;
+    
+    neglectState.total.left = leftCount;
+    neglectState.total.right = rightCount;
+    
+    for (let i = 0; i < leftCount; i++) {
+        createStar(field, 
+            padding + Math.random() * (width / 2 - padding * 2 - starSize),
+            padding + Math.random() * (height - padding * 2 - starSize),
+            'left', i);
+    }
+    
+    for (let i = 0; i < rightCount; i++) {
+        createStar(field,
+            width / 2 + padding + Math.random() * (width / 2 - padding * 2 - starSize),
+            padding + Math.random() * (height - padding * 2 - starSize),
+            'right', leftCount + i);
+    }
+    
+    const distractors = ['A', 'B', 'C', 'D', 'E', 'ㄱ', 'ㄴ', 'ㄷ', '○', '△', '□'];
+    for (let i = 0; i < distractorCount; i++) {
+        const distractor = document.createElement('div');
+        distractor.className = 'neglect-distractor';
+        distractor.textContent = distractors[Math.floor(Math.random() * distractors.length)];
+        distractor.style.left = (padding + Math.random() * (width - padding * 2 - 20)) + 'px';
+        distractor.style.top = (padding + Math.random() * (height - padding * 2 - 20)) + 'px';
+        field.appendChild(distractor);
+    }
+}
+
+function createStar(field, x, y, side, index) {
+    const star = document.createElement('div');
+    star.className = 'neglect-star';
+    star.textContent = '⭐';
+    star.style.left = x + 'px';
+    star.style.top = y + 'px';
+    star.dataset.side = side;
+    star.dataset.index = index;
+    
+    star.addEventListener('click', function() { onStarTap(star, side); });
+    star.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        onStarTap(star, side);
+    }, { passive: false });
+    
+    field.appendChild(star);
+    neglectState.stars.push({ side: side, found: false });
+}
+
+function onStarTap(star, side) {
+    if (star.classList.contains('found') || !neglectState.isRunning) return;
+    
+    star.classList.add('found');
+    neglectState.found[side]++;
+    
+    const totalFound = neglectState.found.left + neglectState.found.right;
+    document.getElementById('neglect-found').textContent = totalFound;
+    
+    if (totalFound >= neglectState.totalStars) {
+        endNeglectTest();
+    }
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+}
+
+function updateNeglectTimer() {
+    neglectState.timeRemaining--;
+    updateTimerDisplay();
+    
+    if (neglectState.timeRemaining <= 0) {
+        endNeglectTest();
+    }
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(neglectState.timeRemaining / 60);
+    const seconds = neglectState.timeRemaining % 60;
+    const secStr = seconds < 10 ? '0' + seconds : '' + seconds;
+    const display = minutes + ':' + secStr;
+    
+    const timerEl = document.getElementById('neglect-timer');
+    timerEl.textContent = display;
+    
+    timerEl.classList.remove('warning', 'danger');
+    if (neglectState.timeRemaining <= 10) {
+        timerEl.classList.add('danger');
+    } else if (neglectState.timeRemaining <= 30) {
+        timerEl.classList.add('warning');
+    }
+}
+
+function stopNeglectTimer() {
+    if (neglectState.timer) {
+        clearInterval(neglectState.timer);
+        neglectState.timer = null;
+    }
+}
+
+function endNeglectTest() {
+    stopNeglectTimer();
+    neglectState.isRunning = false;
+    
+    const leftPercent = neglectState.total.left > 0 
+        ? Math.round((neglectState.found.left / neglectState.total.left) * 100) 
+        : 0;
+    const rightPercent = neglectState.total.right > 0 
+        ? Math.round((neglectState.found.right / neglectState.total.right) * 100) 
+        : 0;
+    
+    const totalFound = neglectState.found.left + neglectState.found.right;
+    const totalStars = neglectState.totalStars;
+    const omissions = totalStars - totalFound;
+    const asymmetry = leftPercent - rightPercent;
+    
+    document.getElementById('result-left').textContent = leftPercent + '%';
+    document.getElementById('result-right').textContent = rightPercent + '%';
+    document.getElementById('left-fill').style.width = leftPercent + '%';
+    document.getElementById('right-fill').style.width = rightPercent + '%';
+    
+    const leftOmit = neglectState.total.left - neglectState.found.left;
+    const rightOmit = neglectState.total.right - neglectState.found.right;
+    const asymText = asymmetry > 0 ? '(우측 저하)' : asymmetry < 0 ? '(좌측 저하)' : '';
+    
+    document.getElementById('neglect-summary').innerHTML = 
+        '<div><strong>찾은 별:</strong> ' + totalFound + ' / ' + totalStars + '</div>' +
+        '<div><strong>누락:</strong> ' + omissions + '개 (좌 ' + leftOmit + ', 우 ' + rightOmit + ')</div>' +
+        '<div><strong>좌우 차이:</strong> ' + Math.abs(asymmetry) + '%p ' + asymText + '</div>';
+    
+    const totalPercent = (totalFound / totalStars) * 100;
+    const interpretEl = document.getElementById('neglect-interpretation');
+    
+    if (totalPercent >= 95 && Math.abs(asymmetry) < 20) {
+        interpretEl.className = 'neglect-interpretation normal';
+        interpretEl.innerHTML = '✅ <strong>정상 범위</strong><br>편측 무시 가능성 낮음';
+    } else if (leftPercent < 80 && rightPercent >= 90) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>좌측 무시 의심</strong><br>우뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (rightPercent < 80 && leftPercent >= 90) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>우측 무시 의심</strong><br>좌뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (Math.abs(asymmetry) >= 20) {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>비대칭 패턴</strong><br>편측 무시 선별 필요 - 추가 평가 권장';
+    } else {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>주의력/집중력 저하</strong><br>전반적 인지 평가 권장';
+    }
+    
+    document.getElementById('neglect-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.remove('hidden');
+}

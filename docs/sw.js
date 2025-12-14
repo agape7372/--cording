@@ -1,4 +1,4 @@
-const CACHE_NAME = 'algopt-pro-v18';
+const CACHE_NAME = 'algopt-pro-v19';
 const urlsToCache = [
   '/',
   '/index.html',
