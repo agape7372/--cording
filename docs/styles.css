@@ -3810,23 +3810,64 @@ html, body {
     color: white;
 }
 
-/* 사용 가이드 (인라인 컴팩트) */
-.gonio-guide-inline {
+/* 사용 가이드 (작은 핸드폰 애니메이션) */
+.gonio-guide-compact {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     padding: 8px 12px;
     background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
     border-radius: 8px;
     margin-bottom: 12px;
 }
 
-.guide-icon {
-    font-size: 18px;
+/* 미니 핸드폰 애니메이션 */
+.phone-anim-mini {
+    width: 24px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.guide-text {
+.phone-body-mini {
+    width: 20px;
+    height: 36px;
+    background: #1e40af;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    animation: phoneTiltMini 2s ease-in-out infinite;
+    transform-origin: center center;
+}
+
+.phone-screen-mini {
+    width: 14px;
+    height: 26px;
+    background: #60a5fa;
+    border-radius: 2px;
+}
+
+/* 좌우 기울이기 애니메이션 (수평계) */
+@keyframes phoneTiltMini {
+    0%, 100% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+}
+
+/* 앞뒤 기울이기 애니메이션 (각도계) */
+@keyframes phoneTiltForwardMini {
+    0%, 100% { transform: perspective(100px) rotateX(-15deg); }
+    50% { transform: perspective(100px) rotateX(15deg); }
+}
+
+.phone-body-mini.tilt-forward {
+    animation: phoneTiltForwardMini 2s ease-in-out infinite;
+}
+
+.guide-text-compact {
     font-size: 13px;
     color: #1e40af;
     font-weight: 600;

@@ -893,10 +893,14 @@
                     <button class="gonio-tab" data-mode="angle" onclick="setGonioMode('angle')">각도계</button>
                 </div>
 
-                <!-- 사용 가이드 (인라인 컴팩트) -->
-                <div class="gonio-guide-inline" id="gonio-guide">
-                    <span class="guide-icon" id="guide-icon">📱↔</span>
-                    <span class="guide-text" id="guide-text">좌우로 기울이세요</span>
+                <!-- 사용 가이드 (작은 핸드폰 애니메이션) -->
+                <div class="gonio-guide-compact" id="gonio-guide">
+                    <div class="phone-anim-mini" id="phone-anim-mini">
+                        <div class="phone-body-mini">
+                            <div class="phone-screen-mini"></div>
+                        </div>
+                    </div>
+                    <span class="guide-text-compact" id="guide-text">좌우로 기울이세요</span>
                 </div>
 
                 <div class="gonio-visual" id="gonio-tap-area">
@@ -933,10 +937,6 @@
                         <label class="hold-option">
                             <input type="checkbox" id="hold-tap" onchange="saveGonioSettings()">
                             <span>👆 화면탭</span>
-                        </label>
-                        <label class="hold-option">
-                            <input type="checkbox" id="hold-volume" onchange="saveGonioSettings()">
-                            <span>🔊 볼륨키</span>
                         </label>
                         <label class="hold-option">
                             <input type="checkbox" id="hold-auto" onchange="saveGonioSettings()">

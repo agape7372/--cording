@@ -2600,7 +2600,6 @@ const gonioState = {
     // 고정 방식 설정
     holdSettings: {
         tap: true,      // 화면 탭
-        volume: false,  // 볼륨 버튼
         auto: false,    // 자동 고정
         voice: false    // 음성 명령
     },
@@ -2665,7 +2664,6 @@ function loadGonioSettings() {
 
     // UI 체크박스 업데이트
     document.getElementById('hold-tap').checked = gonioState.holdSettings.tap;
-    document.getElementById('hold-volume').checked = gonioState.holdSettings.volume;
     document.getElementById('hold-auto').checked = gonioState.holdSettings.auto;
     document.getElementById('hold-voice').checked = gonioState.holdSettings.voice;
 
@@ -2675,7 +2673,6 @@ function loadGonioSettings() {
 function saveGonioSettings() {
     gonioState.holdSettings = {
         tap: document.getElementById('hold-tap').checked,
-        volume: document.getElementById('hold-volume').checked,
         auto: document.getElementById('hold-auto').checked,
         voice: document.getElementById('hold-voice').checked
     };
@@ -2694,7 +2691,6 @@ function updateHoldStatus() {
 
     const active = [];
     if (gonioState.holdSettings.tap) active.push('탭');
-    if (gonioState.holdSettings.volume) active.push('볼륨');
     if (gonioState.holdSettings.auto) active.push('자동');
     if (gonioState.holdSettings.voice) active.push('음성');
 
@@ -2710,11 +2706,6 @@ function setupGonioHoldMethods() {
             tapArea.addEventListener('click', handleGonioTap);
             tapArea.style.cursor = 'pointer';
         }
-    }
-
-    // B: 볼륨 버튼
-    if (gonioState.holdSettings.volume) {
-        window.addEventListener('keydown', handleGonioVolumeKey);
     }
 
     // D: 자동 고정 (3초 안정)
@@ -2737,9 +2728,6 @@ function cleanupGonioHoldMethods() {
         tapArea.style.cursor = '';
     }
 
-    // 볼륨 키 이벤트 제거
-    window.removeEventListener('keydown', handleGonioVolumeKey);
-
     // 자동 고정 타이머 제거
     if (gonioState.autoHoldTimer) {
         clearTimeout(gonioState.autoHoldTimer);
@@ -2758,16 +2746,6 @@ function handleGonioTap(e) {
     // 버튼 클릭은 제외
     if (e.target.closest('.gonio-btn') || e.target.closest('.gonio-hold-settings')) return;
     toggleGonioHold();
-}
-
-// B: 볼륨 버튼 핸들러
-function handleGonioVolumeKey(e) {
-    if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
-        e.key === 'VolumeUp' || e.key === 'VolumeDown' ||
-        e.keyCode === 175 || e.keyCode === 174) {
-        e.preventDefault();
-        toggleGonioHold();
-    }
 }
 
 // D: 자동 고정 체크 (handleOrientation에서 호출)
@@ -2944,16 +2922,16 @@ function setGonioMode(mode) {
     });
 
     const romSection = document.getElementById('gonio-rom-section');
-    const guideIcon = document.getElementById('guide-icon');
+    const phoneAnim = document.querySelector('.phone-body-mini');
     const guideText = document.getElementById('guide-text');
 
     if (mode === 'angle') {
         romSection.classList.remove('hidden');
-        if (guideIcon) guideIcon.textContent = '📱↕';
+        if (phoneAnim) phoneAnim.classList.add('tilt-forward');
         if (guideText) guideText.textContent = '관절에 대고 앞뒤로';
     } else {
         romSection.classList.add('hidden');
-        if (guideIcon) guideIcon.textContent = '📱↔';
+        if (phoneAnim) phoneAnim.classList.remove('tilt-forward');
         if (guideText) guideText.textContent = '좌우로 기울이세요';
     }
 
