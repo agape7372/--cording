@@ -2302,6 +2302,7 @@ function showResultSummary() {
         </div>
     `;
     el.resultSummary.classList.remove('hidden');
+    setDtState('result'); // 결과 상태로 변경
 }
 
 function evaluatePerformance(taskCount, avgTime, totalSeconds) {

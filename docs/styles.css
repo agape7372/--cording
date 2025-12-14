@@ -3614,11 +3614,12 @@ html, body {
 }
 
 /* 상태별 표시/숨김 */
-#dualtask-modal[data-state="running"] .dt-setup {
+#dualtask-modal[data-state="running"] .dt-setup,
+#dualtask-modal[data-state="result"] .dt-setup {
     display: none;
 }
 
-#dualtask-modal[data-state="idle"] .dt-result {
+#dualtask-modal[data-state="running"] .dt-result {
     display: none;
 }
 
