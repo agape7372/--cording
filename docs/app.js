@@ -35,7 +35,12 @@ const state = {
     romWnl: {},
 
     // Current screen
-    currentScreen: 'home'
+    currentScreen: 'home',
+
+    // Patient Management
+    patients: [],
+    currentPatient: null,
+    newPatientGender: 'M'
 };
 
 // ============================================
@@ -149,6 +154,11 @@ function initApp() {
     initMasTab();
     initMmtTab();
     initRomTab();
+
+    // Initialize patient management
+    loadPatients();
+    renderRecentPatients();
+    renderAllPatients();
 }
 
 // ============================================
@@ -171,11 +181,19 @@ function navigateTo(screen) {
     // Update header title
     const titles = {
         home: '알고PT Pro',
+        patient: '환자 관리',
         subjective: '주관적 평가',
         objective: '객관적 평가',
         cdss: 'AI 임상 지원'
     };
     document.getElementById('header-title').textContent = titles[screen] || '알고PT Pro';
+
+    // Refresh patient lists when navigating
+    if (screen === 'home') {
+        renderRecentPatients();
+    } else if (screen === 'patient') {
+        renderAllPatients();
+    }
 }
 
 // ============================================
@@ -867,6 +885,217 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('SW registration failed'));
     });
 }
+
+// ============================================
+// Patient Management
+// ============================================
+function loadPatients() {
+    const saved = localStorage.getItem('algopt_patients');
+    if (saved) {
+        state.patients = JSON.parse(saved);
+    } else {
+        // Add sample patients for demo
+        state.patients = [
+            { id: 1, name: '김영수', age: 65, gender: 'M', diagnosis: 'Lt. hemiplegia (CVA)', lastVisit: '2024-12-14', sessions: 12 },
+            { id: 2, name: '박순자', age: 72, gender: 'F', diagnosis: "Parkinson's disease", lastVisit: '2024-12-13', sessions: 8 },
+            { id: 3, name: '이철호', age: 58, gender: 'M', diagnosis: 'Rt. hemiplegia (CVA)', lastVisit: '2024-12-12', sessions: 15 }
+        ];
+        savePatients();
+    }
+}
+
+function savePatients() {
+    localStorage.setItem('algopt_patients', JSON.stringify(state.patients));
+}
+
+function renderRecentPatients() {
+    const container = document.getElementById('recent-patients');
+    if (!container) return;
+
+    const recentPatients = state.patients.slice(0, 3);
+
+    if (recentPatients.length === 0) {
+        container.innerHTML = '<p class="empty-hint">등록된 환자가 없습니다</p>';
+        return;
+    }
+
+    container.innerHTML = recentPatients.map(patient => `
+        <div class="patient-card" onclick="selectPatient(${patient.id})">
+            <div class="patient-avatar ${patient.gender === 'M' ? 'male' : 'female'}">
+                ${patient.gender === 'M' ? '♂' : '♀'}
+            </div>
+            <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-detail">${patient.age}세 · ${patient.diagnosis}</div>
+                <div class="patient-meta">마지막 치료: ${patient.lastVisit} · ${patient.sessions}회</div>
+            </div>
+            <div class="patient-arrow">→</div>
+        </div>
+    `).join('');
+}
+
+function renderAllPatients(searchQuery = '') {
+    const container = document.getElementById('all-patients');
+    if (!container) return;
+
+    let filteredPatients = state.patients;
+    if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        filteredPatients = state.patients.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            p.diagnosis.toLowerCase().includes(query)
+        );
+    }
+
+    if (filteredPatients.length === 0) {
+        container.innerHTML = searchQuery
+            ? '<p class="empty-hint">검색 결과가 없습니다</p>'
+            : '<p class="empty-hint">등록된 환자가 없습니다</p>';
+        return;
+    }
+
+    container.innerHTML = filteredPatients.map(patient => `
+        <div class="patient-card" onclick="selectPatient(${patient.id})">
+            <div class="patient-avatar ${patient.gender === 'M' ? 'male' : 'female'}">
+                ${patient.gender === 'M' ? '♂' : '♀'}
+            </div>
+            <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-detail">${patient.age}세 · ${patient.diagnosis}</div>
+                <div class="patient-meta">마지막 치료: ${patient.lastVisit} · ${patient.sessions}회</div>
+            </div>
+            <div class="patient-actions">
+                <button class="patient-action-btn" onclick="event.stopPropagation(); editPatient(${patient.id})">✏️</button>
+                <button class="patient-action-btn delete" onclick="event.stopPropagation(); deletePatient(${patient.id})">🗑️</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function searchPatients(query) {
+    renderAllPatients(query);
+}
+
+function selectPatient(id) {
+    const patient = state.patients.find(p => p.id === id);
+    if (patient) {
+        state.currentPatient = patient;
+        state.age = patient.age;
+        state.gender = patient.gender;
+
+        // Update UI
+        document.getElementById('age-value').textContent = `${patient.age}세`;
+        setGender(patient.gender);
+
+        showToast(`${patient.name} 환자 선택됨`);
+        navigateTo('subjective');
+    }
+}
+
+function openNewPatientModal() {
+    state.newPatientGender = 'M';
+    document.getElementById('patient-name').value = '';
+    document.getElementById('patient-age').value = '50';
+    document.getElementById('patient-diagnosis').value = '';
+    document.getElementById('new-gender-m').classList.add('active');
+    document.getElementById('new-gender-f').classList.remove('active');
+    document.getElementById('patient-modal').classList.remove('hidden');
+}
+
+function closePatientModal() {
+    document.getElementById('patient-modal').classList.add('hidden');
+}
+
+function setNewPatientGender(gender) {
+    state.newPatientGender = gender;
+    document.getElementById('new-gender-m').classList.toggle('active', gender === 'M');
+    document.getElementById('new-gender-f').classList.toggle('active', gender === 'F');
+}
+
+function saveNewPatient() {
+    const name = document.getElementById('patient-name').value.trim();
+    const age = parseInt(document.getElementById('patient-age').value);
+    const diagnosis = document.getElementById('patient-diagnosis').value.trim();
+
+    if (!name) {
+        showToast('환자 이름을 입력해주세요');
+        return;
+    }
+
+    const newPatient = {
+        id: Date.now(),
+        name: name,
+        age: age || 50,
+        gender: state.newPatientGender,
+        diagnosis: diagnosis || '미입력',
+        lastVisit: new Date().toISOString().split('T')[0],
+        sessions: 1
+    };
+
+    state.patients.unshift(newPatient);
+    savePatients();
+    renderRecentPatients();
+    renderAllPatients();
+    closePatientModal();
+    showToast('새 환자가 등록되었습니다');
+}
+
+function editPatient(id) {
+    const patient = state.patients.find(p => p.id === id);
+    if (patient) {
+        state.newPatientGender = patient.gender;
+        document.getElementById('patient-name').value = patient.name;
+        document.getElementById('patient-age').value = patient.age;
+        document.getElementById('patient-diagnosis').value = patient.diagnosis;
+        document.getElementById('new-gender-m').classList.toggle('active', patient.gender === 'M');
+        document.getElementById('new-gender-f').classList.toggle('active', patient.gender === 'F');
+        document.getElementById('patient-modal').classList.remove('hidden');
+
+        // Change save button to update
+        const saveBtn = document.querySelector('#patient-modal .primary-btn');
+        saveBtn.textContent = '수정';
+        saveBtn.onclick = () => updatePatient(id);
+    }
+}
+
+function updatePatient(id) {
+    const patient = state.patients.find(p => p.id === id);
+    if (patient) {
+        patient.name = document.getElementById('patient-name').value.trim();
+        patient.age = parseInt(document.getElementById('patient-age').value) || 50;
+        patient.gender = state.newPatientGender;
+        patient.diagnosis = document.getElementById('patient-diagnosis').value.trim() || '미입력';
+
+        savePatients();
+        renderRecentPatients();
+        renderAllPatients();
+        closePatientModal();
+
+        // Reset save button
+        const saveBtn = document.querySelector('#patient-modal .primary-btn');
+        saveBtn.textContent = '저장';
+        saveBtn.onclick = saveNewPatient;
+
+        showToast('환자 정보가 수정되었습니다');
+    }
+}
+
+function deletePatient(id) {
+    if (confirm('이 환자를 삭제하시겠습니까?')) {
+        state.patients = state.patients.filter(p => p.id !== id);
+        savePatients();
+        renderRecentPatients();
+        renderAllPatients();
+        showToast('환자가 삭제되었습니다');
+    }
+}
+
+// Close patient modal when clicking outside
+document.getElementById('patient-modal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'patient-modal') {
+        closePatientModal();
+    }
+});
 
 // ============================================
 // Clinical Tools
