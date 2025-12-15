@@ -4,6 +4,15 @@
  */
 
 // ============================================
+// Storage Keys
+// ============================================
+const STORAGE_KEYS = {
+    PATIENTS: 'algopt_patients',
+    MEASUREMENTS: 'algopt_measurements',
+    CURRENT_PATIENT: 'algopt_current_patient'
+};
+
+// ============================================
 // State Management
 // ============================================
 const state = {
@@ -38,7 +47,17 @@ const state = {
     bbsValues: {},
 
     // Current screen
-    currentScreen: 'home'
+    currentScreen: 'home',
+
+    // Current patient
+    currentPatient: null
+};
+
+// Patient form state
+let patientFormState = {
+    editMode: false,
+    editId: null,
+    gender: null
 };
 
 // ============================================
@@ -200,6 +219,591 @@ function initApp() {
     initMmtTab();
     initRomTab();
     initBbsTab();
+
+    // Initialize patient management
+    initSamplePatients();
+    renderPatientList();
+    renderCaseList();
+    loadCurrentPatientFromStorage();
+    initPatientFormListeners();
+    initAutoSave();
+}
+
+// Initialize sample patients on first run - 새 데이터 모델 적용
+function initSamplePatients() {
+    const patients = getPatients();
+    if (patients.length === 0) {
+        const samplePatients = [
+            {
+                id: Date.now().toString() + '1',
+                name: '홍길동',
+                gender: 'male',
+                age: 65,
+                diagnosis: 'Lt. Hemiplegia (Stroke)',
+                memo: '좌측 편마비, 보행 훈련 중',
+                status: 'ing', // 'waiting', 'ing', 'done'
+                progress: { S: true, O: true, A: false, P: false },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: Date.now().toString() + '2',
+                name: '김영희',
+                gender: 'female',
+                age: 72,
+                diagnosis: "Parkinson's Disease",
+                memo: '균형 훈련 필요',
+                status: 'waiting',
+                progress: { S: false, O: false, A: false, P: false },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            },
+            {
+                id: Date.now().toString() + '3',
+                name: '박민수',
+                gender: 'male',
+                age: 45,
+                diagnosis: 'LBP (L4-5 HIVD)',
+                memo: '통증 관리 및 코어 강화',
+                status: 'done',
+                progress: { S: true, O: true, A: true, P: true },
+                soapData: { S: {}, O: {}, A: {}, P: {} },
+                lastUpdated: new Date().toISOString(),
+                createdAt: new Date().toISOString()
+            }
+        ];
+        savePatients(samplePatients);
+    } else {
+        // 기존 환자에 progress 필드가 없으면 추가
+        let updated = false;
+        patients.forEach(p => {
+            if (!p.progress) {
+                p.progress = { S: false, O: false, A: false, P: false };
+                updated = true;
+            }
+            if (!p.soapData) {
+                p.soapData = { S: {}, O: {}, A: {}, P: {} };
+                updated = true;
+            }
+            if (!p.status) {
+                p.status = 'waiting';
+                updated = true;
+            }
+        });
+        if (updated) savePatients(patients);
+    }
+}
+
+// Load current patient from storage on startup
+function loadCurrentPatientFromStorage() {
+    const currentPatientId = localStorage.getItem(STORAGE_KEYS.CURRENT_PATIENT);
+    if (currentPatientId) {
+        const patients = getPatients();
+        const patient = patients.find(p => p.id === currentPatientId);
+        if (patient) {
+            state.currentPatient = patient;
+            updateCurrentPatientDisplay();
+        }
+    }
+}
+
+// Update current patient display in header/home
+function updateCurrentPatientDisplay() {
+    const patient = state.currentPatient;
+    const patientInfoEl = document.getElementById('current-patient-info');
+
+    if (patientInfoEl) {
+        if (patient) {
+            patientInfoEl.innerHTML = `
+                <div class="current-patient-badge">
+                    <span class="patient-icon">👤</span>
+                    <span class="patient-name">${patient.name}</span>
+                    <span class="patient-detail">${patient.gender === 'male' ? '남' : '여'} / ${patient.age}세</span>
+                </div>
+            `;
+            patientInfoEl.style.display = 'flex';
+        } else {
+            patientInfoEl.innerHTML = '';
+            patientInfoEl.style.display = 'none';
+        }
+    }
+}
+
+// ============================================
+// Case Screen - 환자 케이스 관리
+// ============================================
+let caseFilterStatus = 'all';
+let caseSearchQuery = '';
+
+// Render Case Patient List
+function renderCaseList() {
+    const container = document.getElementById('case-patient-list');
+    if (!container) return;
+
+    let patients = getPatients();
+
+    // Apply status filter
+    if (caseFilterStatus !== 'all') {
+        patients = patients.filter(p => p.status === caseFilterStatus);
+    }
+
+    // Apply search filter
+    if (caseSearchQuery) {
+        const query = caseSearchQuery.toLowerCase();
+        patients = patients.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            (p.diagnosis && p.diagnosis.toLowerCase().includes(query))
+        );
+    }
+
+    if (patients.length === 0) {
+        container.innerHTML = `
+            <div class="case-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <p>등록된 환자가 없습니다</p>
+                <button onclick="openAddPatientModal()">새 환자 등록</button>
+            </div>
+        `;
+        return;
+    }
+
+    const currentPatientId = state.currentPatient?.id;
+
+    container.innerHTML = patients.map(p => {
+        const statusText = { waiting: '대기', ing: '진행중', done: '완료' };
+        const genderClass = p.gender === 'male' ? 'male' : 'female';
+        const firstName = p.name.charAt(0);
+        const isSelected = p.id === currentPatientId;
+        const lastUpdated = p.lastUpdated ? formatTimeAgo(p.lastUpdated) : '';
+
+        return `
+            <div class="case-patient-card ${isSelected ? 'selected' : ''}" data-id="${p.id}" onclick="selectCasePatient('${p.id}')">
+                <div class="case-card-top">
+                    <div class="case-patient-avatar ${genderClass}">${firstName}</div>
+                    <div class="case-patient-main">
+                        <div class="case-patient-name-row">
+                            <span class="case-patient-name">${p.name}</span>
+                            <span class="case-status-badge ${p.status}">${statusText[p.status] || '대기'}</span>
+                        </div>
+                        <div class="case-patient-info">${p.gender === 'male' ? 'M' : 'F'}/${p.age}세</div>
+                        <div class="case-patient-dx">${p.diagnosis || '진단명 없음'}</div>
+                    </div>
+                    <button class="case-card-menu" onclick="openPatientMenu('${p.id}', event)">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                            <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="case-soap-progress">
+                    ${renderSoapProgress(p.progress)}
+                    <span class="case-last-updated">${lastUpdated}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Render SOAP Progress indicator
+function renderSoapProgress(progress) {
+    const steps = ['S', 'O', 'A', 'P'];
+    let html = '';
+
+    steps.forEach((step, i) => {
+        const status = progress?.[step] ? 'done' : 'pending';
+        html += `<div class="soap-step">
+            <span class="soap-step-letter ${status}">${step}</span>
+        </div>`;
+        if (i < steps.length - 1) {
+            const connectorDone = progress?.[step] ? 'done' : '';
+            html += `<span class="soap-step-connector ${connectorDone}"></span>`;
+        }
+    });
+
+    return html;
+}
+
+// Format time ago
+function formatTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+}
+
+// Filter Case by Status
+function filterCaseByStatus(status) {
+    caseFilterStatus = status;
+
+    // Update tab UI
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.includes(
+            status === 'all' ? '전체' :
+            status === 'waiting' ? '대기' :
+            status === 'ing' ? '진행중' : '완료'
+        ));
+    });
+
+    renderCaseList();
+}
+
+// Filter Case Patients by search query
+function filterCasePatients(query) {
+    caseSearchQuery = query;
+    renderCaseList();
+}
+
+// Select Case Patient - 환자 선택 후 S 탭으로 이동
+function selectCasePatient(patientId) {
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+
+    if (!patient) {
+        showToast('환자를 찾을 수 없습니다');
+        return;
+    }
+
+    // Set as current patient
+    state.currentPatient = patient;
+    localStorage.setItem(STORAGE_KEYS.CURRENT_PATIENT, patientId);
+
+    // Update status to 'ing' if waiting
+    if (patient.status === 'waiting') {
+        patient.status = 'ing';
+        patient.lastUpdated = new Date().toISOString();
+        updatePatient(patient);
+    }
+
+    // Update UI
+    updateCurrentPatientDisplay();
+    renderCaseList();
+
+    // Navigate to Subjective screen
+    navigateTo('subjective');
+    showToast(`${patient.name} 환자가 선택되었습니다`);
+}
+
+// ============================================
+// Sticky Patient Header - SOAP 탭에서 고정 표시
+// ============================================
+
+// Update Sticky Header
+function updateStickyHeader(currentScreen) {
+    const header = document.getElementById('sticky-patient-header');
+    if (!header) return;
+
+    const soapScreens = ['subjective', 'objective', 'assessment', 'plan'];
+
+    // Only show on SOAP screens when patient is selected
+    if (!soapScreens.includes(currentScreen) || !state.currentPatient) {
+        header.classList.add('hidden');
+        return;
+    }
+
+    header.classList.remove('hidden');
+
+    const patient = state.currentPatient;
+
+    // Update patient info
+    document.getElementById('sticky-patient-name').textContent = patient.name;
+    document.getElementById('sticky-patient-detail').textContent =
+        `(${patient.gender === 'male' ? 'M' : 'F'}/${patient.age})`;
+
+    // Update progress indicators
+    const screenToStep = {
+        subjective: 'S',
+        objective: 'O',
+        assessment: 'A',
+        plan: 'P'
+    };
+    const currentStep = screenToStep[currentScreen];
+
+    document.querySelectorAll('.progress-step').forEach(step => {
+        const stepName = step.dataset.step;
+        step.classList.remove('done', 'current', 'pending');
+
+        if (patient.progress?.[stepName]) {
+            step.classList.add('done');
+        } else if (stepName === currentStep) {
+            step.classList.add('current');
+        } else {
+            step.classList.add('pending');
+        }
+    });
+}
+
+// Update save status in sticky header
+let saveStatusTimer = null;
+
+function updateSaveStatus(saving = false) {
+    const statusEl = document.getElementById('sticky-save-status');
+    if (!statusEl) return;
+
+    // Clear previous timer
+    if (saveStatusTimer) {
+        clearTimeout(saveStatusTimer);
+        saveStatusTimer = null;
+    }
+
+    // Remove all state classes
+    statusEl.classList.remove('saving', 'saved', 'fade-out');
+
+    if (saving) {
+        // Show "저장 중..." state
+        statusEl.classList.add('visible', 'saving');
+        statusEl.querySelector('.save-text').textContent = '저장 중...';
+    } else {
+        // Show "✔ 저장됨" state
+        statusEl.classList.add('visible', 'saved');
+        statusEl.querySelector('.save-text').textContent = '✔ 저장됨';
+
+        // Fade out after 3 seconds
+        saveStatusTimer = setTimeout(() => {
+            statusEl.classList.add('fade-out');
+
+            // Hide completely after fade animation
+            setTimeout(() => {
+                statusEl.classList.remove('visible', 'saved', 'fade-out');
+            }, 1000);
+        }, 3000);
+    }
+}
+
+// ============================================
+// Navigation with Patient Check
+// ============================================
+
+// Navigate to SOAP screen - 환자 선택 여부 확인
+function navigateToSoap(screen) {
+    if (!state.currentPatient) {
+        alert('환자를 먼저 선택해주세요.\n\nCase 탭에서 환자를 선택한 후 평가를 시작할 수 있습니다.');
+        navigateTo('case');
+        return;
+    }
+
+    navigateTo(screen);
+}
+
+// ============================================
+// Auto-save Functionality
+// ============================================
+
+// Initialize auto-save event listeners
+function initAutoSave() {
+    // S Screen - Chief complaints, VAS, etc.
+    document.querySelectorAll('#screen-subjective input, #screen-subjective textarea, #screen-subjective select').forEach(el => {
+        el.addEventListener('blur', () => saveCurrentSoapData('S'));
+    });
+
+    // O Screen - MAS, MMT, ROM, BBS
+    document.querySelectorAll('#screen-objective input, #screen-objective select').forEach(el => {
+        el.addEventListener('change', () => saveCurrentSoapData('O'));
+    });
+}
+
+// Save current SOAP data
+function saveCurrentSoapData(step) {
+    if (!state.currentPatient) return;
+
+    updateSaveStatus(true);
+
+    const patient = state.currentPatient;
+
+    // Collect data based on step
+    switch (step) {
+        case 'S':
+            patient.soapData.S = {
+                age: state.age,
+                gender: state.gender,
+                complaints: Array.from(state.selectedComplaints),
+                painLocations: Array.from(state.painLocations.entries()),
+                timestamp: new Date().toISOString()
+            };
+            // Mark as completed if has any data
+            patient.progress.S = state.selectedComplaints.size > 0 || state.painLocations.size > 0;
+            break;
+
+        case 'O':
+            patient.soapData.O = {
+                masValues: { ...state.masValues },
+                mmtValues: { ...state.mmtValues },
+                romValues: { ...state.romValues },
+                bbsValues: { ...state.bbsValues },
+                timestamp: new Date().toISOString()
+            };
+            // Mark as completed if has any data
+            patient.progress.O = Object.keys(state.masValues).length > 0 ||
+                                 Object.keys(state.mmtValues).length > 0 ||
+                                 Object.keys(state.romValues).length > 0 ||
+                                 Object.keys(state.bbsValues).length > 0;
+            break;
+
+        case 'A':
+            patient.soapData.A = {
+                selectedProblems: [...aiState.selectedProblems],
+                selectedSTGs: [...aiState.selectedSTGs],
+                selectedLTGs: [...aiState.selectedLTGs],
+                timestamp: new Date().toISOString()
+            };
+            patient.progress.A = aiState.selectedProblems.length > 0;
+            break;
+
+        case 'P':
+            patient.soapData.P = {
+                treatmentCart: [...aiState.treatmentCart],
+                selectedHEPs: [...aiState.selectedHEPs],
+                selectedEducation: [...aiState.selectedEducation],
+                selectedPrecautions: [...aiState.selectedPrecautions],
+                schedule: { ...aiState.schedule },
+                timestamp: new Date().toISOString()
+            };
+            patient.progress.P = aiState.treatmentCart.length > 0;
+            break;
+    }
+
+    patient.lastUpdated = new Date().toISOString();
+
+    // Update patient status
+    const allDone = patient.progress.S && patient.progress.O && patient.progress.A && patient.progress.P;
+    if (allDone) {
+        patient.status = 'done';
+    } else if (patient.progress.S || patient.progress.O || patient.progress.A || patient.progress.P) {
+        patient.status = 'ing';
+    }
+
+    // Save to storage
+    updatePatient(patient);
+    state.currentPatient = patient;
+
+    // Update UI
+    setTimeout(() => {
+        updateSaveStatus(false);
+        updateStickyHeader(state.currentScreen);
+        renderCaseList();
+    }, 500);
+}
+
+// Load SOAP data for current patient
+function loadPatientSoapData() {
+    if (!state.currentPatient) return;
+
+    const patient = state.currentPatient;
+
+    // Load S data
+    if (patient.soapData?.S) {
+        const sData = patient.soapData.S;
+        if (sData.age) {
+            state.age = sData.age;
+            const ageInput = document.getElementById('age-input');
+            if (ageInput) ageInput.value = sData.age;
+        }
+        if (sData.gender) {
+            state.gender = sData.gender;
+            setGender(sData.gender);
+        }
+        if (sData.complaints) {
+            state.selectedComplaints = new Set(sData.complaints);
+            // Re-render complaints UI
+        }
+        if (sData.painLocations) {
+            state.painLocations = new Map(sData.painLocations);
+            // Re-render pain markers
+        }
+    }
+
+    // Load O data
+    if (patient.soapData?.O) {
+        const oData = patient.soapData.O;
+        if (oData.masValues) state.masValues = oData.masValues;
+        if (oData.mmtValues) state.mmtValues = oData.mmtValues;
+        if (oData.romValues) state.romValues = oData.romValues;
+        if (oData.bbsValues) state.bbsValues = oData.bbsValues;
+    }
+
+    // Load A data
+    if (patient.soapData?.A) {
+        const aData = patient.soapData.A;
+        if (aData.selectedProblems) aiState.selectedProblems = aData.selectedProblems;
+        if (aData.selectedSTGs) aiState.selectedSTGs = aData.selectedSTGs;
+        if (aData.selectedLTGs) aiState.selectedLTGs = aData.selectedLTGs;
+    }
+
+    // Load P data
+    if (patient.soapData?.P) {
+        const pData = patient.soapData.P;
+        if (pData.treatmentCart) aiState.treatmentCart = pData.treatmentCart;
+        if (pData.selectedHEPs) aiState.selectedHEPs = pData.selectedHEPs;
+        if (pData.selectedEducation) aiState.selectedEducation = pData.selectedEducation;
+        if (pData.selectedPrecautions) aiState.selectedPrecautions = pData.selectedPrecautions;
+        if (pData.schedule) aiState.schedule = pData.schedule;
+    }
+}
+
+// Update patient in storage
+function updatePatient(patient) {
+    const patients = getPatients();
+    const index = patients.findIndex(p => p.id === patient.id);
+    if (index >= 0) {
+        patients[index] = patient;
+        savePatients(patients);
+    }
+}
+
+// Initialize patient form event listeners
+function initPatientFormListeners() {
+    // Diagnosis select - show custom input when "기타" selected
+    const diagnosisSelect = document.getElementById('patient-diagnosis');
+    const customDiagnosis = document.getElementById('custom-diagnosis');
+
+    if (diagnosisSelect && customDiagnosis) {
+        diagnosisSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customDiagnosis.style.display = 'block';
+                customDiagnosis.querySelector('input').required = true;
+            } else {
+                customDiagnosis.style.display = 'none';
+                customDiagnosis.querySelector('input').required = false;
+            }
+        });
+    }
+
+    // Memo character counter
+    const memoTextarea = document.getElementById('patient-memo');
+    const charCount = document.querySelector('.char-count');
+
+    if (memoTextarea && charCount) {
+        memoTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = `${count}/200`;
+            if (count > 180) {
+                charCount.style.color = '#ef4444';
+            } else {
+                charCount.style.color = '#94a3b8';
+            }
+        });
+    }
+
+    // Search input for patient filtering
+    const searchInput = document.querySelector('.patient-search input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterPatients(this.value);
+        });
+    }
 }
 
 // ============================================
@@ -213,100 +817,564 @@ function navigateTo(screen) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
 
     // Show target screen
-    document.getElementById(`screen-${screen}`).classList.add('active');
+    const screenEl = document.getElementById(`screen-${screen}`);
+    if (screenEl) {
+        screenEl.classList.add('active');
+    }
 
-    // Update nav items
+    // Update nav items (both navigateTo and navigateToSoap)
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     document.querySelector(`.nav-item[onclick="navigateTo('${screen}')"]`)?.classList.add('active');
+    document.querySelector(`.nav-item[onclick="navigateToSoap('${screen}')"]`)?.classList.add('active');
 
     // Update header title
     const titles = {
         home: '알고PT Pro',
+        case: '환자 케이스',
         patients: '환자 관리',
-        subjective: '주관적 평가',
-        objective: '객관적 평가',
+        subjective: 'S: 주관적 평가',
+        objective: 'O: 객관적 평가',
+        assessment: 'A: 평가',
+        plan: 'P: 치료 계획',
         cdss: 'AI 임상 지원'
     };
     document.getElementById('header-title').textContent = titles[screen] || '알고PT Pro';
+
+    // Update Sticky Patient Header
+    updateStickyHeader(screen);
+
+    // Load patient SOAP data when entering SOAP screens
+    const soapScreens = ['subjective', 'objective', 'assessment', 'plan'];
+    if (soapScreens.includes(screen) && state.currentPatient) {
+        loadPatientSoapData();
+    }
+
+    // Update patient banners on Assessment/Plan screens
+    if (screen === 'assessment' || screen === 'plan') {
+        updatePatientBanner(screen);
+    }
+
+    // Trigger AI analysis when entering Assessment screen
+    if (screen === 'assessment') {
+        runAIAnalysis();
+    }
+
+    // Initialize Plan screen with treatments
+    if (screen === 'plan') {
+        initPlanScreen();
+    }
+
+    // Re-render Case list when entering Case screen
+    if (screen === 'case') {
+        renderCaseList();
+    }
+}
+
+// Update patient banner on Assessment/Plan screens
+function updatePatientBanner(screen) {
+    const bannerId = screen === 'assessment' ? 'assessment-patient-banner' : 'plan-patient-banner';
+    const banner = document.getElementById(bannerId);
+    if (!banner) return;
+
+    if (state.currentPatient) {
+        const p = state.currentPatient;
+        banner.innerHTML = `
+            <div class="patient-banner-info">
+                <span class="patient-banner-icon">👤</span>
+                <div>
+                    <div class="patient-banner-name">${p.name}</div>
+                    <div class="patient-banner-meta">${p.gender === 'male' ? '남' : '여'}/${p.age}세 · ${p.diagnosis || ''}</div>
+                </div>
+            </div>
+        `;
+        banner.style.cursor = 'pointer';
+        banner.onclick = () => navigateTo('home');
+    } else {
+        banner.innerHTML = `
+            <div class="patient-banner-info">
+                <span class="patient-banner-icon">👤</span>
+                <span class="patient-banner-name">HOME에서 환자를 선택해주세요</span>
+            </div>
+        `;
+        banner.style.cursor = 'pointer';
+        banner.onclick = () => navigateTo('home');
+    }
 }
 
 // ============================================
 // Dashboard Functions
 // ============================================
 function loadPatient(patientId) {
-    // TODO: Load patient data from storage
-    showToast('환자 데이터 불러오기 (개발중)');
-    navigateTo('subjective');
-}
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
 
-function showHistory() {
-    showToast('평가 기록 (개발중)');
-}
+    if (patient) {
+        state.currentPatient = patient;
+        localStorage.setItem(STORAGE_KEYS.CURRENT_PATIENT, patientId);
 
-function showSettings() {
-    showToast('설정 (개발중)');
-}
+        // 환자 정보를 state에 반영
+        state.age = patient.age || 50;
+        state.gender = patient.gender;
 
-// ============================================
-// Patient Management
-// ============================================
-let selectedPatientId = null;
-
-function filterPatients(query) {
-    const items = document.querySelectorAll('.patient-item');
-    const q = query.toLowerCase().trim();
-
-    items.forEach(item => {
-        const name = item.querySelector('.patient-name').textContent.toLowerCase();
-        const info = item.querySelector('.patient-info').textContent.toLowerCase();
-        const visible = name.includes(q) || info.includes(q);
-        item.style.display = visible ? 'flex' : 'none';
-    });
-}
-
-function openPatientMenu(patientId, event) {
-    event.stopPropagation();
-    selectedPatientId = patientId;
-
-    const menu = document.getElementById('patient-menu');
-    const btn = event.currentTarget;
-    const rect = btn.getBoundingClientRect();
-
-    menu.style.top = `${rect.bottom + 8}px`;
-    menu.style.right = `${window.innerWidth - rect.right}px`;
-    menu.style.left = 'auto';
-    menu.classList.remove('hidden');
-
-    // Close on outside click
-    setTimeout(() => {
-        document.addEventListener('click', closePatientMenu);
-    }, 0);
-}
-
-function closePatientMenu() {
-    document.getElementById('patient-menu').classList.add('hidden');
-    document.removeEventListener('click', closePatientMenu);
-}
-
-function editPatient() {
-    closePatientMenu();
-    showToast('환자 수정 (개발중)');
-}
-
-function deletePatient() {
-    closePatientMenu();
-    if (confirm('이 환자를 삭제하시겠습니까?')) {
-        const item = document.querySelector(`.patient-item[data-id="${selectedPatientId}"]`);
-        if (item) {
-            item.remove();
-            showToast('환자가 삭제되었습니다');
-        }
+        showToast(`${patient.name} 환자 선택됨`);
+        navigateTo('subjective');
+    } else {
+        showToast('환자를 찾을 수 없습니다');
     }
 }
 
+function showHistory() {
+    const modal = document.getElementById('history-modal');
+    const patientInfo = document.getElementById('history-patient-info');
+    const content = document.getElementById('history-content');
+
+    if (state.currentPatient) {
+        patientInfo.innerHTML = `
+            <div class="history-patient-name">${state.currentPatient.name}</div>
+            <div class="history-patient-meta">${state.currentPatient.gender || ''}/${state.currentPatient.age || ''}세 · ${state.currentPatient.diagnosis || ''}</div>
+        `;
+        renderHistoryContent('measurements');
+    } else {
+        patientInfo.innerHTML = `
+            <div class="history-patient-name">환자 미선택</div>
+            <div class="history-patient-meta">환자를 먼저 선택해주세요</div>
+        `;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeHistory() {
+    document.getElementById('history-modal').classList.add('hidden');
+}
+
+function setHistoryTab(tab) {
+    document.querySelectorAll('.history-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    renderHistoryContent(tab);
+}
+
+function renderHistoryContent(tab) {
+    const content = document.getElementById('history-content');
+    const measurements = getMeasurements();
+    const patientMeasurements = state.currentPatient
+        ? measurements.filter(m => m.patientId === state.currentPatient.id)
+        : [];
+
+    if (patientMeasurements.length === 0) {
+        content.innerHTML = `
+            <div class="history-empty">
+                <span class="history-empty-icon">📋</span>
+                <p>기록이 없습니다</p>
+                <p class="history-empty-sub">도구를 사용하면 자동으로 기록됩니다</p>
+            </div>
+        `;
+        return;
+    }
+
+    const sortedMeasurements = patientMeasurements.sort((a, b) =>
+        new Date(b.timestamp) - new Date(a.timestamp)
+    );
+
+    content.innerHTML = sortedMeasurements.map(m => `
+        <div class="history-item">
+            <div class="history-item-header">
+                <span class="history-item-type">${m.type}</span>
+                <span class="history-item-date">${formatDate(m.timestamp)}</span>
+            </div>
+            <div class="history-item-value">${m.value}</div>
+            ${m.detail ? `<div class="history-item-detail">${m.detail}</div>` : ''}
+        </div>
+    `).join('');
+}
+
+function formatDate(timestamp) {
+    const date = new Date(timestamp);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${month}/${day} ${hours}:${minutes}`;
+}
+
+function showSettings() {
+    const modal = document.getElementById('settings-modal');
+    const patientCount = document.getElementById('settings-patient-count');
+    const patients = getPatients();
+    patientCount.textContent = `${patients.length}명`;
+    modal.classList.remove('hidden');
+}
+
+function closeSettings() {
+    document.getElementById('settings-modal').classList.add('hidden');
+}
+
+// ============================================
+// Patient Management - LocalStorage
+// ============================================
+function getPatients() {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.PATIENTS);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function savePatients(patients) {
+    localStorage.setItem(STORAGE_KEYS.PATIENTS, JSON.stringify(patients));
+}
+
+function getMeasurements() {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.MEASUREMENTS);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveMeasurement(type, value, detail = '') {
+    if (!state.currentPatient) return;
+
+    const measurements = getMeasurements();
+    measurements.push({
+        id: Date.now().toString(),
+        patientId: state.currentPatient.id,
+        type,
+        value,
+        detail,
+        timestamp: new Date().toISOString()
+    });
+    localStorage.setItem(STORAGE_KEYS.MEASUREMENTS, JSON.stringify(measurements));
+}
+
+// ============================================
+// Patient Modal Functions
+// ============================================
+let selectedPatientId = null;
+
 function openAddPatientModal() {
-    showToast('환자 추가 (개발중)');
-    navigateTo('subjective');
+    patientFormState = { editMode: false, editId: null, gender: null };
+
+    document.getElementById('patient-modal-title').textContent = '빠른 환자 등록';
+    document.getElementById('patient-save-btn').textContent = '등록';
+    document.getElementById('patient-form').reset();
+    document.getElementById('patient-edit-id').value = '';
+    document.getElementById('memo-char-count').textContent = '0';
+    document.getElementById('patient-diagnosis-custom').classList.add('hidden');
+
+    document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Quick Add Mode - 성별/나이/메모 숨김
+    const modalContent = document.querySelector('.patient-modal-content');
+    modalContent.classList.add('quick-add');
+
+    document.getElementById('patient-modal').classList.remove('hidden');
+
+    // 이름 입력란에 자동 포커스
+    setTimeout(() => {
+        document.getElementById('patient-name-input').focus();
+    }, 100);
+}
+
+function closePatientModal() {
+    document.getElementById('patient-modal').classList.add('hidden');
+    // Quick Add Mode 클래스 제거
+    document.querySelector('.patient-modal-content').classList.remove('quick-add');
+}
+
+function selectGender(gender) {
+    patientFormState.gender = gender;
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === gender);
+    });
+}
+
+function savePatient(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('patient-name-input').value.trim();
+    const age = parseInt(document.getElementById('patient-age-input').value) || null;
+    const diagnosisSelect = document.getElementById('patient-diagnosis-select').value;
+    const diagnosisCustom = document.getElementById('patient-diagnosis-custom').value.trim();
+    const diagnosis = diagnosisSelect === 'Other' ? diagnosisCustom : diagnosisSelect;
+    const memo = document.getElementById('patient-memo-input').value.trim();
+
+    if (!name) {
+        showToast('이름을 입력해주세요');
+        return;
+    }
+
+    const patients = getPatients();
+
+    if (patientFormState.editMode && patientFormState.editId) {
+        // 수정 모드
+        const index = patients.findIndex(p => p.id === patientFormState.editId);
+        if (index !== -1) {
+            patients[index] = {
+                ...patients[index],
+                name,
+                gender: patientFormState.gender,
+                age,
+                diagnosis,
+                memo,
+                updatedAt: new Date().toISOString()
+            };
+            showToast('환자 정보가 수정되었습니다');
+        }
+    } else {
+        // 새 환자 추가
+        const newPatient = {
+            id: Date.now().toString(),
+            name,
+            gender: patientFormState.gender,
+            age,
+            diagnosis,
+            memo,
+            status: 'waiting',
+            progress: { S: false, O: false, A: false, P: false },
+            soapData: {},
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        patients.unshift(newPatient);
+        savePatients(patients);
+        closePatientModal();
+
+        // 즉시 해당 환자 선택 후 S탭으로 이동
+        selectCasePatient(newPatient.id);
+        showToast(`${name} 환자가 등록되었습니다`);
+        return;
+    }
+
+    savePatients(patients);
+    closePatientModal();
+    renderPatientList();
+}
+
+function editPatient(patientId) {
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+
+    if (!patient) {
+        showToast('환자를 찾을 수 없습니다');
+        return;
+    }
+
+    patientFormState = {
+        editMode: true,
+        editId: patientId,
+        gender: patient.gender
+    };
+
+    document.getElementById('patient-modal-title').textContent = '환자 정보 수정';
+    document.getElementById('patient-save-btn').textContent = '저장';
+    document.getElementById('patient-name-input').value = patient.name || '';
+    document.getElementById('patient-age-input').value = patient.age || '';
+    document.getElementById('patient-memo-input').value = patient.memo || '';
+    document.getElementById('memo-char-count').textContent = (patient.memo || '').length;
+
+    // 진단명 설정
+    const selectEl = document.getElementById('patient-diagnosis-select');
+    const customEl = document.getElementById('patient-diagnosis-custom');
+    const optionExists = Array.from(selectEl.options).some(opt => opt.value === patient.diagnosis);
+
+    if (optionExists) {
+        selectEl.value = patient.diagnosis || '';
+        customEl.classList.add('hidden');
+    } else if (patient.diagnosis) {
+        selectEl.value = 'Other';
+        customEl.value = patient.diagnosis;
+        customEl.classList.remove('hidden');
+    }
+
+    // 성별 설정
+    document.querySelectorAll('.gender-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.gender === patient.gender);
+    });
+
+    document.getElementById('patient-modal').classList.remove('hidden');
+}
+
+function deletePatient(patientId) {
+    if (!confirm('이 환자를 삭제하시겠습니까?\n관련된 모든 기록도 함께 삭제됩니다.')) {
+        return;
+    }
+
+    let patients = getPatients();
+    patients = patients.filter(p => p.id !== patientId);
+    savePatients(patients);
+
+    // 관련 측정 기록도 삭제
+    let measurements = getMeasurements();
+    measurements = measurements.filter(m => m.patientId !== patientId);
+    localStorage.setItem(STORAGE_KEYS.MEASUREMENTS, JSON.stringify(measurements));
+
+    // 현재 환자였다면 초기화
+    if (state.currentPatient && state.currentPatient.id === patientId) {
+        state.currentPatient = null;
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_PATIENT);
+    }
+
+    showToast('환자가 삭제되었습니다');
+    renderPatientList();
+}
+
+function renderPatientList() {
+    const container = document.getElementById('recent-patients');
+    const countEl = document.getElementById('recent-count');
+    const patients = getPatients();
+
+    countEl.textContent = patients.length;
+
+    if (patients.length === 0) {
+        container.innerHTML = `
+            <div class="patient-list-empty">
+                <div class="patient-list-empty-icon">👤</div>
+                <p>등록된 환자가 없습니다</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = patients.slice(0, 10).map(patient => `
+        <div class="patient-card" data-patient-id="${patient.id}">
+            <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-meta">${patient.gender === 'male' ? '남' : patient.gender === 'female' ? '여' : ''}${patient.age ? '/' + patient.age + '세' : ''} ${patient.diagnosis ? '· ' + patient.diagnosis : ''}</div>
+            </div>
+            <div class="patient-status">
+                <span class="status-badge ${patient.status || 'progress'}">${patient.status === 'complete' ? '완료' : '작성중'}</span>
+            </div>
+        </div>
+    `).join('');
+
+    // 이벤트 위임으로 클릭 처리
+    container.querySelectorAll('.patient-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const patientId = this.dataset.patientId;
+            if (patientId) {
+                loadPatient(patientId);
+            }
+        });
+    });
+}
+
+function showPatientActions(patientId) {
+    const actions = [
+        { label: '정보 수정', action: () => editPatient(patientId) },
+        { label: '기록 보기', action: () => {
+            const patients = getPatients();
+            state.currentPatient = patients.find(p => p.id === patientId);
+            showHistory();
+        }},
+        { label: '삭제', action: () => deletePatient(patientId), danger: true }
+    ];
+
+    // 간단한 액션 시트 표시 (confirm 대신 커스텀 UI 사용 가능)
+    const selected = confirm('환자 메뉴\n\n1. 정보 수정 - 확인\n2. 삭제 - 취소 후 다시 클릭');
+    if (selected) {
+        editPatient(patientId);
+    }
+}
+
+// ============================================
+// Settings Functions
+// ============================================
+function exportData() {
+    const data = {
+        patients: getPatients(),
+        measurements: getMeasurements(),
+        exportedAt: new Date().toISOString(),
+        version: '1.0.0'
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `algopt-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('데이터가 저장되었습니다');
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            if (!data.patients || !Array.isArray(data.patients)) {
+                throw new Error('잘못된 파일 형식');
+            }
+
+            if (!confirm(`${data.patients.length}명의 환자 데이터를 가져오시겠습니까?\n기존 데이터와 병합됩니다.`)) {
+                return;
+            }
+
+            // 기존 데이터와 병합 (ID 중복 방지)
+            const existingPatients = getPatients();
+            const existingIds = new Set(existingPatients.map(p => p.id));
+            const newPatients = data.patients.filter(p => !existingIds.has(p.id));
+
+            savePatients([...newPatients, ...existingPatients]);
+
+            if (data.measurements) {
+                const existingMeasurements = getMeasurements();
+                const existingMIds = new Set(existingMeasurements.map(m => m.id));
+                const newMeasurements = data.measurements.filter(m => !existingMIds.has(m.id));
+                localStorage.setItem(STORAGE_KEYS.MEASUREMENTS,
+                    JSON.stringify([...newMeasurements, ...existingMeasurements]));
+            }
+
+            renderPatientList();
+            showToast(`${newPatients.length}명의 환자 데이터를 가져왔습니다`);
+        } catch (err) {
+            showToast('파일을 읽을 수 없습니다');
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+function confirmClearData() {
+    if (!confirm('정말 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+        return;
+    }
+
+    if (!confirm('마지막 확인입니다.\n모든 환자 데이터와 측정 기록이 삭제됩니다.')) {
+        return;
+    }
+
+    localStorage.removeItem(STORAGE_KEYS.PATIENTS);
+    localStorage.removeItem(STORAGE_KEYS.MEASUREMENTS);
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_PATIENT);
+    state.currentPatient = null;
+
+    renderPatientList();
+    closeSettings();
+    showToast('모든 데이터가 삭제되었습니다');
+}
+
+function filterPatients(query) {
+    const cards = document.querySelectorAll('.patient-card');
+    const q = query.toLowerCase().trim();
+
+    cards.forEach(card => {
+        const name = card.querySelector('.patient-name').textContent.toLowerCase();
+        const meta = card.querySelector('.patient-meta').textContent.toLowerCase();
+        const visible = !q || name.includes(q) || meta.includes(q);
+        card.style.display = visible ? 'flex' : 'none';
+    });
 }
 
 // ============================================
@@ -379,14 +1447,27 @@ function updateComplaintUI() {
 // Body Map & Pain Assessment (Image-based Marker System)
 // ============================================
 let markerIdCounter = 0;
+let touchStartData = null; // 터치 시작 정보 저장
 
 function initBodyMap() {
     const container = document.getElementById('body-chart-container');
     if (!container) return;
 
-    // Click/Touch event for adding markers
+    // Click event for desktop
     container.addEventListener('click', handleBodyChartClick);
+
+    // Touch events - 스크롤과 탭 구분
+    container.addEventListener('touchstart', handleBodyChartTouchStart, { passive: true });
     container.addEventListener('touchend', handleBodyChartTouch);
+}
+
+function handleBodyChartTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartData = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+    };
 }
 
 function handleBodyChartClick(e) {
@@ -406,15 +1487,29 @@ function handleBodyChartTouch(e) {
     // Ignore touches on existing markers
     if (e.target.closest('.pain-marker')) return;
 
+    // 터치 시작 정보가 없으면 무시
+    if (!touchStartData) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = Math.abs(touch.clientX - touchStartData.x);
+    const deltaY = Math.abs(touch.clientY - touchStartData.y);
+    const duration = Date.now() - touchStartData.time;
+
+    // 스크롤 감지: 이동 거리 > 15px 또는 터치 시간 > 300ms면 스크롤로 판단
+    if (deltaX > 15 || deltaY > 15 || duration > 300) {
+        touchStartData = null;
+        return; // 스크롤이므로 마커 추가 안함
+    }
+
     e.preventDefault();
     const container = document.getElementById('body-chart-container');
     const rect = container.getBoundingClientRect();
-    const touch = e.changedTouches[0];
 
     const x = ((touch.clientX - rect.left) / rect.width) * 100;
     const y = ((touch.clientY - rect.top) / rect.height) * 100;
 
     addPainMarker(x, y);
+    touchStartData = null;
 }
 
 function addPainMarker(x, y) {
@@ -1396,9 +2491,7 @@ function showToast(message) {
 // ============================================
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('SW registered'))
-            .catch(err => console.log('SW registration failed'));
+        navigator.serviceWorker.register('sw.js').catch(() => {});
     });
 }
 
@@ -2302,6 +3395,7 @@ function showResultSummary() {
         </div>
     `;
     el.resultSummary.classList.remove('hidden');
+    setDtState('idle'); // idle 상태로 복귀 (setup 영역 표시)
 }
 
 function evaluatePerformance(taskCount, avgTime, totalSeconds) {
@@ -2493,4 +3587,2370 @@ function generateTask() {
     }
 
     playClick(500, 0.03);
+}
+
+// ============================================
+// Sensor-based Tools (센서 기반 분석 도구)
+// ============================================
+
+// --- 공통 센서 권한 처리 ---
+let orientationPermissionGranted = false;
+let motionPermissionGranted = false;
+
+async function requestOrientationPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission === 'granted') {
+                orientationPermissionGranted = true;
+                initGoniometer();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        // Android 또는 권한 불필요 환경
+        orientationPermissionGranted = true;
+        initGoniometer();
+    }
+}
+
+async function requestMotionPermission() {
+    // iOS 13+ 권한 요청
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+        try {
+            const permission = await DeviceMotionEvent.requestPermission();
+            if (permission === 'granted') {
+                motionPermissionGranted = true;
+                initTremor();
+            } else {
+                alert('센서 권한이 거부되었습니다. 설정에서 권한을 허용해주세요.');
+            }
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            alert('센서 권한 요청 중 오류가 발생했습니다.');
+        }
+    } else {
+        motionPermissionGranted = true;
+        initTremor();
+    }
+}
+
+async function requestMicPermission() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        initDecibel(stream);
+    } catch (e) {
+        console.error('Microphone permission denied:', e);
+        alert('마이크 권한이 거부되었습니다. 브라우저 설정에서 권한을 허용해주세요.');
+    }
+}
+
+// ============================================
+// 1. Digital Goniometer (디지털 각도계/수평계)
+// ROM 기준: AAOS (American Academy of Orthopedic Surgeons)
+// ============================================
+
+const gonioState = {
+    mode: 'incline', // 'incline' 또는 'angle'
+    zeroOffset: { alpha: 0, beta: 0, gamma: 0 },
+    isHeld: false,
+    heldValue: 0,
+    currentAngles: { x: 0, y: 0, z: 0 },
+    // 고정 방식 설정
+    holdSettings: {
+        tap: true,      // 화면 탭
+        auto: false,    // 자동 고정
+        voice: false    // 음성 명령
+    },
+    // 자동 고정용
+    autoHoldTimer: null,
+    stableStartTime: null,
+    lastAngle: null,
+    // 음성 인식
+    voiceRecognition: null
+};
+
+// AAOS 기준 정상 ROM (단위: 도)
+const ROM_STANDARDS = {
+    'shoulder-flex': 180,
+    'shoulder-abd': 180,
+    'elbow-flex': 150,
+    'hip-flex': 120,
+    'knee-flex': 135,
+    'ankle-df': 20,
+    'ankle-pf': 50
+};
+
+function openGoniometer() {
+    document.getElementById('goniometer-modal').classList.remove('hidden');
+
+    // 환자 기록 버튼 업데이트
+    updateGonioRecordButton();
+
+    // 권한 이미 있으면 바로 초기화
+    if (orientationPermissionGranted) {
+        initGoniometer();
+    } else {
+        // iOS가 아닌 경우 권한 요청 없이 시도
+        if (typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            initGoniometer();
+        }
+    }
+}
+
+// 환자 기록 버튼 업데이트
+function updateGonioRecordButton() {
+    const btn = document.getElementById('gonio-record-btn');
+    const textEl = document.getElementById('gonio-record-text');
+
+    if (!btn || !textEl) return;
+
+    if (state.currentPatient) {
+        btn.disabled = false;
+        textEl.textContent = `${state.currentPatient.name} O탭에 기록`;
+    } else {
+        btn.disabled = true;
+        textEl.textContent = '환자를 선택해주세요';
+    }
+}
+
+// 측정값을 현재 환자의 O탭에 기록
+function recordGonioToPatient() {
+    if (!state.currentPatient) {
+        showToast('먼저 환자를 선택해주세요');
+        return;
+    }
+
+    const angleValue = document.getElementById('gonio-value').textContent;
+    const jointSelect = document.getElementById('gonio-joint');
+    const jointName = jointSelect.options[jointSelect.selectedIndex]?.text || '관절';
+
+    // 현재 환자의 SOAP 데이터에 ROM 기록 추가
+    const patients = getPatients();
+    const patientIndex = patients.findIndex(p => p.id === state.currentPatient.id);
+
+    if (patientIndex === -1) return;
+
+    const patient = patients[patientIndex];
+
+    // soapData 초기화
+    if (!patient.soapData) patient.soapData = {};
+    if (!patient.soapData.O) patient.soapData.O = {};
+    if (!patient.soapData.O.romRecords) patient.soapData.O.romRecords = [];
+
+    // ROM 기록 추가
+    patient.soapData.O.romRecords.push({
+        joint: jointName,
+        angle: parseFloat(angleValue),
+        timestamp: new Date().toISOString()
+    });
+
+    // 저장
+    patients[patientIndex] = patient;
+    savePatients(patients);
+
+    // 현재 환자 상태 업데이트
+    state.currentPatient = patient;
+
+    showToast(`✔ ${jointName} ${angleValue}° 기록 완료!`);
+}
+
+function closeGoniometer() {
+    document.getElementById('goniometer-modal').classList.add('hidden');
+    window.removeEventListener('deviceorientation', handleOrientation);
+    cleanupGonioHoldMethods();
+}
+
+function initGoniometer() {
+    document.getElementById('gonio-permission').classList.add('hidden');
+    document.getElementById('gonio-display').classList.remove('hidden');
+
+    // 설정 불러오기
+    loadGonioSettings();
+
+    // 고정 방식 초기화
+    setupGonioHoldMethods();
+
+    window.addEventListener('deviceorientation', handleOrientation);
+}
+
+// 설정 저장/불러오기
+function loadGonioSettings() {
+    const saved = localStorage.getItem('gonioHoldSettings');
+    if (saved) {
+        gonioState.holdSettings = JSON.parse(saved);
+    }
+
+    // UI 체크박스 업데이트
+    document.getElementById('hold-tap').checked = gonioState.holdSettings.tap;
+    document.getElementById('hold-auto').checked = gonioState.holdSettings.auto;
+    document.getElementById('hold-voice').checked = gonioState.holdSettings.voice;
+
+    updateHoldStatus();
+}
+
+function saveGonioSettings() {
+    gonioState.holdSettings = {
+        tap: document.getElementById('hold-tap').checked,
+        auto: document.getElementById('hold-auto').checked,
+        voice: document.getElementById('hold-voice').checked
+    };
+
+    localStorage.setItem('gonioHoldSettings', JSON.stringify(gonioState.holdSettings));
+
+    // 고정 방식 재설정
+    cleanupGonioHoldMethods();
+    setupGonioHoldMethods();
+    updateHoldStatus();
+}
+
+function updateHoldStatus() {
+    const statusEl = document.getElementById('hold-status');
+    if (!statusEl) return;
+
+    const active = [];
+    if (gonioState.holdSettings.tap) active.push('탭');
+    if (gonioState.holdSettings.auto) active.push('자동');
+    if (gonioState.holdSettings.voice) active.push('음성');
+
+    statusEl.textContent = active.length ? `활성: ${active.join(', ')}` : '버튼만 사용';
+}
+
+// 고정 방식 설정
+function setupGonioHoldMethods() {
+    // A: 화면 탭
+    if (gonioState.holdSettings.tap) {
+        const tapArea = document.getElementById('gonio-tap-area');
+        if (tapArea) {
+            tapArea.addEventListener('click', handleGonioTap);
+            tapArea.style.cursor = 'pointer';
+        }
+    }
+
+    // D: 자동 고정 (3초 안정)
+    if (gonioState.holdSettings.auto) {
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
+    }
+
+    // E: 음성 명령
+    if (gonioState.holdSettings.voice) {
+        setupVoiceRecognition();
+    }
+}
+
+function cleanupGonioHoldMethods() {
+    // 탭 이벤트 제거
+    const tapArea = document.getElementById('gonio-tap-area');
+    if (tapArea) {
+        tapArea.removeEventListener('click', handleGonioTap);
+        tapArea.style.cursor = '';
+    }
+
+    // 자동 고정 타이머 제거
+    if (gonioState.autoHoldTimer) {
+        clearTimeout(gonioState.autoHoldTimer);
+        gonioState.autoHoldTimer = null;
+    }
+
+    // 음성 인식 중지
+    if (gonioState.voiceRecognition) {
+        gonioState.voiceRecognition.stop();
+        gonioState.voiceRecognition = null;
+    }
+}
+
+// A: 화면 탭 핸들러
+function handleGonioTap(e) {
+    // 버튼 클릭은 제외
+    if (e.target.closest('.gonio-btn') || e.target.closest('.gonio-hold-settings')) return;
+    toggleGonioHold();
+}
+
+// D: 자동 고정 체크 (handleOrientation에서 호출)
+function checkAutoHold(currentAngle) {
+    if (!gonioState.holdSettings.auto || gonioState.isHeld) return;
+
+    const threshold = 0.5; // 0.5도 이내 변화면 안정으로 판단
+    const holdTime = 3000; // 3초
+
+    if (gonioState.lastAngle !== null) {
+        const diff = Math.abs(currentAngle - gonioState.lastAngle);
+
+        if (diff < threshold) {
+            // 안정 상태
+            if (!gonioState.stableStartTime) {
+                gonioState.stableStartTime = Date.now();
+            } else if (Date.now() - gonioState.stableStartTime >= holdTime) {
+                // 3초 동안 안정 → 자동 고정
+                toggleGonioHold();
+                playClick(1000, 0.1); // 알림음
+                gonioState.stableStartTime = null;
+            }
+        } else {
+            // 움직임 감지 → 타이머 리셋
+            gonioState.stableStartTime = null;
+        }
+    }
+
+    gonioState.lastAngle = currentAngle;
+}
+
+// E: 음성 인식 설정
+function setupVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    gonioState.voiceRecognition = new SpeechRecognition();
+    gonioState.voiceRecognition.continuous = true;
+    gonioState.voiceRecognition.interimResults = false;
+    gonioState.voiceRecognition.lang = 'ko-KR';
+
+    gonioState.voiceRecognition.onresult = (event) => {
+        const last = event.results.length - 1;
+        const text = event.results[last][0].transcript.toLowerCase().trim();
+
+        if (text.includes('고정') || text.includes('홀드') || text.includes('hold') || text.includes('잠금')) {
+            toggleGonioHold();
+            playClick(1000, 0.1);
+        }
+    };
+
+    gonioState.voiceRecognition.onerror = () => {};
+
+    gonioState.voiceRecognition.onend = () => {
+        // 계속 듣기
+        if (gonioState.holdSettings.voice && document.getElementById('goniometer-modal') &&
+            !document.getElementById('goniometer-modal').classList.contains('hidden')) {
+            try {
+                gonioState.voiceRecognition.start();
+            } catch (e) {}
+        }
+    };
+
+    try {
+        gonioState.voiceRecognition.start();
+    } catch (e) {}
+}
+
+function handleOrientation(event) {
+    if (gonioState.isHeld) return;
+
+    let alpha = event.alpha || 0; // z축 회전 (나침반)
+    let beta = event.beta || 0;   // x축 기울기 (앞뒤)
+    let gamma = event.gamma || 0; // y축 기울기 (좌우)
+
+    // 영점 보정
+    beta -= gonioState.zeroOffset.beta;
+    gamma -= gonioState.zeroOffset.gamma;
+
+    gonioState.currentAngles = { x: gamma, y: beta, z: alpha };
+
+    let displayValue;
+    if (gonioState.mode === 'incline') {
+        // 수평계: 좌우 기울기 (gamma)
+        displayValue = gamma;
+    } else {
+        // 각도계: 앞뒤 기울기 (beta)
+        displayValue = beta;
+    }
+
+    updateGonioDisplay(displayValue);
+
+    // 자동 고정 체크
+    checkAutoHold(displayValue);
+}
+
+function updateGonioDisplay(angle) {
+    const valueEl = document.getElementById('gonio-value');
+    const needleEl = document.getElementById('gonio-needle');
+    const xEl = document.getElementById('gonio-x');
+    const yEl = document.getElementById('gonio-y');
+    const levelEl = document.getElementById('gonio-level');
+    const levelTextEl = document.getElementById('gonio-level-text');
+
+    const absAngle = Math.abs(angle);
+
+    // 값 표시
+    valueEl.textContent = absAngle.toFixed(1);
+
+    // 바늘 회전
+    if (needleEl) {
+        needleEl.style.transform = `rotate(${angle}deg)`;
+    }
+
+    // 축별 정보
+    if (xEl) xEl.textContent = `${gonioState.currentAngles.x.toFixed(1)}°`;
+    if (yEl) yEl.textContent = `${gonioState.currentAngles.y.toFixed(1)}°`;
+
+    // 수평/각도 피드백
+    if (levelEl && levelTextEl) {
+        if (gonioState.mode === 'incline') {
+            // 수평계 모드: 0°에 가까우면 수평 표시
+            if (absAngle < 2) {
+                levelEl.classList.add('level');
+                levelTextEl.classList.add('level');
+                levelTextEl.textContent = '✓ 수평';
+            } else if (absAngle < 5) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '거의 수평';
+            } else if (angle > 0) {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '→ 오른쪽 기울임';
+            } else {
+                levelEl.classList.remove('level');
+                levelTextEl.classList.remove('level');
+                levelTextEl.textContent = '← 왼쪽 기울임';
+            }
+        } else {
+            // 각도계 모드
+            levelEl.classList.remove('level');
+            levelTextEl.classList.remove('level');
+            if (absAngle < 5) {
+                levelTextEl.textContent = '시작 위치';
+            } else if (absAngle < 45) {
+                levelTextEl.textContent = '경도 굴곡';
+            } else if (absAngle < 90) {
+                levelTextEl.textContent = '중등도 굴곡';
+            } else {
+                levelTextEl.textContent = '고도 굴곡';
+            }
+        }
+    }
+
+    // ROM 비교 업데이트
+    updateRomComparison();
+}
+
+function setGonioMode(mode) {
+    gonioState.mode = mode;
+
+    document.querySelectorAll('.gonio-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+    });
+
+    const romSection = document.getElementById('gonio-rom-section');
+    const phoneAnim = document.querySelector('.phone-body-mini');
+    const guideText = document.getElementById('guide-text');
+
+    if (mode === 'angle') {
+        romSection.classList.remove('hidden');
+        if (phoneAnim) phoneAnim.classList.add('tilt-forward');
+        if (guideText) guideText.textContent = '관절에 대고 앞뒤로';
+    } else {
+        romSection.classList.add('hidden');
+        if (phoneAnim) phoneAnim.classList.remove('tilt-forward');
+        if (guideText) guideText.textContent = '좌우로 기울이세요';
+    }
+
+    // 자동 고정 타이머 리셋
+    gonioState.stableStartTime = null;
+    gonioState.lastAngle = null;
+}
+
+function zeroGoniometer() {
+    gonioState.zeroOffset = {
+        alpha: gonioState.currentAngles.z + gonioState.zeroOffset.alpha,
+        beta: gonioState.currentAngles.y + gonioState.zeroOffset.beta,
+        gamma: gonioState.currentAngles.x + gonioState.zeroOffset.gamma
+    };
+    playClick(800, 0.05);
+}
+
+function toggleGonioHold() {
+    gonioState.isHeld = !gonioState.isHeld;
+    const btn = document.getElementById('gonio-hold-btn');
+    const indicator = document.getElementById('gonio-hold-indicator');
+
+    if (gonioState.isHeld) {
+        btn.textContent = '▶ 재개';
+        btn.classList.add('active');
+        gonioState.heldValue = parseFloat(document.getElementById('gonio-value').textContent);
+        if (indicator) indicator.classList.remove('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
+    } else {
+        btn.textContent = '⏸ 고정';
+        btn.classList.remove('active');
+        if (indicator) indicator.classList.add('hidden');
+
+        // 자동 고정 타이머 리셋
+        gonioState.stableStartTime = null;
+        gonioState.lastAngle = null;
+    }
+    playClick(600, 0.05);
+}
+
+function updateRomComparison() {
+    const jointSelect = document.getElementById('gonio-joint');
+    const resultDiv = document.getElementById('rom-result');
+    const fillEl = document.getElementById('rom-fill');
+    const percentEl = document.getElementById('rom-percent');
+
+    if (!jointSelect.value) {
+        resultDiv.classList.add('hidden');
+        return;
+    }
+
+    const standard = ROM_STANDARDS[jointSelect.value];
+    const current = Math.abs(parseFloat(document.getElementById('gonio-value').textContent));
+    const percent = Math.min(100, (current / standard) * 100);
+
+    resultDiv.classList.remove('hidden');
+    fillEl.style.width = `${percent}%`;
+    percentEl.textContent = `${percent.toFixed(0)}%`;
+
+    // 색상 표시
+    if (percent >= 90) {
+        fillEl.style.background = 'var(--success-color)';
+    } else if (percent >= 70) {
+        fillEl.style.background = 'var(--primary-blue)';
+    } else {
+        fillEl.style.background = 'var(--warning-color)';
+    }
+}
+
+// ============================================
+// 2. Tremor Analyzer (손떨림 분석)
+// 참고 문헌: PMC3475963, PMC3656631
+// - 파킨슨 떨림: 4-6 Hz (안정시)
+// - 본태성 떨림: 5-8 Hz (자세/동작시)
+// - 생리적 떨림: 8-12 Hz
+// ============================================
+
+const tremorState = {
+    isRunning: false,
+    data: [],
+    startTime: 0,
+    canvas: null,
+    ctx: null,
+    animationId: null,
+    sampleRate: 60, // Hz
+    analysisWindow: 5 // seconds
+};
+
+function openTremor() {
+    document.getElementById('tremor-modal').classList.remove('hidden');
+
+    if (motionPermissionGranted) {
+        initTremor();
+    } else if (typeof DeviceMotionEvent.requestPermission !== 'function') {
+        initTremor();
+    }
+}
+
+function closeTremor() {
+    document.getElementById('tremor-modal').classList.add('hidden');
+    stopTremorAnalysis();
+}
+
+function initTremor() {
+    document.getElementById('tremor-permission').classList.add('hidden');
+    document.getElementById('tremor-display').classList.remove('hidden');
+
+    tremorState.canvas = document.getElementById('tremor-canvas');
+    tremorState.ctx = tremorState.canvas.getContext('2d');
+
+    // 캔버스 크기 조정
+    const rect = tremorState.canvas.parentElement.getBoundingClientRect();
+    tremorState.canvas.width = rect.width || 320;
+    tremorState.canvas.height = 150;
+
+    drawTremorGraph();
+}
+
+function toggleTremorAnalysis() {
+    if (tremorState.isRunning) {
+        stopTremorAnalysis();
+    } else {
+        startTremorAnalysis();
+    }
+}
+
+function startTremorAnalysis() {
+    tremorState.isRunning = true;
+    tremorState.data = [];
+    tremorState.startTime = performance.now();
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    window.addEventListener('devicemotion', handleMotion);
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function stopTremorAnalysis() {
+    tremorState.isRunning = false;
+
+    const btn = document.getElementById('tremor-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    window.removeEventListener('devicemotion', handleMotion);
+    if (tremorState.animationId) {
+        cancelAnimationFrame(tremorState.animationId);
+    }
+
+    // 최종 분석
+    if (tremorState.data.length > 30) {
+        analyzeTremor();
+    }
+}
+
+function handleMotion(event) {
+    if (!tremorState.isRunning) return;
+
+    const acc = event.accelerationIncludingGravity || event.acceleration;
+    if (!acc) return;
+
+    const magnitude = Math.sqrt(
+        (acc.x || 0) ** 2 +
+        (acc.y || 0) ** 2 +
+        (acc.z || 0) ** 2
+    ) - 9.8; // 중력 보정
+
+    const timestamp = performance.now() - tremorState.startTime;
+
+    tremorState.data.push({
+        time: timestamp,
+        value: magnitude
+    });
+
+    // 최근 데이터만 유지 (메모리 관리)
+    const maxSamples = tremorState.sampleRate * tremorState.analysisWindow;
+    if (tremorState.data.length > maxSamples) {
+        tremorState.data.shift();
+    }
+}
+
+function updateTremorGraph() {
+    if (!tremorState.isRunning) return;
+
+    drawTremorGraph();
+    analyzeTremor();
+
+    tremorState.animationId = requestAnimationFrame(updateTremorGraph);
+}
+
+function drawTremorGraph() {
+    const ctx = tremorState.ctx;
+    const canvas = tremorState.canvas;
+    const data = tremorState.data;
+
+    // 배경
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 그리드
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = (canvas.height / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    if (data.length < 2) return;
+
+    // 데이터 그리기
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const xScale = canvas.width / (tremorState.analysisWindow * 1000);
+    const yCenter = canvas.height / 2;
+    const yScale = canvas.height / 10;
+
+    data.forEach((point, i) => {
+        const x = point.time * xScale;
+        const y = yCenter - (point.value * yScale);
+
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+}
+
+function analyzeTremor() {
+    const data = tremorState.data;
+    if (data.length < 30) return;
+
+    // 간단한 주파수 분석 (영교차 방식)
+    let crossings = 0;
+    const values = data.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+    for (let i = 1; i < values.length; i++) {
+        if ((values[i-1] - mean) * (values[i] - mean) < 0) {
+            crossings++;
+        }
+    }
+
+    const duration = (data[data.length - 1].time - data[0].time) / 1000;
+    const frequency = (crossings / 2) / duration;
+
+    // 강도 계산 (RMS)
+    const rms = Math.sqrt(values.reduce((sum, v) => sum + v * v, 0) / values.length);
+
+    // 결과 표시
+    document.getElementById('tremor-freq').textContent = frequency.toFixed(1);
+
+    let intensityText, tremorType;
+    if (rms < 0.3) {
+        intensityText = '미약';
+    } else if (rms < 0.8) {
+        intensityText = '경도';
+    } else if (rms < 1.5) {
+        intensityText = '중등도';
+    } else {
+        intensityText = '심함';
+    }
+    document.getElementById('tremor-intensity').textContent = intensityText;
+
+    // 유형 추정 (주파수 기반)
+    if (frequency >= 4 && frequency <= 6) {
+        tremorType = '파킨슨 의심';
+    } else if (frequency > 6 && frequency <= 8) {
+        tremorType = '본태성 의심';
+    } else if (frequency > 8 && frequency <= 12) {
+        tremorType = '생리적';
+    } else if (frequency < 4) {
+        tremorType = '저주파';
+    } else {
+        tremorType = '고주파';
+    }
+    document.getElementById('tremor-type').textContent = tremorType;
+}
+
+function resetTremorData() {
+    tremorState.data = [];
+    document.getElementById('tremor-freq').textContent = '--';
+    document.getElementById('tremor-intensity').textContent = '--';
+    document.getElementById('tremor-type').textContent = '--';
+    drawTremorGraph();
+}
+
+// ============================================
+// 3. Decibel Meter (음성 데시벨 측정)
+// LSVT LOUD 기준: 목표 65-70dB 이상
+// 참고: PMC3316992, ASHA LSVT 가이드라인
+// ============================================
+
+const decibelState = {
+    isRunning: false,
+    audioContext: null,
+    analyser: null,
+    microphone: null,
+    targetDb: 70,
+    dataArray: null,
+    animationId: null,
+    history: [],
+    successCount: 0,
+    totalCount: 0
+};
+
+function openDecibel() {
+    document.getElementById('decibel-modal').classList.remove('hidden');
+}
+
+function closeDecibel() {
+    document.getElementById('decibel-modal').classList.add('hidden');
+    stopDecibelMeter();
+}
+
+function initDecibel(stream) {
+    document.getElementById('decibel-permission').classList.add('hidden');
+    document.getElementById('decibel-display').classList.remove('hidden');
+
+    decibelState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    decibelState.analyser = decibelState.audioContext.createAnalyser();
+    decibelState.analyser.fftSize = 2048;
+    decibelState.analyser.smoothingTimeConstant = 0.3;
+
+    decibelState.microphone = decibelState.audioContext.createMediaStreamSource(stream);
+    decibelState.microphone.connect(decibelState.analyser);
+
+    decibelState.dataArray = new Uint8Array(decibelState.analyser.frequencyBinCount);
+
+    updateTargetIndicator();
+}
+
+function toggleDecibelMeter() {
+    if (decibelState.isRunning) {
+        stopDecibelMeter();
+    } else {
+        startDecibelMeter();
+    }
+}
+
+function startDecibelMeter() {
+    if (!decibelState.audioContext) return;
+
+    decibelState.isRunning = true;
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '⏹ 측정 중지';
+    btn.classList.add('running');
+
+    document.getElementById('decibel-stats').classList.remove('hidden');
+
+    if (decibelState.audioContext.state === 'suspended') {
+        decibelState.audioContext.resume();
+    }
+
+    updateDecibelMeter();
+}
+
+function stopDecibelMeter() {
+    decibelState.isRunning = false;
+
+    const btn = document.getElementById('decibel-start-btn');
+    btn.textContent = '▶ 측정 시작';
+    btn.classList.remove('running');
+
+    if (decibelState.animationId) {
+        cancelAnimationFrame(decibelState.animationId);
+    }
+}
+
+function updateDecibelMeter() {
+    if (!decibelState.isRunning) return;
+
+    decibelState.analyser.getByteFrequencyData(decibelState.dataArray);
+
+    // RMS 계산
+    let sum = 0;
+    for (let i = 0; i < decibelState.dataArray.length; i++) {
+        sum += decibelState.dataArray[i] ** 2;
+    }
+    const rms = Math.sqrt(sum / decibelState.dataArray.length);
+
+    // dB 변환 (근사값, 보정 필요)
+    // 실제 SPL dB는 교정된 마이크 필요, 이는 상대적 측정
+    const db = Math.max(0, Math.min(120, 20 * Math.log10(rms + 1) * 2));
+
+    // 표시 업데이트
+    updateDecibelDisplay(db);
+
+    // 통계
+    decibelState.history.push(db);
+    decibelState.totalCount++;
+    if (db >= decibelState.targetDb) {
+        decibelState.successCount++;
+    }
+
+    // 최근 100개만 유지
+    if (decibelState.history.length > 100) {
+        decibelState.history.shift();
+    }
+
+    updateDecibelStats();
+
+    decibelState.animationId = requestAnimationFrame(updateDecibelMeter);
+}
+
+function updateDecibelDisplay(db) {
+    const valueEl = document.getElementById('decibel-value');
+    const barEl = document.getElementById('decibel-bar');
+    const visualEl = document.getElementById('decibel-visual');
+    const feedbackEl = document.getElementById('decibel-feedback');
+
+    valueEl.textContent = Math.round(db);
+    barEl.style.height = `${(db / 120) * 100}%`;
+
+    // 목표 달성 여부에 따른 색상
+    const isSuccess = db >= decibelState.targetDb;
+
+    if (isSuccess) {
+        barEl.style.background = 'linear-gradient(to top, #22c55e, #16a34a)';
+        visualEl.classList.add('success');
+        visualEl.classList.remove('fail');
+        feedbackEl.textContent = '좋아요! 유지하세요!';
+        feedbackEl.style.color = '#16a34a';
+    } else {
+        barEl.style.background = 'linear-gradient(to top, #ef4444, #dc2626)';
+        visualEl.classList.add('fail');
+        visualEl.classList.remove('success');
+        feedbackEl.textContent = '더 크게 말해보세요!';
+        feedbackEl.style.color = '#dc2626';
+    }
+}
+
+function updateDecibelStats() {
+    const history = decibelState.history;
+    if (history.length === 0) return;
+
+    const max = Math.max(...history);
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const successRate = (decibelState.successCount / decibelState.totalCount) * 100;
+
+    document.getElementById('db-max').textContent = `${Math.round(max)} dB`;
+    document.getElementById('db-avg').textContent = `${Math.round(avg)} dB`;
+    document.getElementById('db-success').textContent = `${Math.round(successRate)}%`;
+}
+
+function adjustTargetDb(delta) {
+    decibelState.targetDb = Math.max(40, Math.min(100, decibelState.targetDb + delta));
+    document.getElementById('target-db-value').textContent = decibelState.targetDb;
+    updateTargetIndicator();
+}
+
+function updateTargetIndicator() {
+    const targetEl = document.getElementById('decibel-target');
+    if (targetEl) {
+        targetEl.style.bottom = `${(decibelState.targetDb / 120) * 100}%`;
+    }
+}
+
+function resetDecibelData() {
+    decibelState.history = [];
+    decibelState.successCount = 0;
+    decibelState.totalCount = 0;
+
+    document.getElementById('decibel-value').textContent = '0';
+    document.getElementById('decibel-bar').style.height = '0%';
+    document.getElementById('decibel-feedback').textContent = '대기 중';
+    document.getElementById('decibel-feedback').style.color = '';
+    document.getElementById('db-max').textContent = '0 dB';
+    document.getElementById('db-avg').textContent = '0 dB';
+    document.getElementById('db-success').textContent = '0%';
+}
+
+// =====================================================
+// Trigger Point Map (TrP 지도)
+// Reference: Travell & Simons' Myofascial Pain and Dysfunction
+// =====================================================
+
+let trpZoomLevel = 1;
+
+// TrP 데이터베이스 (Travell & Simons 기준)
+const TRP_DATA = {
+    neck: {
+        title: '목 (Neck)',
+        muscles: [
+            {
+                name: '상부 승모근',
+                nameEn: 'Upper Trapezius',
+                location: '어깨 위쪽, 목 옆면',
+                referral: '측두부 → 눈썹 위 → 턱 방향으로 방사',
+                pattern: {
+                    trpX: { x: 70, y: 30 },  // TrP 위치
+                    referralPath: 'M70,30 Q60,20 50,15 L30,10'  // 방사통 경로
+                }
+            },
+            {
+                name: '흉쇄유돌근',
+                nameEn: 'Sternocleidomastoid (SCM)',
+                location: '귀 뒤 유양돌기 ~ 흉골/쇄골',
+                referral: '이마, 눈 주위, 귀 안쪽, 때로 어지러움 동반',
+                pattern: {
+                    trpX: { x: 60, y: 45 },
+                    referralPath: 'M60,45 Q50,30 45,15'
+                }
+            },
+            {
+                name: '견갑거근',
+                nameEn: 'Levator Scapulae',
+                location: '목 뒤쪽, 견갑골 상각 위',
+                referral: '목-어깨 연결부, 견갑골 내측연을 따라 방사',
+                pattern: {
+                    trpX: { x: 75, y: 50 },
+                    referralPath: 'M75,50 L80,65 L85,85'
+                }
+            }
+        ]
+    },
+    shoulder: {
+        title: '어깨 (Shoulder)',
+        muscles: [
+            {
+                name: '상부 승모근',
+                nameEn: 'Upper Trapezius',
+                location: '어깨 위쪽 근육 융기부',
+                referral: '목 뒤쪽 → 측두부 → 눈썹/턱까지 방사',
+                pattern: {
+                    trpX: { x: 50, y: 25 },
+                    referralPath: 'M50,25 Q40,15 30,10'
+                }
+            },
+            {
+                name: '극상근',
+                nameEn: 'Supraspinatus',
+                location: '견갑골 극상와 (어깨뼈 위쪽)',
+                referral: '어깨 외측 삼각근 부위, 팔꿈치 외측까지',
+                pattern: {
+                    trpX: { x: 55, y: 40 },
+                    referralPath: 'M55,40 L60,55 L65,75'
+                }
+            },
+            {
+                name: '극하근',
+                nameEn: 'Infraspinatus',
+                location: '견갑골 극하와 (어깨뼈 아래쪽)',
+                referral: '어깨 전면, 상완 전외측, 손목까지 방사 가능',
+                pattern: {
+                    trpX: { x: 60, y: 55 },
+                    referralPath: 'M60,55 L55,45 L50,60 L45,80'
+                }
+            }
+        ]
+    },
+    lowback: {
+        title: '허리 (Low Back)',
+        muscles: [
+            {
+                name: '요방형근',
+                nameEn: 'Quadratus Lumborum (QL)',
+                location: '12번 늑골 ~ 장골능 사이, 척추 옆',
+                referral: '천장관절(SI joint) → 둔부 → 대퇴 외측, 서혜부까지',
+                pattern: {
+                    trpX: { x: 65, y: 50 },
+                    referralPath: 'M65,50 L70,65 L75,85'
+                }
+            },
+            {
+                name: '이상근',
+                nameEn: 'Piriformis',
+                location: '천골 ~ 대전자 사이 (깊은 둔부)',
+                referral: '둔부 전체, 대퇴 후면 (좌골신경통 유사)',
+                pattern: {
+                    trpX: { x: 55, y: 70 },
+                    referralPath: 'M55,70 L50,85 L45,100'
+                }
+            },
+            {
+                name: '중둔근',
+                nameEn: 'Gluteus Medius',
+                location: '장골능 아래, 둔부 외측',
+                referral: '천장관절, 둔부 후면, 대퇴 외측',
+                pattern: {
+                    trpX: { x: 70, y: 65 },
+                    referralPath: 'M70,65 L65,55 L75,80'
+                }
+            }
+        ]
+    },
+    calf: {
+        title: '종아리 (Calf)',
+        muscles: [
+            {
+                name: '비복근',
+                nameEn: 'Gastrocnemius',
+                location: '종아리 뒤쪽 상부 (내측두/외측두)',
+                referral: '슬와부(무릎 뒤) → 종아리 → 발바닥 안쪽',
+                pattern: {
+                    trpX: { x: 50, y: 30 },
+                    referralPath: 'M50,30 L50,50 L45,80'
+                }
+            },
+            {
+                name: '가자미근',
+                nameEn: 'Soleus',
+                location: '비복근 아래, 종아리 깊은 층',
+                referral: '아킬레스건 → 발뒤꿈치 (뒤꿈치 통증의 주요 원인)',
+                pattern: {
+                    trpX: { x: 55, y: 55 },
+                    referralPath: 'M55,55 L55,75 L50,95'
+                }
+            }
+        ]
+    }
+};
+
+function openTriggerPointMap() {
+    document.getElementById('trp-modal').classList.remove('hidden');
+    trpZoomLevel = 1;
+    updateTrpZoom();
+}
+
+function closeTrpMap() {
+    document.getElementById('trp-modal').classList.add('hidden');
+}
+
+function zoomTrpMap(factor) {
+    trpZoomLevel = Math.max(0.5, Math.min(3, trpZoomLevel * factor));
+    updateTrpZoom();
+}
+
+function resetTrpZoom() {
+    trpZoomLevel = 1;
+    updateTrpZoom();
+}
+
+function updateTrpZoom() {
+    const svg = document.getElementById('trp-body-svg');
+    if (svg) {
+        svg.style.transform = `scale(${trpZoomLevel})`;
+    }
+}
+
+function showTrpDetail(region) {
+    const data = TRP_DATA[region];
+    if (!data) return;
+
+    document.getElementById('trp-detail-title').textContent = data.title;
+
+    let html = '';
+    data.muscles.forEach((muscle, idx) => {
+        html += `
+            <div class="trp-muscle-card">
+                <div class="trp-muscle-name">
+                    ${muscle.name}
+                    <span class="muscle-en">${muscle.nameEn}</span>
+                </div>
+                <div class="trp-pattern-img">
+                    <svg viewBox="0 0 120 120" class="trp-pattern-svg">
+                        <!-- 근육 개략도 -->
+                        <ellipse cx="60" cy="60" rx="40" ry="50" fill="#fce7f3" stroke="#f472b6" stroke-width="1"/>
+                        
+                        <!-- 방사통 영역 -->
+                        <path d="${muscle.pattern.referralPath}" 
+                              fill="none" 
+                              stroke="rgba(239,68,68,0.6)" 
+                              stroke-width="12" 
+                              stroke-linecap="round"
+                              stroke-dasharray="2,4"/>
+                        
+                        <!-- TrP 위치 (X 표시) -->
+                        <g transform="translate(${muscle.pattern.trpX.x}, ${muscle.pattern.trpX.y})">
+                            <line x1="-6" y1="-6" x2="6" y2="6" stroke="#dc2626" stroke-width="3"/>
+                            <line x1="6" y1="-6" x2="-6" y2="6" stroke="#dc2626" stroke-width="3"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="trp-location">
+                    <span class="trp-location-icon">✕</span>
+                    <span><strong>TrP 위치:</strong> ${muscle.location}</span>
+                </div>
+                <div class="trp-referral">
+                    <span>→</span>
+                    <span><strong>방사통:</strong> ${muscle.referral}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    document.getElementById('trp-detail-body').innerHTML = html;
+    document.getElementById('trp-detail-popup').classList.remove('hidden');
+}
+
+function closeTrpDetail() {
+    document.getElementById('trp-detail-popup').classList.add('hidden');
+}
+
+// 터치 줌/팬 지원
+(function initTrpTouchHandlers() {
+    let initialDistance = 0;
+    let initialZoom = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('trp-body-container');
+        if (!container) return;
+
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                initialZoom = trpZoomLevel;
+            }
+        }, { passive: true });
+
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                const scale = currentDistance / initialDistance;
+                trpZoomLevel = Math.max(0.5, Math.min(3, initialZoom * scale));
+                updateTrpZoom();
+            }
+        }, { passive: true });
+    });
+})();
+
+// =====================================================
+// AAC Communication Board (의사소통 보드)
+// For patients with aphasia/dysarthria
+// =====================================================
+
+const AAC_DATA = {
+    basic: [
+        { icon: '🚽', label: '화장실', speech: '화장실에 가고 싶어요' },
+        { icon: '💧', label: '물', speech: '물을 주세요' },
+        { icon: '🍚', label: '밥', speech: '배가 고파요' },
+        { icon: '🥵', label: '더워요', speech: '더워요. 시원하게 해주세요' },
+        { icon: '🥶', label: '추워요', speech: '추워요. 따뜻하게 해주세요' },
+        { icon: '😴', label: '피곤해요', speech: '피곤해요. 쉬고 싶어요' },
+        { icon: '👍', label: '네', speech: '네, 좋아요' },
+        { icon: '👎', label: '아니오', speech: '아니요, 싫어요' },
+        { icon: '🆘', label: '도와주세요', speech: '도와주세요' }
+    ],
+    pain: [
+        { icon: '😣', label: '아파요', speech: '아파요' },
+        { icon: '🤕', label: '머리', speech: '머리가 아파요' },
+        { icon: '💔', label: '가슴', speech: '가슴이 아파요' },
+        { icon: '🫃', label: '배', speech: '배가 아파요' },
+        { icon: '🦵', label: '다리', speech: '다리가 아파요' },
+        { icon: '💪', label: '팔', speech: '팔이 아파요' },
+        { icon: '🔥', label: '따끔거려요', speech: '따끔거리고 화끈거려요' },
+        { icon: '⚡', label: '저려요', speech: '저리고 찌릿해요' },
+        { icon: '😵‍💫', label: '어지러워요', speech: '어지러워요' }
+    ],
+    emotion: [
+        { icon: '😊', label: '좋아요', speech: '기분이 좋아요' },
+        { icon: '😢', label: '슬퍼요', speech: '슬프고 우울해요' },
+        { icon: '😰', label: '불안해요', speech: '불안하고 걱정돼요' },
+        { icon: '😤', label: '화나요', speech: '화가 나요' },
+        { icon: '😨', label: '무서워요', speech: '무섭고 두려워요' },
+        { icon: '🥺', label: '보고싶어요', speech: '가족이 보고 싶어요' },
+        { icon: '😔', label: '외로워요', speech: '외롭고 심심해요' },
+        { icon: '🙏', label: '감사해요', speech: '감사합니다' },
+        { icon: '😌', label: '괜찮아요', speech: '괜찮아요, 걱정 마세요' }
+    ],
+    action: [
+        { icon: '🛏️', label: '눕고 싶어요', speech: '눕고 싶어요' },
+        { icon: '🪑', label: '앉고 싶어요', speech: '앉고 싶어요' },
+        { icon: '🚶', label: '걷고 싶어요', speech: '걷고 싶어요' },
+        { icon: '📺', label: 'TV', speech: 'TV를 켜주세요' },
+        { icon: '💡', label: '불', speech: '불을 꺼주세요' },
+        { icon: '📞', label: '전화', speech: '전화하고 싶어요' },
+        { icon: '👨‍⚕️', label: '의사', speech: '의사 선생님을 불러주세요' },
+        { icon: '👩‍⚕️', label: '간호사', speech: '간호사를 불러주세요' },
+        { icon: '⏰', label: '시간', speech: '지금 몇 시예요?' }
+    ]
+};
+
+let aacState = {
+    currentCategory: 'basic',
+    currentText: '',
+    speechRate: 0.9
+};
+
+function openAACBoard() {
+    document.getElementById('aac-modal').classList.remove('hidden');
+    setAACCategory('basic');
+}
+
+function closeAACBoard() {
+    document.getElementById('aac-modal').classList.add('hidden');
+    // Stop any ongoing speech
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+}
+
+function setAACCategory(category) {
+    aacState.currentCategory = category;
+    
+    // Update category buttons
+    document.querySelectorAll('.aac-cat-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent.includes(getCategoryKorean(category))) {
+            btn.classList.add('active');
+        }
+    });
+    
+    renderAACBoard();
+}
+
+function getCategoryKorean(cat) {
+    const map = { basic: '기본', pain: '통증', emotion: '감정', action: '요청' };
+    return map[cat] || cat;
+}
+
+function renderAACBoard() {
+    const board = document.getElementById('aac-board');
+    const items = AAC_DATA[aacState.currentCategory] || [];
+    
+    board.innerHTML = items.map((item, idx) => `
+        <div class="aac-item" onclick="selectAACItem(${idx})" id="aac-item-${idx}">
+            <span class="aac-icon">${item.icon}</span>
+            <span class="aac-label">${item.label}</span>
+        </div>
+    `).join('');
+}
+
+function selectAACItem(idx) {
+    const items = AAC_DATA[aacState.currentCategory];
+    if (!items || !items[idx]) return;
+    
+    const item = items[idx];
+    aacState.currentText = item.speech;
+    
+    // Update output display
+    document.getElementById('aac-output-text').textContent = item.speech;
+    
+    // Visual feedback
+    const el = document.getElementById(`aac-item-${idx}`);
+    if (el) {
+        el.classList.add('speaking');
+        setTimeout(() => el.classList.remove('speaking'), 500);
+    }
+    
+    // Speak immediately
+    speakText(item.speech);
+}
+
+function speakAACOutput() {
+    if (aacState.currentText) {
+        speakText(aacState.currentText);
+    }
+}
+
+function speakText(text) {
+    if (!window.speechSynthesis) {
+        showToast('이 기기에서 음성 합성을 지원하지 않습니다');
+        return;
+    }
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'ko-KR';
+    utterance.rate = aacState.speechRate;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    // Try to use Korean voice if available
+    const voices = window.speechSynthesis.getVoices();
+    const koreanVoice = voices.find(v => v.lang.includes('ko'));
+    if (koreanVoice) {
+        utterance.voice = koreanVoice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+function updateAACRate(value) {
+    aacState.speechRate = parseFloat(value);
+}
+
+// Load voices when available
+if (window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        // Voices loaded
+    };
+}
+
+// =====================================================
+// Visual Neglect Test (편측 무시 검사)
+// Based on Star Cancellation Test (Wilson, Cockburn & Halligan, 1987)
+// Reference: Halligan et al. cutoff: ≤51/54 indicates USN
+// =====================================================
+
+let neglectState = {
+    totalStars: 54,
+    timeLimit: 120,
+    stars: [],
+    found: { left: 0, right: 0 },
+    total: { left: 0, right: 0 },
+    timer: null,
+    timeRemaining: 120,
+    isRunning: false
+};
+
+function openNeglectTest() {
+    document.getElementById('neglect-modal').classList.remove('hidden');
+    resetNeglectTest();
+}
+
+function closeNeglectTest() {
+    document.getElementById('neglect-modal').classList.add('hidden');
+    stopNeglectTimer();
+}
+
+// Current neglect mode: 'bisection' or 'star'
+let currentNeglectMode = 'bisection';
+
+// Bisection test state
+let bisectionState = {
+    trials: [],
+    currentTrial: 0,
+    totalTrials: 5,
+    lineLength: 'full',
+    isRunning: false
+};
+
+function setNeglectMode(mode) {
+    currentNeglectMode = mode;
+
+    // Update tabs
+    document.querySelectorAll('.neglect-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.includes(mode === 'bisection' ? '선 이등분' : '별 찾기'));
+    });
+
+    // Show/hide intro sections
+    document.getElementById('neglect-intro-bisection').classList.toggle('hidden', mode !== 'bisection');
+    document.getElementById('neglect-intro-star').classList.toggle('hidden', mode !== 'star');
+
+    // Hide test areas and results
+    document.getElementById('bisection-test-area').classList.add('hidden');
+    document.getElementById('neglect-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.add('hidden');
+}
+
+function resetNeglectTest() {
+    stopNeglectTimer();
+
+    // Reset to intro based on current mode
+    setNeglectMode(currentNeglectMode);
+
+    neglectState.found = { left: 0, right: 0 };
+    neglectState.stars = [];
+    neglectState.isRunning = false;
+
+    bisectionState.trials = [];
+    bisectionState.currentTrial = 0;
+    bisectionState.isRunning = false;
+}
+
+function restartNeglectTest() {
+    resetNeglectTest();
+}
+
+function startNeglectTest() {
+    const starCount = parseInt(document.getElementById('neglect-star-count').value);
+    const timeLimit = parseInt(document.getElementById('neglect-time-limit').value);
+
+    neglectState.totalStars = starCount;
+    neglectState.timeLimit = timeLimit;
+    neglectState.timeRemaining = timeLimit;
+    neglectState.found = { left: 0, right: 0 };
+    neglectState.total = { left: 0, right: 0 };
+    neglectState.stars = [];
+    neglectState.isRunning = true;
+
+    document.getElementById('neglect-intro-star').classList.add('hidden');
+    document.getElementById('neglect-test-area').classList.remove('hidden');
+    document.getElementById('neglect-result').classList.add('hidden');
+    
+    document.getElementById('neglect-total').textContent = starCount;
+    document.getElementById('neglect-found').textContent = '0';
+    
+    generateNeglectStars();
+    
+    if (timeLimit > 0) {
+        updateTimerDisplay();
+        neglectState.timer = setInterval(updateNeglectTimer, 1000);
+    } else {
+        document.getElementById('neglect-timer').textContent = '--:--';
+    }
+}
+
+function generateNeglectStars() {
+    const field = document.getElementById('neglect-field');
+    field.innerHTML = '';
+    
+    const rect = field.getBoundingClientRect();
+    const width = rect.width || 300;
+    const height = rect.height || 300;
+    
+    const padding = 30;
+    const starSize = 28;
+    const distractorCount = Math.floor(neglectState.totalStars * 0.4);
+    
+    const leftCount = Math.floor(neglectState.totalStars / 2);
+    const rightCount = neglectState.totalStars - leftCount;
+    
+    neglectState.total.left = leftCount;
+    neglectState.total.right = rightCount;
+    
+    for (let i = 0; i < leftCount; i++) {
+        createStar(field, 
+            padding + Math.random() * (width / 2 - padding * 2 - starSize),
+            padding + Math.random() * (height - padding * 2 - starSize),
+            'left', i);
+    }
+    
+    for (let i = 0; i < rightCount; i++) {
+        createStar(field,
+            width / 2 + padding + Math.random() * (width / 2 - padding * 2 - starSize),
+            padding + Math.random() * (height - padding * 2 - starSize),
+            'right', leftCount + i);
+    }
+    
+    const distractors = ['A', 'B', 'C', 'D', 'E', 'ㄱ', 'ㄴ', 'ㄷ', '○', '△', '□'];
+    for (let i = 0; i < distractorCount; i++) {
+        const distractor = document.createElement('div');
+        distractor.className = 'neglect-distractor';
+        distractor.textContent = distractors[Math.floor(Math.random() * distractors.length)];
+        distractor.style.left = (padding + Math.random() * (width - padding * 2 - 20)) + 'px';
+        distractor.style.top = (padding + Math.random() * (height - padding * 2 - 20)) + 'px';
+        field.appendChild(distractor);
+    }
+}
+
+function createStar(field, x, y, side, index) {
+    const star = document.createElement('div');
+    star.className = 'neglect-star';
+    star.textContent = '⭐';
+    star.style.left = x + 'px';
+    star.style.top = y + 'px';
+    star.dataset.side = side;
+    star.dataset.index = index;
+    
+    star.addEventListener('click', function() { onStarTap(star, side); });
+    star.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        onStarTap(star, side);
+    }, { passive: false });
+    
+    field.appendChild(star);
+    neglectState.stars.push({ side: side, found: false });
+}
+
+function onStarTap(star, side) {
+    if (star.classList.contains('found') || !neglectState.isRunning) return;
+    
+    star.classList.add('found');
+    neglectState.found[side]++;
+    
+    const totalFound = neglectState.found.left + neglectState.found.right;
+    document.getElementById('neglect-found').textContent = totalFound;
+    
+    if (totalFound >= neglectState.totalStars) {
+        endNeglectTest();
+    }
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+}
+
+function updateNeglectTimer() {
+    neglectState.timeRemaining--;
+    updateTimerDisplay();
+    
+    if (neglectState.timeRemaining <= 0) {
+        endNeglectTest();
+    }
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(neglectState.timeRemaining / 60);
+    const seconds = neglectState.timeRemaining % 60;
+    const secStr = seconds < 10 ? '0' + seconds : '' + seconds;
+    const display = minutes + ':' + secStr;
+    
+    const timerEl = document.getElementById('neglect-timer');
+    timerEl.textContent = display;
+    
+    timerEl.classList.remove('warning', 'danger');
+    if (neglectState.timeRemaining <= 10) {
+        timerEl.classList.add('danger');
+    } else if (neglectState.timeRemaining <= 30) {
+        timerEl.classList.add('warning');
+    }
+}
+
+function stopNeglectTimer() {
+    if (neglectState.timer) {
+        clearInterval(neglectState.timer);
+        neglectState.timer = null;
+    }
+}
+
+function endNeglectTest() {
+    stopNeglectTimer();
+    neglectState.isRunning = false;
+    
+    const leftPercent = neglectState.total.left > 0 
+        ? Math.round((neglectState.found.left / neglectState.total.left) * 100) 
+        : 0;
+    const rightPercent = neglectState.total.right > 0 
+        ? Math.round((neglectState.found.right / neglectState.total.right) * 100) 
+        : 0;
+    
+    const totalFound = neglectState.found.left + neglectState.found.right;
+    const totalStars = neglectState.totalStars;
+    const omissions = totalStars - totalFound;
+    const asymmetry = leftPercent - rightPercent;
+    
+    document.getElementById('result-left').textContent = leftPercent + '%';
+    document.getElementById('result-right').textContent = rightPercent + '%';
+    document.getElementById('left-fill').style.width = leftPercent + '%';
+    document.getElementById('right-fill').style.width = rightPercent + '%';
+    
+    const leftOmit = neglectState.total.left - neglectState.found.left;
+    const rightOmit = neglectState.total.right - neglectState.found.right;
+    const asymText = asymmetry > 0 ? '(우측 저하)' : asymmetry < 0 ? '(좌측 저하)' : '';
+    
+    document.getElementById('neglect-summary').innerHTML = 
+        '<div><strong>찾은 별:</strong> ' + totalFound + ' / ' + totalStars + '</div>' +
+        '<div><strong>누락:</strong> ' + omissions + '개 (좌 ' + leftOmit + ', 우 ' + rightOmit + ')</div>' +
+        '<div><strong>좌우 차이:</strong> ' + Math.abs(asymmetry) + '%p ' + asymText + '</div>';
+    
+    const totalPercent = (totalFound / totalStars) * 100;
+    const interpretEl = document.getElementById('neglect-interpretation');
+    
+    if (totalPercent >= 95 && Math.abs(asymmetry) < 20) {
+        interpretEl.className = 'neglect-interpretation normal';
+        interpretEl.innerHTML = '✅ <strong>정상 범위</strong><br>편측 무시 가능성 낮음';
+    } else if (leftPercent < 80 && rightPercent >= 90) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>좌측 무시 의심</strong><br>우뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (rightPercent < 80 && leftPercent >= 90) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>우측 무시 의심</strong><br>좌뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (Math.abs(asymmetry) >= 20) {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>비대칭 패턴</strong><br>편측 무시 선별 필요 - 추가 평가 권장';
+    } else {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>주의력/집중력 저하</strong><br>전반적 인지 평가 권장';
+    }
+    
+    document.getElementById('neglect-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.remove('hidden');
+}
+
+// ============================================
+// LINE BISECTION TEST
+// ============================================
+
+function startBisectionTest() {
+    bisectionState.totalTrials = parseInt(document.getElementById('bisection-trials').value);
+    bisectionState.lineLength = document.getElementById('bisection-length').value;
+    bisectionState.trials = [];
+    bisectionState.currentTrial = 0;
+    bisectionState.isRunning = true;
+
+    // Hide intro, show test area
+    document.getElementById('neglect-intro-bisection').classList.add('hidden');
+    document.getElementById('bisection-test-area').classList.remove('hidden');
+
+    document.getElementById('bisection-total').textContent = bisectionState.totalTrials;
+
+    setupBisectionTrial();
+}
+
+function setupBisectionTrial() {
+    bisectionState.currentTrial++;
+    document.getElementById('bisection-current').textContent = bisectionState.currentTrial;
+
+    const field = document.getElementById('bisection-field');
+    const line = document.getElementById('bisection-line');
+    const marker = document.getElementById('bisection-marker');
+
+    // Reset marker
+    marker.classList.add('hidden');
+    marker.classList.remove('correct');
+
+    // Set line length
+    if (bisectionState.lineLength === 'short') {
+        line.classList.add('short');
+    } else {
+        line.classList.remove('short');
+    }
+
+    // Random vertical offset to prevent memorization
+    const randomOffset = (Math.random() - 0.5) * 60;
+    line.style.top = 'calc(50% + ' + randomOffset + 'px)';
+
+    // Add touch/click handler
+    field.onclick = handleBisectionTap;
+    field.ontouchstart = function(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        handleBisectionTapAt(touch.clientX, touch.clientY);
+    };
+}
+
+function handleBisectionTap(e) {
+    handleBisectionTapAt(e.clientX, e.clientY);
+}
+
+function handleBisectionTapAt(clientX, clientY) {
+    if (!bisectionState.isRunning) return;
+
+    const field = document.getElementById('bisection-field');
+    const line = document.getElementById('bisection-line');
+    const marker = document.getElementById('bisection-marker');
+
+    const fieldRect = field.getBoundingClientRect();
+    const lineRect = line.getBoundingClientRect();
+
+    // Calculate tap position relative to field
+    const tapX = clientX - fieldRect.left;
+    const tapY = clientY - fieldRect.top;
+
+    // Calculate line properties
+    const lineLeft = lineRect.left - fieldRect.left;
+    const lineRight = lineRect.right - fieldRect.left;
+    const lineCenter = (lineLeft + lineRight) / 2;
+    const lineLength = lineRight - lineLeft;
+    const lineY = lineRect.top - fieldRect.top + lineRect.height / 2;
+
+    // Show marker at tap position (constrained to line)
+    const constrainedX = Math.max(lineLeft, Math.min(lineRight, tapX));
+    marker.style.left = constrainedX + 'px';
+    marker.style.top = lineY + 'px';
+    marker.classList.remove('hidden');
+
+    // Calculate deviation from center (in percentage of half line length)
+    // Positive = right of center, Negative = left of center
+    const deviation = ((constrainedX - lineCenter) / (lineLength / 2)) * 100;
+    const deviationMm = deviation * 0.5; // Approximate mm based on typical line length
+
+    // Store trial result
+    bisectionState.trials.push({
+        trial: bisectionState.currentTrial,
+        deviation: deviation,
+        deviationMm: deviationMm,
+        tapX: constrainedX,
+        lineCenter: lineCenter
+    });
+
+    // Visual feedback
+    if (Math.abs(deviation) < 5) {
+        marker.classList.add('correct');
+    }
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+        navigator.vibrate(30);
+    }
+
+    // Disable further taps
+    field.onclick = null;
+    field.ontouchstart = null;
+
+    // Wait and proceed
+    setTimeout(function() {
+        if (bisectionState.currentTrial < bisectionState.totalTrials) {
+            setupBisectionTrial();
+        } else {
+            endBisectionTest();
+        }
+    }, 800);
+}
+
+function endBisectionTest() {
+    bisectionState.isRunning = false;
+
+    const trials = bisectionState.trials;
+    const avgDeviation = trials.reduce(function(sum, t) { return sum + t.deviation; }, 0) / trials.length;
+    const leftDeviations = trials.filter(function(t) { return t.deviation < -5; }).length;
+    const rightDeviations = trials.filter(function(t) { return t.deviation > 5; }).length;
+
+    // Calculate left/right performance for consistency with star test display
+    const leftPercent = Math.round(100 - Math.abs(Math.min(0, avgDeviation)));
+    const rightPercent = Math.round(100 - Math.abs(Math.max(0, avgDeviation)));
+
+    // Update result display
+    document.getElementById('result-left').textContent = leftPercent + '%';
+    document.getElementById('result-right').textContent = rightPercent + '%';
+    document.getElementById('left-fill').style.width = leftPercent + '%';
+    document.getElementById('right-fill').style.width = rightPercent + '%';
+
+    // Build summary
+    const direction = avgDeviation > 0 ? '우측' : avgDeviation < 0 ? '좌측' : '중앙';
+    let summaryHtml = '<div><strong>평균 편차:</strong> ' + Math.abs(avgDeviation).toFixed(1) + '% ' + (avgDeviation !== 0 ? '(' + direction + ')' : '') + '</div>';
+    summaryHtml += '<div><strong>시행 결과:</strong> 좌측편향 ' + leftDeviations + '회, 우측편향 ' + rightDeviations + '회</div>';
+    summaryHtml += '<div class="bisection-result-detail">';
+    summaryHtml += '<strong>시행별 편차:</strong><div class="bisection-trial-list">';
+
+    for (var i = 0; i < trials.length; i++) {
+        var t = trials[i];
+        var dir = t.deviation > 5 ? 'right' : t.deviation < -5 ? 'left' : 'center';
+        var dirText = t.deviation > 5 ? '우' : t.deviation < -5 ? '좌' : '중앙';
+        summaryHtml += '<div class="bisection-trial-item"><span>시행 ' + t.trial + '</span>';
+        summaryHtml += '<span class="deviation ' + dir + '">' + (t.deviation > 0 ? '+' : '') + t.deviation.toFixed(1) + '% (' + dirText + ')</span></div>';
+    }
+
+    summaryHtml += '</div></div>';
+    summaryHtml += '<div class="bisection-avg"><div class="bisection-avg-value">' + (avgDeviation > 0 ? '+' : '') + avgDeviation.toFixed(1) + '%</div>';
+    summaryHtml += '<div class="bisection-avg-label">평균 편차 (' + direction + ' 편향)</div></div>';
+
+    document.getElementById('neglect-summary').innerHTML = summaryHtml;
+
+    // Interpretation based on Schenkenberg et al. criteria
+    const interpretEl = document.getElementById('neglect-interpretation');
+
+    if (Math.abs(avgDeviation) < 5) {
+        interpretEl.className = 'neglect-interpretation normal';
+        interpretEl.innerHTML = '✅ <strong>정상 범위</strong><br>선 이등분 수행 양호';
+    } else if (avgDeviation < -15) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>좌측 무시 의심</strong><br>우뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (avgDeviation > 15) {
+        interpretEl.className = 'neglect-interpretation abnormal';
+        interpretEl.innerHTML = '⚠️ <strong>우측 무시 의심</strong><br>좌뇌 병변 가능성 - 정밀 평가 권장';
+    } else if (avgDeviation < -5) {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>경미한 좌측 편향</strong><br>추가 평가 고려';
+    } else {
+        interpretEl.className = 'neglect-interpretation suspect';
+        interpretEl.innerHTML = '🔍 <strong>경미한 우측 편향</strong><br>추가 평가 고려';
+    }
+
+    // Show result
+    document.getElementById('bisection-test-area').classList.add('hidden');
+    document.getElementById('neglect-result').classList.remove('hidden');
+}
+
+// ============================================
+// AI-Driven Assessment & Plan Functions
+// ============================================
+
+// State for AI selections
+const aiState = {
+    selectedProblems: [],
+    selectedSTGs: [],
+    selectedLTGs: [],
+    treatmentCart: [],
+    selectedHEPs: [],
+    selectedEducation: [],
+    selectedPrecautions: [],
+    schedule: { freq: '3x', dur: '4w' }
+};
+
+// Mock AI Analysis Data
+const mockAIData = {
+    problems: [
+        { id: 'balance', icon: '⚖️', iconClass: 'balance', title: '낙상 위험군 (중등도)', detail: 'BBS 42점 - 균형 능력 저하', severity: 'moderate', category: 'balance' },
+        { id: 'gait', icon: '🚶', iconClass: 'gait', title: '보행 장애', detail: '보조도구 필요, 10m 보행 시 20초 소요', severity: 'moderate', category: 'gait' },
+        { id: 'strength', icon: '💪', iconClass: 'strength', title: '하지 근력 약화', detail: 'MMT 3+/5 (고관절 굴곡근)', severity: 'moderate', category: 'strength' },
+        { id: 'rom', icon: '🔄', iconClass: 'rom', title: 'ROM 제한', detail: '어깨 굴곡 95° (정상 180°)', severity: 'high', category: 'rom' }
+    ],
+    stgs: [
+        { id: 'stg1', text: '2주 내: 보조도구 없이 실내 10m 독립 보행', tags: ['보행', '2주'] },
+        { id: 'stg2', text: '2주 내: BBS 점수 46점 이상 달성', tags: ['균형', '2주'] },
+        { id: 'stg3', text: '3주 내: 하지 근력 MMT 4/5 달성', tags: ['근력', '3주'] },
+        { id: 'stg4', text: '2주 내: VAS 3/10 이하로 통증 감소', tags: ['통증', '2주'] }
+    ],
+    ltgs: [
+        { id: 'ltg1', text: '6주 내: 독립 보행으로 지역사회 활동 복귀', tags: ['보행', '6주'] },
+        { id: 'ltg2', text: '8주 내: 낙상 없이 계단 오르내리기 독립 수행', tags: ['균형', '8주'] },
+        { id: 'ltg3', text: '6주 내: 일상생활 활동 독립 수행', tags: ['ADL', '6주'] }
+    ],
+    treatments: {
+        balance: [
+            { id: 't1', name: '한발 서기 훈련', category: '균형', icon: '⚖️', iconClass: 'balance', sets: '3', reps: '10초' },
+            { id: 't2', name: '앉았다 일어서기', category: '균형/근력', icon: '🪑', iconClass: 'balance', sets: '3', reps: '10회' }
+        ],
+        gait: [
+            { id: 't3', name: '트레드밀 보행 훈련', category: '보행', icon: '🚶', iconClass: 'gait', sets: '1', reps: '10분' },
+            { id: 't4', name: '장애물 보행 훈련', category: '보행', icon: '🏃', iconClass: 'gait', sets: '3', reps: '10m' }
+        ],
+        strength: [
+            { id: 't5', name: 'SLR 운동', category: '근력', icon: '💪', iconClass: 'strength', sets: '3', reps: '10회' },
+            { id: 't6', name: '브릿지 운동', category: '근력', icon: '🏋️', iconClass: 'strength', sets: '3', reps: '10회' }
+        ],
+        rom: [
+            { id: 't7', name: '어깨 수동 ROM', category: 'ROM', icon: '🔄', iconClass: 'manual', sets: '3', reps: '10회' },
+            { id: 't8', name: '스트레칭', category: 'ROM', icon: '🧘', iconClass: 'manual', sets: '3', reps: '30초' }
+        ],
+        general: [
+            { id: 't9', name: 'Hot pack', category: '물리적 인자', icon: '🔥', iconClass: 'modality', sets: '1', reps: '15분' },
+            { id: 't10', name: 'TENS', category: '물리적 인자', icon: '⚡', iconClass: 'modality', sets: '1', reps: '20분' }
+        ]
+    }
+};
+
+// Run AI Analysis when navigating to Assessment
+function runAIAnalysis() {
+    const loading = document.getElementById('ai-analysis-loading');
+    const problemsSection = document.getElementById('ai-problems-section');
+    const stgSection = document.getElementById('ai-stg-section');
+    const ltgSection = document.getElementById('ai-ltg-section');
+    const prognosisSection = document.getElementById('ai-prognosis-section');
+    const resultSection = document.getElementById('assessment-result');
+
+    // Reset state
+    aiState.selectedProblems = [];
+    aiState.selectedSTGs = [];
+    aiState.selectedLTGs = [];
+
+    // Show loading
+    if (loading) loading.classList.remove('hidden');
+    if (problemsSection) problemsSection.classList.add('hidden');
+    if (stgSection) stgSection.classList.add('hidden');
+    if (ltgSection) ltgSection.classList.add('hidden');
+    if (prognosisSection) prognosisSection.classList.add('hidden');
+    if (resultSection) resultSection.classList.add('hidden');
+
+    // Simulate AI analysis delay
+    setTimeout(() => {
+        if (loading) loading.classList.add('hidden');
+        renderAIProblems();
+        renderAIGoals('stg');
+        renderAIGoals('ltg');
+        renderPrognosis();
+
+        if (problemsSection) problemsSection.classList.remove('hidden');
+        if (stgSection) stgSection.classList.remove('hidden');
+        if (ltgSection) ltgSection.classList.remove('hidden');
+        if (prognosisSection) prognosisSection.classList.remove('hidden');
+        if (resultSection) resultSection.classList.remove('hidden');
+    }, 1500);
+}
+
+// Render AI Problem Cards
+function renderAIProblems() {
+    const container = document.getElementById('ai-problem-cards');
+    if (!container) return;
+
+    container.innerHTML = mockAIData.problems.map(p => `
+        <div class="ai-problem-card" data-id="${p.id}" data-category="${p.category}" onclick="toggleProblemCard(this)">
+            <div class="problem-icon ${p.iconClass}">${p.icon}</div>
+            <div class="problem-content">
+                <div class="problem-title">${p.title}</div>
+                <div class="problem-detail">${p.detail}</div>
+            </div>
+            <span class="problem-severity severity-${p.severity}">${p.severity === 'high' ? '심각' : p.severity === 'moderate' ? '중등도' : '경미'}</span>
+        </div>
+    `).join('');
+}
+
+// Toggle Problem Card Selection
+function toggleProblemCard(card) {
+    card.classList.toggle('selected');
+    const id = card.dataset.id;
+    const category = card.dataset.category;
+
+    if (card.classList.contains('selected')) {
+        const problem = mockAIData.problems.find(p => p.id === id);
+        aiState.selectedProblems.push(problem);
+    } else {
+        aiState.selectedProblems = aiState.selectedProblems.filter(p => p.id !== id);
+    }
+
+    updateAssessmentSummary();
+    updatePlanTreatments(); // Update Plan recommendations based on selected problems
+}
+
+// Render AI Goal Checkboxes
+function renderAIGoals(type) {
+    const container = document.getElementById(`ai-${type}-list`);
+    if (!container) return;
+
+    const goals = type === 'stg' ? mockAIData.stgs : mockAIData.ltgs;
+
+    container.innerHTML = goals.map(g => `
+        <div class="ai-goal-item" data-id="${g.id}" onclick="toggleGoalItem(this, '${type}')">
+            <div class="goal-checkbox"></div>
+            <div class="goal-content">
+                <div class="goal-text">${g.text}</div>
+                <div class="goal-meta-info">
+                    ${g.tags.map(t => `<span class="goal-tag">${t}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Toggle Goal Selection
+function toggleGoalItem(item, type) {
+    item.classList.toggle('selected');
+    const id = item.dataset.id;
+    const goals = type === 'stg' ? mockAIData.stgs : mockAIData.ltgs;
+    const selectedList = type === 'stg' ? 'selectedSTGs' : 'selectedLTGs';
+
+    if (item.classList.contains('selected')) {
+        const goal = goals.find(g => g.id === id);
+        aiState[selectedList].push(goal);
+    } else {
+        aiState[selectedList] = aiState[selectedList].filter(g => g.id !== id);
+    }
+
+    updateAssessmentSummary();
+}
+
+// Render Prognosis
+function renderPrognosis() {
+    const badge = document.getElementById('ai-prognosis-recommend');
+    if (badge) badge.textContent = 'AI 추천: 양호';
+
+    // Auto-select "good" prognosis
+    setTimeout(() => {
+        const goodBtn = document.querySelector('.prognosis-btn[data-value="good"]');
+        if (goodBtn) {
+            document.querySelectorAll('.prognosis-btn').forEach(b => b.classList.remove('active'));
+            goodBtn.classList.add('active');
+        }
+    }, 100);
+}
+
+// Select Prognosis
+function selectPrognosis(btn) {
+    document.querySelectorAll('.prognosis-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    updateAssessmentSummary();
+}
+
+// Update Assessment Summary
+function updateAssessmentSummary() {
+    const summaryEl = document.getElementById('assessment-summary-content');
+    const countEl = document.getElementById('selected-count');
+
+    if (!summaryEl) return;
+
+    const totalCount = aiState.selectedProblems.length + aiState.selectedSTGs.length + aiState.selectedLTGs.length;
+    if (countEl) countEl.textContent = `${totalCount}개 선택`;
+
+    if (totalCount === 0) {
+        summaryEl.innerHTML = '<p class="summary-empty">위에서 항목을 선택해주세요</p>';
+        return;
+    }
+
+    let html = '';
+
+    if (aiState.selectedProblems.length > 0) {
+        html += '<strong>【문제 목록】</strong><br>';
+        aiState.selectedProblems.forEach((p, i) => {
+            html += `${i + 1}. ${p.title}<br>`;
+        });
+        html += '<br>';
+    }
+
+    const prognosisBtn = document.querySelector('.prognosis-btn.active');
+    const prognosisText = { excellent: '우수', good: '양호', fair: '보통', guarded: '주의', poor: '불량' };
+    html += `<strong>【예후】</strong> ${prognosisBtn ? prognosisText[prognosisBtn.dataset.value] : '보통'}<br><br>`;
+
+    if (aiState.selectedSTGs.length > 0) {
+        html += '<strong>【단기 목표】</strong><br>';
+        aiState.selectedSTGs.forEach((g, i) => {
+            html += `${i + 1}. ${g.text}<br>`;
+        });
+        html += '<br>';
+    }
+
+    if (aiState.selectedLTGs.length > 0) {
+        html += '<strong>【장기 목표】</strong><br>';
+        aiState.selectedLTGs.forEach((g, i) => {
+            html += `${i + 1}. ${g.text}<br>`;
+        });
+    }
+
+    summaryEl.innerHTML = html;
+}
+
+// Copy Assessment Summary
+function copyAssessmentSummary() {
+    const summaryEl = document.getElementById('assessment-summary-content');
+    if (!summaryEl) return;
+
+    const text = summaryEl.innerText;
+
+    if (text.includes('선택해주세요')) {
+        showToast('선택된 항목이 없습니다');
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Assessment가 복사되었습니다');
+    }).catch(() => showToast('복사 실패'));
+}
+
+// Show Custom Problem Input
+function showCustomProblemInput() {
+    const text = prompt('문제점을 입력하세요:');
+    if (text && text.trim()) {
+        const customProblem = {
+            id: 'custom-' + Date.now(),
+            icon: '📝',
+            iconClass: 'pain',
+            title: text.trim(),
+            detail: '직접 입력',
+            severity: 'moderate',
+            category: 'custom'
+        };
+        mockAIData.problems.push(customProblem);
+        renderAIProblems();
+        showToast('문제점이 추가되었습니다');
+    }
+}
+
+// Show Custom Goal Input
+function showCustomGoalInput(type) {
+    const text = prompt(`${type === 'stg' ? '단기' : '장기'} 목표를 입력하세요:`);
+    if (text && text.trim()) {
+        const customGoal = {
+            id: `custom-${type}-` + Date.now(),
+            text: text.trim(),
+            tags: ['직접입력']
+        };
+        if (type === 'stg') {
+            mockAIData.stgs.push(customGoal);
+        } else {
+            mockAIData.ltgs.push(customGoal);
+        }
+        renderAIGoals(type);
+        showToast('목표가 추가되었습니다');
+    }
+}
+
+// ============================================
+// Plan Screen Functions - Shopping Cart Style
+// ============================================
+
+// Update Plan Treatments based on selected problems
+function updatePlanTreatments() {
+    const carousel = document.getElementById('treatment-carousel');
+    if (!carousel) return;
+
+    let treatments = [];
+
+    // Add treatments based on selected problem categories
+    aiState.selectedProblems.forEach(p => {
+        if (mockAIData.treatments[p.category]) {
+            treatments = treatments.concat(mockAIData.treatments[p.category]);
+        }
+    });
+
+    // Always add general treatments
+    treatments = treatments.concat(mockAIData.treatments.general);
+
+    // Remove duplicates
+    treatments = treatments.filter((t, i, arr) => arr.findIndex(x => x.id === t.id) === i);
+
+    renderTreatmentCarousel(treatments);
+}
+
+// Render Treatment Carousel
+function renderTreatmentCarousel(treatments) {
+    const carousel = document.getElementById('treatment-carousel');
+    if (!carousel) return;
+
+    if (!treatments || treatments.length === 0) {
+        // Default treatments if no problems selected
+        treatments = [
+            ...mockAIData.treatments.strength,
+            ...mockAIData.treatments.balance,
+            ...mockAIData.treatments.general
+        ];
+    }
+
+    carousel.innerHTML = treatments.map(t => `
+        <div class="treatment-card ${aiState.treatmentCart.find(x => x.id === t.id) ? 'in-cart' : ''}" data-id="${t.id}">
+            <button class="add-to-cart-btn ${aiState.treatmentCart.find(x => x.id === t.id) ? 'added' : ''}" onclick="toggleTreatmentCart('${t.id}', event)">
+                ${aiState.treatmentCart.find(x => x.id === t.id) ? '✓' : '+'}
+            </button>
+            <div class="treatment-icon ${t.iconClass}">${t.icon}</div>
+            <div class="treatment-name">${t.name}</div>
+            <div class="treatment-category">${t.category}</div>
+        </div>
+    `).join('');
+}
+
+// Toggle Treatment in Cart
+function toggleTreatmentCart(id, event) {
+    event.stopPropagation();
+
+    const existingIndex = aiState.treatmentCart.findIndex(t => t.id === id);
+
+    if (existingIndex >= 0) {
+        aiState.treatmentCart.splice(existingIndex, 1);
+    } else {
+        // Find treatment from all categories
+        let treatment = null;
+        Object.values(mockAIData.treatments).forEach(arr => {
+            const found = arr.find(t => t.id === id);
+            if (found) treatment = { ...found };
+        });
+        if (treatment) {
+            aiState.treatmentCart.push(treatment);
+        }
+    }
+
+    renderTreatmentCart();
+    updatePlanTreatments(); // Re-render carousel to update button states
+    updatePlanSummary();
+}
+
+// Render Treatment Cart
+function renderTreatmentCart() {
+    const cart = document.getElementById('my-treatment-cart');
+    const countEl = document.getElementById('cart-count');
+
+    if (!cart) return;
+
+    if (countEl) {
+        countEl.textContent = `${aiState.treatmentCart.length}개`;
+        countEl.classList.toggle('has-items', aiState.treatmentCart.length > 0);
+    }
+
+    if (aiState.treatmentCart.length === 0) {
+        cart.innerHTML = `
+            <div class="cart-empty">
+                <span class="cart-empty-icon">📋</span>
+                <p>위에서 치료를 담아주세요</p>
+            </div>
+        `;
+        return;
+    }
+
+    cart.innerHTML = aiState.treatmentCart.map(t => `
+        <div class="cart-item" data-id="${t.id}">
+            <div class="cart-item-icon">${t.icon}</div>
+            <div class="cart-item-info">
+                <div class="cart-item-name">${t.name}</div>
+                <div class="cart-item-params">
+                    <input type="text" value="${t.sets}" placeholder="세트" onchange="updateCartItemParam('${t.id}', 'sets', this.value)">
+                    <span>×</span>
+                    <input type="text" value="${t.reps}" placeholder="횟수" onchange="updateCartItemParam('${t.id}', 'reps', this.value)">
+                </div>
+            </div>
+            <button class="cart-item-remove" onclick="removeFromCart('${t.id}')">✕</button>
+        </div>
+    `).join('');
+}
+
+// Update Cart Item Parameters
+function updateCartItemParam(id, param, value) {
+    const item = aiState.treatmentCart.find(t => t.id === id);
+    if (item) {
+        item[param] = value;
+        updatePlanSummary();
+    }
+}
+
+// Remove from Cart
+function removeFromCart(id) {
+    aiState.treatmentCart = aiState.treatmentCart.filter(t => t.id !== id);
+    renderTreatmentCart();
+    updatePlanTreatments();
+    updatePlanSummary();
+}
+
+// Schedule Selection
+function selectSchedule(btn, type) {
+    const group = btn.closest('.schedule-options');
+    if (group) {
+        group.querySelectorAll('.schedule-chip').forEach(b => b.classList.remove('active'));
+    }
+    btn.classList.add('active');
+
+    if (type === 'freq') {
+        aiState.schedule.freq = btn.dataset.freq;
+    } else {
+        aiState.schedule.dur = btn.dataset.dur;
+    }
+    updatePlanSummary();
+}
+
+// Toggle HEP Chip
+function toggleHepChip(btn) {
+    btn.classList.toggle('active');
+    const hep = btn.dataset.hep;
+
+    if (btn.classList.contains('active')) {
+        aiState.selectedHEPs.push(hep);
+    } else {
+        aiState.selectedHEPs = aiState.selectedHEPs.filter(h => h !== hep);
+    }
+    updatePlanSummary();
+}
+
+// Toggle Education
+function toggleEducation(btn) {
+    btn.classList.toggle('active');
+
+    if (btn.classList.contains('active')) {
+        aiState.selectedEducation.push(btn.textContent);
+    } else {
+        aiState.selectedEducation = aiState.selectedEducation.filter(e => e !== btn.textContent);
+    }
+    updatePlanSummary();
+}
+
+// Toggle Precaution
+function togglePrecaution(btn) {
+    btn.classList.toggle('active');
+
+    if (btn.classList.contains('active')) {
+        aiState.selectedPrecautions.push(btn.textContent);
+    } else {
+        aiState.selectedPrecautions = aiState.selectedPrecautions.filter(p => p !== btn.textContent);
+    }
+    updatePlanSummary();
+}
+
+// Update Plan Summary
+function updatePlanSummary() {
+    const summaryEl = document.getElementById('plan-summary-content');
+    if (!summaryEl) return;
+
+    if (aiState.treatmentCart.length === 0) {
+        summaryEl.innerHTML = '<p class="summary-empty">치료를 담으면 자동 요약됩니다</p>';
+        return;
+    }
+
+    const freqText = { '2x': '주 2회', '3x': '주 3회', '5x': '주 5회' };
+    const durText = { '2w': '2주', '4w': '4주', '8w': '8주' };
+
+    let html = `<strong>【치료 일정】</strong> ${freqText[aiState.schedule.freq]} × ${durText[aiState.schedule.dur]}<br><br>`;
+
+    html += '<strong>【중재 계획】</strong><br>';
+    aiState.treatmentCart.forEach((t, i) => {
+        html += `${i + 1}. ${t.name} (${t.sets}×${t.reps})<br>`;
+    });
+
+    if (aiState.selectedHEPs.length > 0) {
+        const hepNames = { stretching: '스트레칭', strengthening: '근력운동', walking: '보행연습', balance: '균형훈련', rom: 'ROM 운동', breathing: '호흡운동' };
+        html += '<br><strong>【가정운동】</strong><br>';
+        aiState.selectedHEPs.forEach(h => {
+            html += `- ${hepNames[h] || h}<br>`;
+        });
+    }
+
+    if (aiState.selectedEducation.length > 0) {
+        html += `<br><strong>【환자 교육】</strong> ${aiState.selectedEducation.join(', ')}<br>`;
+    }
+
+    if (aiState.selectedPrecautions.length > 0) {
+        html += `<br><strong>【주의사항】</strong> ${aiState.selectedPrecautions.join(', ')}<br>`;
+    }
+
+    summaryEl.innerHTML = html;
+}
+
+// Copy Plan Summary
+function copyPlanSummary() {
+    const summaryEl = document.getElementById('plan-summary-content');
+    if (!summaryEl) return;
+
+    const text = summaryEl.innerText;
+
+    if (text.includes('자동 요약됩니다')) {
+        showToast('선택된 치료가 없습니다');
+        return;
+    }
+
+    navigator.clipboard.writeText(text).then(() => {
+        showToast('Plan이 복사되었습니다');
+    }).catch(() => showToast('복사 실패'));
+}
+
+// Initialize Plan Screen
+function initPlanScreen() {
+    updatePlanTreatments();
+    renderTreatmentCart();
 }
