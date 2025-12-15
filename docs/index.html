@@ -10,6 +10,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -35,7 +36,30 @@
         <!-- Header -->
         <header id="header" class="header">
             <h1 id="header-title">알고PT Pro</h1>
+            <div id="current-patient-info" class="current-patient-info" style="display: none;"></div>
         </header>
+
+        <!-- Sticky Patient Header - SOAP 탭에서 고정 표시 -->
+        <div id="sticky-patient-header" class="sticky-patient-header hidden">
+            <div class="sticky-patient-info">
+                <span class="sticky-patient-icon">👤</span>
+                <span id="sticky-patient-name" class="sticky-patient-name">환자명</span>
+                <span id="sticky-patient-detail" class="sticky-patient-detail">(M/65)</span>
+            </div>
+            <div class="sticky-progress-indicator">
+                <span class="progress-step" data-step="S">S</span>
+                <span class="progress-divider">-</span>
+                <span class="progress-step" data-step="O">O</span>
+                <span class="progress-divider">-</span>
+                <span class="progress-step" data-step="A">A</span>
+                <span class="progress-divider">-</span>
+                <span class="progress-step" data-step="P">P</span>
+            </div>
+            <div id="sticky-save-status" class="sticky-save-status">
+                <span class="save-dot"></span>
+                <span class="save-text">자동 저장됨</span>
+            </div>
+        </div>
 
         <!-- Screens Container -->
         <main id="screens" class="screens">
@@ -49,7 +73,7 @@
                         </svg>
                         <input type="text" id="patient-search" class="search-input" placeholder="환자 이름 또는 ID 검색">
                     </div>
-                    <button class="add-patient-btn" onclick="navigateTo('subjective')">
+                    <button class="add-patient-btn" onclick="openAddPatientModal()">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
                         </svg>
@@ -60,46 +84,10 @@
                 <div class="dashboard-section">
                     <div class="section-header">
                         <h3>최근 환자</h3>
-                        <span class="section-count" id="recent-count">3</span>
+                        <span class="section-count" id="recent-count">0</span>
                     </div>
                     <div class="patient-list" id="recent-patients">
-                        <!-- Dummy Data -->
-                        <div class="patient-card" onclick="loadPatient('p1')">
-                            <div class="patient-info">
-                                <div class="patient-name">김철수</div>
-                                <div class="patient-meta">M/65 · Stroke (Lt. hemiplegia)</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge progress">작성중</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="patient-card" onclick="loadPatient('p2')">
-                            <div class="patient-info">
-                                <div class="patient-name">박영희</div>
-                                <div class="patient-meta">F/72 · Parkinson's disease</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge complete">완료</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="patient-card" onclick="loadPatient('p3')">
-                            <div class="patient-info">
-                                <div class="patient-name">이민수</div>
-                                <div class="patient-meta">M/45 · LBP (Herniated disc L4-5)</div>
-                            </div>
-                            <div class="patient-status">
-                                <span class="status-badge progress">작성중</span>
-                                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                            </div>
-                        </div>
+                        <!-- 동적으로 렌더링됨 -->
                     </div>
                 </div>
 
@@ -109,7 +97,7 @@
                         <h3>빠른 도구</h3>
                     </div>
                     <div class="tools-grid expanded">
-                        <button class="tool-btn primary" onclick="navigateTo('cdss')">
+                        <button class="tool-btn" onclick="navigateTo('cdss')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                             </svg>
@@ -140,25 +128,47 @@
                             </svg>
                             <span>이중과제</span>
                         </button>
-                        <button class="tool-btn sensor" onclick="openGoniometer()">
+                        <button class="tool-btn" onclick="openGoniometer()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 2v10l8 4"/>
                                 <circle cx="12" cy="12" r="10"/>
                             </svg>
                             <span>각도계</span>
                         </button>
-                        <button class="tool-btn sensor" onclick="openTremor()">
+                        <button class="tool-btn" onclick="openTremor()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M2 12h4l3-9 4 18 3-9h6"/>
                             </svg>
                             <span>떨림분석</span>
                         </button>
-                        <button class="tool-btn sensor" onclick="openDecibel()">
+                        <button class="tool-btn" onclick="openDecibel()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
                                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
                             </svg>
                             <span>데시벨</span>
+                        </button>
+                        <button class="tool-btn" onclick="openTriggerPointMap()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="5" r="3"/>
+                                <path d="M12 8v4m-4 0h8m-6 4l-2 6m4-6v6m4-6l2 6"/>
+                            </svg>
+                            <span>TrP 지도</span>
+                        </button>
+                        <button class="tool-btn" onclick="openAACBoard()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                                <rect x="14" y="14" width="7" height="7" rx="1"/>
+                            </svg>
+                            <span>AAC</span>
+                        </button>
+                        <button class="tool-btn" onclick="openNeglectTest()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+                            </svg>
+                            <span>무시검사</span>
                         </button>
                         <button class="tool-btn" onclick="showHistory()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -176,7 +186,49 @@
                 </div>
             </section>
 
-            <!-- Patients Management Screen -->
+            <!-- Case Management Screen -->
+            <section id="screen-case" class="screen">
+                <!-- Case Header -->
+                <div class="case-header">
+                    <h2>환자 케이스</h2>
+                    <button class="header-add-btn" onclick="openAddPatientModal()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        새 환자
+                    </button>
+                </div>
+
+                <!-- Status Filter Tabs -->
+                <div class="case-filter-tabs">
+                    <button class="filter-tab active" onclick="filterCaseByStatus('all')">전체</button>
+                    <button class="filter-tab" onclick="filterCaseByStatus('waiting')">대기</button>
+                    <button class="filter-tab" onclick="filterCaseByStatus('ing')">진행중</button>
+                    <button class="filter-tab" onclick="filterCaseByStatus('done')">완료</button>
+                </div>
+
+                <!-- Search -->
+                <div class="case-search">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="case-search-input" class="search-input" placeholder="환자 검색..." oninput="filterCasePatients(this.value)">
+                </div>
+
+                <!-- Case Patient List -->
+                <div class="case-patient-list" id="case-patient-list">
+                    <!-- 동적으로 렌더링됨 -->
+                </div>
+
+                <!-- FAB -->
+                <button class="fab" onclick="openAddPatientModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                </button>
+            </section>
+
+            <!-- Legacy Patients Management Screen (hidden, for compatibility) -->
             <section id="screen-patients" class="screen">
                 <!-- Header -->
                 <div class="patients-header">
@@ -199,74 +251,8 @@
 
                 <!-- Patient List -->
                 <div class="patients-list" id="patients-list">
-                    <!-- Dummy Data -->
-                    <div class="patient-item" data-id="p1">
-                        <div class="patient-avatar">김</div>
-                        <div class="patient-details">
-                            <div class="patient-name">김철수</div>
-                            <div class="patient-info">M/65 · Stroke (Lt. hemiplegia)</div>
-                            <div class="patient-date">등록: 2024.12.10</div>
-                        </div>
-                        <button class="patient-menu-btn" onclick="openPatientMenu('p1', event)">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="patient-item" data-id="p2">
-                        <div class="patient-avatar">이</div>
-                        <div class="patient-details">
-                            <div class="patient-name">이영희</div>
-                            <div class="patient-info">F/72 · Parkinson's disease</div>
-                            <div class="patient-date">등록: 2024.12.09</div>
-                        </div>
-                        <button class="patient-menu-btn" onclick="openPatientMenu('p2', event)">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="patient-item" data-id="p3">
-                        <div class="patient-avatar">박</div>
-                        <div class="patient-details">
-                            <div class="patient-name">박민수</div>
-                            <div class="patient-info">M/45 · LBP (Disc herniation L4-5)</div>
-                            <div class="patient-date">등록: 2024.12.08</div>
-                        </div>
-                        <button class="patient-menu-btn" onclick="openPatientMenu('p3', event)">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="patient-item" data-id="p4">
-                        <div class="patient-avatar">최</div>
-                        <div class="patient-details">
-                            <div class="patient-name">최수진</div>
-                            <div class="patient-info">F/58 · Rotator cuff tear (Rt.)</div>
-                            <div class="patient-date">등록: 2024.12.05</div>
-                        </div>
-                        <button class="patient-menu-btn" onclick="openPatientMenu('p4', event)">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                        </button>
-                    </div>
-
-                    <div class="patient-item" data-id="p5">
-                        <div class="patient-avatar">정</div>
-                        <div class="patient-details">
-                            <div class="patient-name">정현우</div>
-                            <div class="patient-info">M/32 · ACL reconstruction (Lt.)</div>
-                            <div class="patient-date">등록: 2024.12.01</div>
-                        </div>
-                        <button class="patient-menu-btn" onclick="openPatientMenu('p5', event)">
-                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-                        </button>
-                    </div>
+                    <!-- 동적으로 렌더링됨 -->
                 </div>
-
-                <!-- FAB -->
-                <button class="fab" onclick="openAddPatientModal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                </button>
             </section>
 
             <!-- Patient Menu Dropdown -->
@@ -521,6 +507,240 @@
                 </div>
             </section>
 
+            <!-- Assessment Screen (A) - AI-Driven -->
+            <section id="screen-assessment" class="screen">
+                <!-- Current Patient Banner -->
+                <div id="assessment-patient-banner" class="patient-banner">
+                    <div class="patient-banner-info">
+                        <span class="patient-banner-icon">👤</span>
+                        <span class="patient-banner-name">환자를 선택해주세요</span>
+                    </div>
+                </div>
+
+                <!-- AI Analysis Loading -->
+                <div id="ai-analysis-loading" class="ai-loading-card">
+                    <div class="ai-loading-content">
+                        <div class="ai-loading-spinner"></div>
+                        <p class="ai-loading-text">S/O 데이터를 분석 중입니다...</p>
+                        <p class="ai-loading-sub">AI가 문제점과 목표를 추천합니다</p>
+                    </div>
+                </div>
+
+                <!-- AI Detected Problems -->
+                <div id="ai-problems-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="ai-sparkle">✨</span> AI 감지된 문제점</h3>
+                        <span class="ai-badge">AI 분석</span>
+                    </div>
+                    <p class="card-hint">탭하여 선택 · 선택된 항목이 Assessment에 포함됩니다</p>
+
+                    <div class="ai-problem-cards" id="ai-problem-cards">
+                        <!-- AI가 생성한 문제점 카드들 -->
+                    </div>
+
+                    <button class="add-custom-btn" onclick="showCustomProblemInput()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        직접 입력
+                    </button>
+                </div>
+
+                <!-- AI Recommended STG -->
+                <div id="ai-stg-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="ai-sparkle">✨</span> AI 추천 단기 목표</h3>
+                        <span class="goal-period">2-4주</span>
+                    </div>
+                    <p class="card-hint">체크하여 목표 선택 · SMART 원칙 기반</p>
+
+                    <div class="ai-goal-list" id="ai-stg-list">
+                        <!-- AI가 생성한 STG 체크박스들 -->
+                    </div>
+
+                    <button class="add-custom-btn" onclick="showCustomGoalInput('stg')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        직접 입력
+                    </button>
+                </div>
+
+                <!-- AI Recommended LTG -->
+                <div id="ai-ltg-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="ai-sparkle">✨</span> AI 추천 장기 목표</h3>
+                        <span class="goal-period">1-3개월</span>
+                    </div>
+                    <p class="card-hint">퇴원 시 달성할 기능적 목표</p>
+
+                    <div class="ai-goal-list" id="ai-ltg-list">
+                        <!-- AI가 생성한 LTG 체크박스들 -->
+                    </div>
+
+                    <button class="add-custom-btn" onclick="showCustomGoalInput('ltg')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        직접 입력
+                    </button>
+                </div>
+
+                <!-- Prognosis (Keep simple) -->
+                <div id="ai-prognosis-section" class="card ai-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📈</span> 예후</h3>
+                        <span id="ai-prognosis-recommend" class="ai-recommend-badge"></span>
+                    </div>
+                    <div class="prognosis-options">
+                        <button class="prognosis-btn" data-value="excellent" onclick="selectPrognosis(this)">우수</button>
+                        <button class="prognosis-btn" data-value="good" onclick="selectPrognosis(this)">양호</button>
+                        <button class="prognosis-btn" data-value="fair" onclick="selectPrognosis(this)">보통</button>
+                        <button class="prognosis-btn" data-value="guarded" onclick="selectPrognosis(this)">주의</button>
+                        <button class="prognosis-btn" data-value="poor" onclick="selectPrognosis(this)">불량</button>
+                    </div>
+                </div>
+
+                <!-- Selected Summary -->
+                <div id="assessment-result" class="card result-card hidden">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📋</span> 선택된 Assessment</h3>
+                        <span id="selected-count" class="selected-count">0개 선택</span>
+                    </div>
+                    <div id="assessment-summary-content" class="summary-content">
+                        <p class="summary-empty">위에서 항목을 선택해주세요</p>
+                    </div>
+                    <div class="result-actions">
+                        <button class="secondary-btn" onclick="navigateTo('plan')">
+                            P: 치료계획 →
+                        </button>
+                        <button class="primary-btn" onclick="copyAssessmentSummary()">
+                            📋 EMR 복사
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Plan Screen (P) - Shopping Cart Style -->
+            <section id="screen-plan" class="screen">
+                <!-- Current Patient Banner -->
+                <div id="plan-patient-banner" class="patient-banner">
+                    <div class="patient-banner-info">
+                        <span class="patient-banner-icon">👤</span>
+                        <span class="patient-banner-name">환자를 선택해주세요</span>
+                    </div>
+                </div>
+
+                <!-- Treatment Schedule (Keep simple) -->
+                <div class="card schedule-card">
+                    <h3><span class="icon">📅</span> 치료 일정</h3>
+                    <div class="schedule-chips">
+                        <div class="schedule-group">
+                            <label>빈도</label>
+                            <div class="schedule-options">
+                                <button class="schedule-chip" data-freq="2x" onclick="selectSchedule(this, 'freq')">주2회</button>
+                                <button class="schedule-chip active" data-freq="3x" onclick="selectSchedule(this, 'freq')">주3회</button>
+                                <button class="schedule-chip" data-freq="5x" onclick="selectSchedule(this, 'freq')">주5회</button>
+                            </div>
+                        </div>
+                        <div class="schedule-group">
+                            <label>기간</label>
+                            <div class="schedule-options">
+                                <button class="schedule-chip" data-dur="2w" onclick="selectSchedule(this, 'dur')">2주</button>
+                                <button class="schedule-chip active" data-dur="4w" onclick="selectSchedule(this, 'dur')">4주</button>
+                                <button class="schedule-chip" data-dur="8w" onclick="selectSchedule(this, 'dur')">8주</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Recommended Interventions - Carousel -->
+                <div class="card ai-card">
+                    <div class="card-header-row">
+                        <h3><span class="ai-sparkle">✨</span> 추천 치료</h3>
+                        <span class="ai-badge">AI 추천</span>
+                    </div>
+                    <p class="card-hint">좌우 스크롤 · [+ 담기] 버튼으로 선택</p>
+
+                    <div class="treatment-carousel" id="treatment-carousel">
+                        <!-- AI가 생성한 치료 카드들 (가로 스크롤) -->
+                    </div>
+                </div>
+
+                <!-- My Treatment Cart -->
+                <div class="card cart-card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">🛒</span> 나의 치료 계획</h3>
+                        <span id="cart-count" class="cart-count">0개</span>
+                    </div>
+
+                    <div id="my-treatment-cart" class="treatment-cart">
+                        <div class="cart-empty">
+                            <span class="cart-empty-icon">📋</span>
+                            <p>위에서 치료를 담아주세요</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEP Chips -->
+                <div class="card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">🏠</span> 가정운동 (HEP)</h3>
+                    </div>
+                    <p class="card-hint">탭하여 선택</p>
+                    <div class="hep-chips" id="hep-chips">
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="stretching">스트레칭</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="strengthening">근력운동</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="walking">보행연습</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="balance">균형훈련</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="rom">ROM 운동</button>
+                        <button class="hep-chip" onclick="toggleHepChip(this)" data-hep="breathing">호흡운동</button>
+                    </div>
+                </div>
+
+                <!-- Education Chips -->
+                <div class="card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📚</span> 환자 교육</h3>
+                    </div>
+                    <div class="education-chips" id="education-chips">
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="posture">자세 교육</button>
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="ergonomics">인체공학</button>
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="pain-management">통증 관리</button>
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="fall-prevention">낙상 예방</button>
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="energy-conservation">에너지 보존</button>
+                        <button class="edu-chip" onclick="toggleEducation(this)" data-edu="joint-protection">관절 보호</button>
+                    </div>
+                </div>
+
+                <!-- Precautions Chips -->
+                <div class="card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">⚠️</span> 주의사항</h3>
+                    </div>
+                    <div class="precaution-chips" id="precaution-chips">
+                        <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="weight-bearing">체중부하 제한</button>
+                        <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="rom-limit">ROM 제한</button>
+                        <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="cardiac">심장 주의</button>
+                        <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="fall-risk">낙상 위험</button>
+                        <button class="precaution-chip" onclick="togglePrecaution(this)" data-precaution="skin">피부 주의</button>
+                    </div>
+                </div>
+
+                <!-- Plan Summary -->
+                <div class="card result-card">
+                    <div class="card-header-row">
+                        <h3><span class="icon">📋</span> Plan 요약</h3>
+                    </div>
+                    <div id="plan-summary-content" class="summary-content">
+                        <p class="summary-empty">치료를 담으면 자동 요약됩니다</p>
+                    </div>
+                    <button class="primary-btn full-width" onclick="copyPlanSummary()">
+                        📋 EMR 복사
+                    </button>
+                </div>
+            </section>
+
             <!-- CDSS Screen -->
             <section id="screen-cdss" class="screen">
                 <div class="card">
@@ -569,23 +789,27 @@
             </section>
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
+        <!-- Bottom Navigation - SOAP Structure -->
+        <nav class="bottom-nav soap-nav">
             <button class="nav-item active" onclick="navigateTo('home')">
                 <span class="nav-icon">🏠</span>
-                <span>홈</span>
+                <span>HOME</span>
             </button>
-            <button class="nav-item" onclick="navigateTo('patients')">
-                <span class="nav-icon">👥</span>
-                <span>환자</span>
+            <button class="nav-item" onclick="navigateTo('case')">
+                <span class="nav-icon">📋</span>
+                <span>Case</span>
             </button>
-            <button class="nav-item" onclick="navigateTo('subjective')">
-                <span class="nav-icon">👤</span>
-                <span>주관적</span>
+            <button class="nav-item" onclick="navigateToSoap('subjective')">
+                <span class="nav-icon soap-letter">S</span>
             </button>
-            <button class="nav-item" onclick="navigateTo('objective')">
-                <span class="nav-icon">📊</span>
-                <span>객관적</span>
+            <button class="nav-item" onclick="navigateToSoap('objective')">
+                <span class="nav-icon soap-letter">O</span>
+            </button>
+            <button class="nav-item" onclick="navigateToSoap('assessment')">
+                <span class="nav-icon soap-letter">A</span>
+            </button>
+            <button class="nav-item" onclick="navigateToSoap('plan')">
+                <span class="nav-icon soap-letter">P</span>
             </button>
             <button class="nav-item" onclick="navigateTo('cdss')">
                 <span class="nav-icon">🧠</span>
@@ -629,6 +853,178 @@
 
     <!-- Toast -->
     <div id="toast" class="toast hidden"></div>
+
+    <!-- Patient Add/Edit Modal -->
+    <div id="patient-modal" class="tool-modal hidden">
+        <div class="tool-modal-content patient-modal-content">
+            <div class="tool-modal-header">
+                <h2 id="patient-modal-title">새 환자 등록</h2>
+                <button class="close-btn" onclick="closePatientModal()">×</button>
+            </div>
+            <form id="patient-form" onsubmit="savePatient(event)">
+                <div class="form-group">
+                    <label class="form-label">이름 <span class="required">*</span></label>
+                    <input type="text" id="patient-name-input" class="form-input" placeholder="홍길동" required maxlength="20">
+                </div>
+                <div class="form-row optional-fields" id="gender-age-row">
+                    <div class="form-group half">
+                        <label class="form-label">성별</label>
+                        <div class="gender-selector">
+                            <button type="button" class="gender-btn" data-gender="M" onclick="selectGender('M')">남</button>
+                            <button type="button" class="gender-btn" data-gender="F" onclick="selectGender('F')">여</button>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label class="form-label">나이</label>
+                        <div class="age-input-wrap">
+                            <input type="number" id="patient-age-input" class="form-input" placeholder="65" min="1" max="120">
+                            <span class="age-suffix">세</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">진단명</label>
+                    <select id="patient-diagnosis-select" class="form-select">
+                        <option value="">선택하세요</option>
+                        <optgroup label="신경계">
+                            <option value="Stroke - Lt. hemiplegia">뇌졸중 (좌편마비)</option>
+                            <option value="Stroke - Rt. hemiplegia">뇌졸중 (우편마비)</option>
+                            <option value="Parkinson's disease">파킨슨병</option>
+                            <option value="SCI">척수손상 (SCI)</option>
+                            <option value="TBI">외상성 뇌손상 (TBI)</option>
+                            <option value="MS">다발성 경화증 (MS)</option>
+                            <option value="GBS">길랭-바레 증후군</option>
+                            <option value="Peripheral neuropathy">말초신경병증</option>
+                        </optgroup>
+                        <optgroup label="근골격계">
+                            <option value="LBP">요통 (LBP)</option>
+                            <option value="Herniated disc">추간판 탈출증</option>
+                            <option value="Rotator cuff injury">회전근개 손상</option>
+                            <option value="Frozen shoulder">동결견</option>
+                            <option value="TKR">슬관절 치환술 (TKR)</option>
+                            <option value="THR">고관절 치환술 (THR)</option>
+                            <option value="ACL reconstruction">전방십자인대 재건술</option>
+                            <option value="Ankle sprain">발목 염좌</option>
+                            <option value="Fracture">골절</option>
+                        </optgroup>
+                        <optgroup label="기타">
+                            <option value="Cardiac rehab">심장재활</option>
+                            <option value="Pulmonary rehab">호흡재활</option>
+                            <option value="Deconditioning">탈조건화</option>
+                            <option value="Balance disorder">균형장애</option>
+                            <option value="Other">기타</option>
+                        </optgroup>
+                    </select>
+                    <input type="text" id="patient-diagnosis-custom" class="form-input mt-8 hidden" placeholder="직접 입력">
+                </div>
+                <div class="form-group optional-fields" id="memo-row">
+                    <label class="form-label">메모</label>
+                    <textarea id="patient-memo-input" class="form-textarea" placeholder="특이사항, 주의점 등" rows="3" maxlength="200"></textarea>
+                    <div class="char-count"><span id="memo-char-count">0</span>/200</div>
+                </div>
+                <input type="hidden" id="patient-edit-id">
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closePatientModal()">취소</button>
+                    <button type="submit" class="btn-primary" id="patient-save-btn">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="tool-modal hidden">
+        <div class="tool-modal-content settings-modal-content">
+            <div class="tool-modal-header">
+                <h2>설정</h2>
+                <button class="close-btn" onclick="closeSettings()">×</button>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-section-title">데이터 관리</h3>
+                <div class="settings-item" onclick="exportData()">
+                    <div class="settings-item-info">
+                        <span class="settings-item-icon">📤</span>
+                        <div>
+                            <div class="settings-item-title">데이터 내보내기</div>
+                            <div class="settings-item-desc">환자 데이터를 JSON 파일로 저장</div>
+                        </div>
+                    </div>
+                    <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-info">
+                        <span class="settings-item-icon">📥</span>
+                        <div>
+                            <div class="settings-item-title">데이터 가져오기</div>
+                            <div class="settings-item-desc">JSON 파일에서 복원</div>
+                        </div>
+                    </div>
+                    <input type="file" id="import-file-input" accept=".json" onchange="importData(event)" style="display:none">
+                    <label for="import-file-input" class="settings-arrow-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                    </label>
+                </div>
+                <div class="settings-item danger" onclick="confirmClearData()">
+                    <div class="settings-item-info">
+                        <span class="settings-item-icon">🗑️</span>
+                        <div>
+                            <div class="settings-item-title">전체 데이터 삭제</div>
+                            <div class="settings-item-desc">모든 환자 데이터를 삭제합니다</div>
+                        </div>
+                    </div>
+                    <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 class="settings-section-title">앱 정보</h3>
+                <div class="settings-item no-action">
+                    <div class="settings-item-info">
+                        <span class="settings-item-icon">ℹ️</span>
+                        <div>
+                            <div class="settings-item-title">버전</div>
+                            <div class="settings-item-desc">v1.0.0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-item no-action">
+                    <div class="settings-item-info">
+                        <span class="settings-item-icon">💾</span>
+                        <div>
+                            <div class="settings-item-title">저장된 환자 수</div>
+                            <div class="settings-item-desc" id="settings-patient-count">0명</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="settings-footer">
+                <p>알고PT Pro</p>
+                <p class="settings-footer-sub">주니어 치료사를 위한 AI 임상 파트너</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="history-modal" class="tool-modal hidden">
+        <div class="tool-modal-content history-modal-content">
+            <div class="tool-modal-header">
+                <h2>평가 기록</h2>
+                <button class="close-btn" onclick="closeHistory()">×</button>
+            </div>
+            <div class="history-patient-info" id="history-patient-info">
+                <!-- 환자 정보 표시 -->
+            </div>
+            <div class="history-tabs">
+                <button class="history-tab active" data-tab="measurements" onclick="setHistoryTab('measurements')">측정 기록</button>
+                <button class="history-tab" data-tab="notes" onclick="setHistoryTab('notes')">SOAP 노트</button>
+            </div>
+            <div class="history-content" id="history-content">
+                <div class="history-empty">
+                    <span class="history-empty-icon">📋</span>
+                    <p>기록이 없습니다</p>
+                    <p class="history-empty-sub">도구를 사용하면 자동으로 기록됩니다</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Clinical Stopwatch Modal (10MWT/TUG) -->
     <div id="stopwatch-modal" class="tool-modal hidden">
@@ -966,6 +1362,14 @@
                         <span id="rom-percent">0%</span>
                     </div>
                 </div>
+
+                <!-- 환자 차트에 기록 버튼 -->
+                <div class="gonio-record-section" id="gonio-record-section">
+                    <button class="gonio-record-btn" id="gonio-record-btn" onclick="recordGonioToPatient()">
+                        <span class="record-icon">📥</span>
+                        <span class="record-text" id="gonio-record-text">환자를 선택해주세요</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1073,6 +1477,283 @@
                 <div class="decibel-controls">
                     <button class="decibel-btn primary" id="decibel-start-btn" onclick="toggleDecibelMeter()">▶ 측정 시작</button>
                     <button class="decibel-btn" onclick="resetDecibelData()">🔄 초기화</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trigger Point Map Modal -->
+    <div id="trp-modal" class="tool-modal hidden">
+        <div class="tool-modal-content trp-content">
+            <div class="tool-modal-header">
+                <h2>🎯 Trigger Point 지도</h2>
+                <button class="close-btn" onclick="closeTrpMap()">×</button>
+            </div>
+
+            <div class="trp-info-banner">
+                <span>📖 Travell & Simons 기준</span>
+                <span class="trp-legend"><span class="trp-x">✕</span> TrP위치 <span class="trp-ref"></span> 방사통</span>
+            </div>
+
+            <div class="trp-body-container" id="trp-body-container">
+                <div class="trp-zoom-controls">
+                    <button onclick="zoomTrpMap(1.2)">+</button>
+                    <button onclick="zoomTrpMap(0.8)">−</button>
+                    <button onclick="resetTrpZoom()">↺</button>
+                </div>
+
+                <div class="trp-body-wrapper" id="trp-body-wrapper">
+                    <svg id="trp-body-svg" viewBox="0 0 200 400" class="trp-body-svg">
+                        <!-- 머리 -->
+                        <ellipse cx="100" cy="25" rx="22" ry="25" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 목 -->
+                        <rect x="90" y="48" width="20" height="20" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 몸통 -->
+                        <path d="M60 68 L140 68 L145 180 L55 180 Z" fill="#e8c4b8" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 왼팔 -->
+                        <path d="M55 72 L35 72 L25 140 L30 145 L45 85 L55 85 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M25 140 L15 200 L25 205 L35 145 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 오른팔 -->
+                        <path d="M145 72 L165 72 L175 140 L170 145 L155 85 L145 85 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M175 140 L185 200 L175 205 L165 145 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 골반 -->
+                        <path d="M55 180 L145 180 L140 210 L60 210 Z" fill="#e8c4b8" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 왼다리 -->
+                        <path d="M60 210 L90 210 L85 320 L55 320 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M55 320 L85 320 L80 390 L50 390 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 오른다리 -->
+                        <path d="M110 210 L140 210 L145 320 L115 320 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+                        <path d="M115 320 L145 320 L150 390 L120 390 Z" fill="#f5d0c5" stroke="#d4a69a" stroke-width="1"/>
+
+                        <!-- 탭 가능 영역 (투명 오버레이) -->
+                        <!-- 목/어깨 -->
+                        <rect x="60" y="45" width="80" height="35" fill="transparent" class="trp-region" data-region="neck" onclick="showTrpDetail('neck')"/>
+                        <!-- 어깨 좌 -->
+                        <rect x="30" y="65" width="35" height="30" fill="transparent" class="trp-region" data-region="shoulder-l" onclick="showTrpDetail('shoulder')"/>
+                        <!-- 어깨 우 -->
+                        <rect x="135" y="65" width="35" height="30" fill="transparent" class="trp-region" data-region="shoulder-r" onclick="showTrpDetail('shoulder')"/>
+                        <!-- 허리 -->
+                        <rect x="55" y="140" width="90" height="50" fill="transparent" class="trp-region" data-region="lowback" onclick="showTrpDetail('lowback')"/>
+                        <!-- 종아리 좌 -->
+                        <rect x="55" y="320" width="30" height="70" fill="transparent" class="trp-region" data-region="calf-l" onclick="showTrpDetail('calf')"/>
+                        <!-- 종아리 우 -->
+                        <rect x="115" y="320" width="35" height="70" fill="transparent" class="trp-region" data-region="calf-r" onclick="showTrpDetail('calf')"/>
+                    </svg>
+                </div>
+
+                <div class="trp-tap-hint">👆 부위를 탭하여 TrP 패턴 보기</div>
+            </div>
+
+            <div class="trp-quick-btns">
+                <button class="trp-quick-btn" onclick="showTrpDetail('neck')">목</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('shoulder')">어깨</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('lowback')">허리</button>
+                <button class="trp-quick-btn" onclick="showTrpDetail('calf')">종아리</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TrP Detail Popup -->
+    <div id="trp-detail-popup" class="trp-detail-popup hidden">
+        <div class="trp-detail-content">
+            <div class="trp-detail-header">
+                <h3 id="trp-detail-title">부위명</h3>
+                <button class="close-btn" onclick="closeTrpDetail()">×</button>
+            </div>
+            <div class="trp-detail-body" id="trp-detail-body">
+                <!-- 상세 내용 동적 생성 -->
+            </div>
+            <div class="trp-detail-ref">
+                <small>📚 Ref: Travell & Simons' Myofascial Pain and Dysfunction</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- AAC Communication Board Modal -->
+    <div id="aac-modal" class="tool-modal hidden">
+        <div class="tool-modal-content aac-content">
+            <div class="tool-modal-header">
+                <h2>💬 의사소통 보드</h2>
+                <button class="close-btn" onclick="closeAACBoard()">×</button>
+            </div>
+
+            <div class="aac-info">
+                <span>🔊 아이콘을 누르면 음성으로 읽어줍니다</span>
+            </div>
+
+            <div class="aac-categories">
+                <button class="aac-cat-btn active" onclick="setAACCategory('basic')">기본</button>
+                <button class="aac-cat-btn" onclick="setAACCategory('pain')">통증</button>
+                <button class="aac-cat-btn" onclick="setAACCategory('emotion')">감정</button>
+                <button class="aac-cat-btn" onclick="setAACCategory('action')">요청</button>
+            </div>
+
+            <div class="aac-board" id="aac-board">
+                <!-- 동적 생성 -->
+            </div>
+
+            <div class="aac-output" id="aac-output">
+                <span class="aac-output-text" id="aac-output-text">아이콘을 선택하세요</span>
+                <button class="aac-speak-btn" onclick="speakAACOutput()">🔊</button>
+            </div>
+
+            <div class="aac-settings">
+                <label>
+                    <span>음성 속도</span>
+                    <input type="range" id="aac-rate" min="0.5" max="1.5" step="0.1" value="0.9" onchange="updateAACRate(this.value)">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visual Neglect Test Modal -->
+    <div id="neglect-modal" class="tool-modal hidden">
+        <div class="tool-modal-content neglect-content">
+            <div class="tool-modal-header">
+                <h2>👁️ 편측 무시 검사</h2>
+                <button class="close-btn" onclick="closeNeglectTest()">×</button>
+            </div>
+
+            <!-- 경고 배너 -->
+            <div class="neglect-warning">
+                ⚠️ 스마트폰 선별검사입니다. 정확한 평가는 <strong>태블릿 또는 종이검사</strong>를 권장합니다.
+            </div>
+
+            <!-- 검사 유형 탭 -->
+            <div class="neglect-mode-tabs">
+                <button class="neglect-tab active" onclick="setNeglectMode('bisection')">선 이등분</button>
+                <button class="neglect-tab" onclick="setNeglectMode('star')">별 찾기</button>
+            </div>
+
+            <!-- Line Bisection 안내 -->
+            <div class="neglect-intro" id="neglect-intro-bisection">
+                <div class="neglect-info-card">
+                    <h3>Line Bisection Test</h3>
+                    <p>수평선의 <strong>정중앙</strong>을 터치하세요.</p>
+                    <p class="hint">📱 좁은 화면에서도 신뢰성 높음</p>
+                </div>
+
+                <div class="neglect-settings">
+                    <label>
+                        <span>시행 횟수</span>
+                        <select id="bisection-trials">
+                            <option value="3">3회</option>
+                            <option value="5" selected>5회</option>
+                            <option value="10">10회</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>선 길이</span>
+                        <select id="bisection-length">
+                            <option value="short">짧음</option>
+                            <option value="full" selected>화면폭</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button class="neglect-start-btn" onclick="startBisectionTest()">검사 시작</button>
+
+                <div class="neglect-ref">
+                    <small>📚 Ref: Schenkenberg et al. (1980) - Line Bisection Test</small>
+                </div>
+            </div>
+
+            <!-- Star Cancellation 안내 -->
+            <div class="neglect-intro hidden" id="neglect-intro-star">
+                <div class="neglect-info-card">
+                    <h3>Star Cancellation Test</h3>
+                    <p>화면에 흩어진 <strong>별(⭐)</strong>을 모두 터치해서 없애세요.</p>
+                    <p class="hint">📱 가로 모드 권장 | 대상: 뇌졸중 후 편측 무시 선별</p>
+                </div>
+
+                <div class="neglect-settings">
+                    <label>
+                        <span>별 개수</span>
+                        <select id="neglect-star-count">
+                            <option value="27">간편 (27개)</option>
+                            <option value="54" selected>표준 (54개)</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>제한 시간</span>
+                        <select id="neglect-time-limit">
+                            <option value="0">없음</option>
+                            <option value="60">1분</option>
+                            <option value="120" selected>2분</option>
+                            <option value="180">3분</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button class="neglect-start-btn" onclick="startNeglectTest()">검사 시작</button>
+
+                <div class="neglect-ref">
+                    <small>📚 Ref: Wilson, Cockburn & Halligan (1987) - BIT Star Cancellation</small>
+                </div>
+            </div>
+
+            <!-- Line Bisection 진행 영역 -->
+            <div class="bisection-test-area hidden" id="bisection-test-area">
+                <div class="bisection-progress">
+                    시행 <span id="bisection-current">1</span> / <span id="bisection-total">5</span>
+                </div>
+                <div class="bisection-instruction">선의 정중앙을 터치하세요</div>
+                <div class="bisection-field" id="bisection-field">
+                    <div class="bisection-line" id="bisection-line"></div>
+                    <div class="bisection-marker hidden" id="bisection-marker"></div>
+                </div>
+            </div>
+
+            <!-- 검사 진행 영역 -->
+            <div class="neglect-test-area hidden" id="neglect-test-area">
+                <div class="neglect-timer" id="neglect-timer">2:00</div>
+                <div class="neglect-progress">
+                    <span id="neglect-found">0</span> / <span id="neglect-total">54</span> 찾음
+                </div>
+                <div class="neglect-field" id="neglect-field">
+                    <!-- 별들이 동적으로 생성됨 -->
+                </div>
+                <div class="neglect-controls">
+                    <button class="neglect-btn" onclick="endNeglectTest()">검사 종료</button>
+                </div>
+            </div>
+
+            <!-- 결과 화면 -->
+            <div class="neglect-result hidden" id="neglect-result">
+                <h3>📊 검사 결과</h3>
+
+                <div class="neglect-result-visual">
+                    <div class="result-hemi left">
+                        <div class="hemi-label">좌측</div>
+                        <div class="hemi-value" id="result-left">0%</div>
+                        <div class="hemi-bar"><div class="hemi-fill" id="left-fill"></div></div>
+                    </div>
+                    <div class="result-divider"></div>
+                    <div class="result-hemi right">
+                        <div class="hemi-label">우측</div>
+                        <div class="hemi-value" id="result-right">0%</div>
+                        <div class="hemi-bar"><div class="hemi-fill" id="right-fill"></div></div>
+                    </div>
+                </div>
+
+                <div class="neglect-summary" id="neglect-summary">
+                    <!-- 동적 생성 -->
+                </div>
+
+                <div class="neglect-interpretation" id="neglect-interpretation">
+                    <!-- 해석 동적 생성 -->
+                </div>
+
+                <div class="neglect-result-actions">
+                    <button class="neglect-btn secondary" onclick="restartNeglectTest()">다시 검사</button>
+                    <button class="neglect-btn primary" onclick="closeNeglectTest()">완료</button>
                 </div>
             </div>
         </div>
