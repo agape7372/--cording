@@ -794,6 +794,313 @@ html, body {
     color: var(--text-primary);
 }
 
+/* Extra Tools (hidden by default) */
+.tools-grid .extra-tool {
+    display: none;
+}
+
+.tools-grid.expanded .extra-tool {
+    display: flex;
+}
+
+/* ============================================
+   Quick Actions Section (피그마 스타일)
+   ============================================ */
+.quick-actions-section {
+    margin-bottom: 20px;
+}
+
+.quick-action-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 20px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.quick-action-card:active {
+    transform: scale(0.98);
+}
+
+.quick-action-card.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    margin-bottom: 12px;
+}
+
+.quick-action-card.primary:active {
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.quick-action-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.quick-action-card.primary .quick-action-icon {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.quick-action-card.primary .quick-action-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+}
+
+.quick-action-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.quick-action-title {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.quick-action-desc {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.quick-action-arrow {
+    width: 20px;
+    height: 20px;
+    opacity: 0.7;
+}
+
+/* Quick Action Row (3 small buttons) */
+.quick-action-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.quick-action-card.small {
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 12px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.quick-action-card.small:active {
+    background: #F9FAFB;
+}
+
+.quick-action-card.small .quick-action-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+
+.quick-action-card.small .quick-action-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.quick-action-card.small span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Icon color variations */
+.quick-action-icon.mint {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.quick-action-icon.mint svg {
+    color: white;
+}
+
+.quick-action-icon.purple {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.quick-action-icon.purple svg {
+    color: white;
+}
+
+.quick-action-icon.orange {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.quick-action-icon.orange svg {
+    color: white;
+}
+
+/* View All Button */
+.view-all-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: transparent;
+    border: 1px dashed #D1D5DB;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.view-all-btn:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    background: var(--primary-blue-light);
+}
+
+.view-all-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Section Toggle Button */
+.section-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary-blue);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.section-toggle:hover {
+    background: var(--primary-blue-light);
+}
+
+.section-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.section-toggle.expanded svg {
+    transform: rotate(180deg);
+}
+
+/* ============================================
+   Tip Card (오늘의 팁)
+   ============================================ */
+.tip-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid #fbbf24;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.tip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.tip-badge {
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400e;
+}
+
+.tip-refresh {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tip-refresh:active {
+    transform: rotate(180deg);
+}
+
+.tip-refresh svg {
+    width: 18px;
+    height: 18px;
+    color: #92400e;
+}
+
+.tip-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #78350f;
+    margin-bottom: 10px;
+    transition: opacity 0.2s ease;
+}
+
+.tip-category {
+    display: inline-block;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #92400e;
+    transition: opacity 0.2s ease;
+}
+
+/* ============================================
+   Settings Floating Button
+   ============================================ */
+.settings-floating-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 50;
+}
+
+.settings-floating-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.settings-floating-btn svg {
+    width: 22px;
+    height: 22px;
+    color: var(--text-secondary);
+}
+
 /* ============================================
    Cards
    ============================================ */

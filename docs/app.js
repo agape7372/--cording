@@ -227,6 +227,9 @@ function initApp() {
     loadCurrentPatientFromStorage();
     initPatientFormListeners();
     initAutoSave();
+
+    // Initialize Home screen components
+    initTip();
 }
 
 // Initialize sample patients on first run - 새 데이터 모델 적용
@@ -898,6 +901,90 @@ function updatePatientBanner(screen) {
         `;
         banner.style.cursor = 'pointer';
         banner.onclick = () => navigateTo('home');
+    }
+}
+
+// ============================================
+// Home Screen Functions (Quick Actions, Tips)
+// ============================================
+
+// Start Quick Assessment - 새 평가 시작
+function startQuickAssessment() {
+    if (state.currentPatient) {
+        // 현재 환자가 있으면 바로 S 탭으로
+        navigateTo('subjective');
+    } else {
+        // 환자가 없으면 Case 탭으로 이동하여 선택하도록
+        showToast('먼저 환자를 선택해주세요');
+        navigateTo('case');
+    }
+}
+
+// Toggle Tools Grid (더보기/접기)
+function toggleToolsGrid() {
+    const grid = document.getElementById('tools-grid');
+    const toggle = document.getElementById('tools-toggle');
+    const toggleText = document.getElementById('tools-toggle-text');
+
+    if (grid && toggle && toggleText) {
+        grid.classList.toggle('expanded');
+        toggle.classList.toggle('expanded');
+        toggleText.textContent = grid.classList.contains('expanded') ? '접기' : '더보기';
+    }
+}
+
+// Clinical Tips (오늘의 팁)
+const CLINICAL_TIPS = [
+    { content: 'BBS 평가 시 환자가 손잡이를 잡으면 해당 항목은 0점 처리됩니다. 안전을 위해 가까이에서 대기하되, 직접적인 접촉은 피하세요.', category: '균형 평가' },
+    { content: 'MAS 검사 시 1초에 한 번 정도의 속도로 수동 신장을 시행합니다. 너무 빠르면 stretch reflex가 유발되어 실제보다 높게 측정될 수 있습니다.', category: '근긴장도 평가' },
+    { content: 'ROM 측정 시 능동적(AROM) 측정 후 수동적(PROM) 측정을 시행합니다. 순서를 바꾸면 수동 스트레칭 효과로 AROM이 실제보다 높게 나올 수 있습니다.', category: 'ROM 측정' },
+    { content: '10MWT 측정 시 처음 2m와 마지막 2m는 가속/감속 구간으로 제외합니다. 중간 6m만 시간 측정하여 보행 속도를 계산하세요.', category: '보행 평가' },
+    { content: 'TUG 검사의 기준값: 14초 이상이면 낙상 고위험군입니다. 20초 이상이면 보행 보조도구가 필요할 수 있습니다.', category: '기능적 이동' },
+    { content: 'MMT에서 "Break Test"를 사용하세요. 환자가 자세를 유지하도록 하고, 치료사가 저항을 점진적으로 증가시켜 근력을 평가합니다.', category: '근력 평가' },
+    { content: '편마비 환자의 ROM 측정 시 건측을 먼저 측정하여 기준값으로 삼습니다. 환측은 건측 대비 제한 정도로 기록하면 더 임상적입니다.', category: 'ROM 측정' },
+    { content: 'VAS 통증 평가 시 "지금 이 순간"의 통증을 물어보세요. 최악/평균/현재 통증을 구분하여 기록하면 더 정확합니다.', category: '통증 평가' },
+    { content: '파킨슨 환자의 균형 평가는 약물 복용 "on" 상태에서 시행합니다. "off" 상태와 비교하면 약물 효과도 함께 평가할 수 있습니다.', category: '신경계 평가' },
+    { content: '보행 분석 시 케이던스(분당 걸음 수)와 보폭을 함께 측정하세요. 속도가 같아도 패턴이 다를 수 있습니다.', category: '보행 평가' },
+    { content: 'BBS 41점 이하는 낙상 위험이 높습니다. 점수가 1점 떨어질 때마다 낙상 위험이 약 7% 증가합니다.', category: '균형 평가' },
+    { content: '경직 평가 시 환자를 이완시킨 상태에서 시작하세요. 긴장하면 경직이 증가하여 실제보다 높게 측정됩니다.', category: '근긴장도 평가' }
+];
+
+let currentTipIndex = 0;
+
+// Refresh Tip (새 팁 보기)
+function refreshTip() {
+    currentTipIndex = (currentTipIndex + 1) % CLINICAL_TIPS.length;
+    const tip = CLINICAL_TIPS[currentTipIndex];
+
+    const contentEl = document.getElementById('tip-content');
+    const categoryEl = document.getElementById('tip-category');
+
+    if (contentEl && categoryEl) {
+        // Fade out
+        contentEl.style.opacity = '0';
+        categoryEl.style.opacity = '0';
+
+        setTimeout(() => {
+            contentEl.textContent = tip.content;
+            categoryEl.textContent = tip.category;
+            // Fade in
+            contentEl.style.opacity = '1';
+            categoryEl.style.opacity = '1';
+        }, 200);
+    }
+}
+
+// Initialize random tip on load
+function initTip() {
+    currentTipIndex = Math.floor(Math.random() * CLINICAL_TIPS.length);
+    const tip = CLINICAL_TIPS[currentTipIndex];
+
+    const contentEl = document.getElementById('tip-content');
+    const categoryEl = document.getElementById('tip-category');
+
+    if (contentEl && categoryEl) {
+        contentEl.textContent = tip.content;
+        categoryEl.textContent = tip.category;
     }
 }
 
