@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>포도알 - 프로토타입</title>
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --grape-300: #C4A8FF;
+      --grape-500: #9B7ED9;
+      --grape-600: #7B5FB9;
+      --grape-700: #5B3F99;
+      --mint-500: #00C896;
+      --peach-500: #FFB88C;
+      --cream-white: #FFF9F0;
+      --paper-light: #FDF8F3;
+      --paper-dark: #E8E4DE;
+      --text-primary: #4A4A4A;
+      --text-secondary: #8B8B8B;
+      --gold: #FFD700;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: var(--cream-white);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Phone Frame */
+    .phone-frame {
+      max-width: 390px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #F5EDE0 0%, var(--cream-white) 30%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      padding: 60px 24px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--grape-700);
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Progress Card */
+    .progress-card {
+      margin: 0 20px 24px;
+      background: var(--paper-light);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.04),
+        0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .progress-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .progress-count {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--grape-600);
+    }
+
+    .progress-count span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--paper-dark);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--grape-300), var(--grape-500));
+      border-radius: 4px;
+      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Grape Board */
+    .grape-section {
+      padding: 0 20px;
+      margin-bottom: 24px;
+    }
+
+    .grape-board {
+      background: var(--paper-light);
+      border-radius: 24px;
+      padding: 32px 24px;
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.04),
+        0 8px 24px rgba(0,0,0,0.04);
+    }
+
+    .grape-cluster {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grape-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .grape-row:nth-child(even) {
+      margin-left: 30px;
+    }
+
+    /* Grape Bead */
+    .grape {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      user-select: none;
+    }
+
+    .grape--empty {
+      background: linear-gradient(145deg, #F0EDE8, #E0DCD5);
+      box-shadow:
+        4px 4px 12px rgba(0,0,0,0.08),
+        -2px -2px 8px rgba(255,255,255,0.9),
+        inset 2px 2px 6px rgba(255,255,255,0.5),
+        inset -2px -2px 6px rgba(0,0,0,0.05);
+    }
+
+    .grape--available {
+      background: linear-gradient(145deg, #E0D0FF, #C4A8FF);
+      box-shadow:
+        4px 4px 12px rgba(155,126,217,0.2),
+        -2px -2px 8px rgba(255,255,255,0.8),
+        inset 2px 2px 6px rgba(255,255,255,0.4),
+        inset -2px -2px 6px rgba(0,0,0,0.1);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .grape--completed {
+      background: linear-gradient(145deg, #C4A8FF, #9B7ED9, #7B5FB9);
+      box-shadow:
+        0 0 20px rgba(155,126,217,0.4),
+        4px 4px 12px rgba(155,126,217,0.3),
+        inset 2px 2px 8px rgba(255,255,255,0.3),
+        inset -3px -3px 8px rgba(0,0,0,0.2);
+    }
+
+    .grape:active {
+      transform: scale(0.88);
+    }
+
+    .grape--completed:active {
+      transform: scale(0.95);
+    }
+
+    .grape--has-cheer::after {
+      content: '💌';
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 16px;
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(155,126,217,0.4), 4px 4px 12px rgba(155,126,217,0.2); }
+      50% { box-shadow: 0 0 0 8px rgba(155,126,217,0), 4px 4px 12px rgba(155,126,217,0.2); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(155,126,217,0.5); }
+      50% { box-shadow: 0 0 30px rgba(155,126,217,0.8); }
+    }
+
+    /* Reward Preview */
+    .reward-section {
+      padding: 0 20px 32px;
+    }
+
+    .reward-card {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.5);
+      box-shadow: 0 8px 32px rgba(155,126,217,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .reward-blur-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+
+    .reward-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      filter: blur(var(--blur-amount, 8px));
+      transition: filter 0.5s ease;
+    }
+
+    .reward-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--grape-600);
+      text-align: center;
+    }
+
+    .reward-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* Complete Button */
+    .complete-btn {
+      display: none;
+      width: calc(100% - 40px);
+      margin: 0 20px 32px;
+      padding: 18px;
+      background: linear-gradient(180deg, var(--peach-500), #FF9A6C);
+      border: none;
+      border-radius: 16px;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(255,184,140,0.4);
+      transition: transform 0.2s ease;
+    }
+
+    .complete-btn:active {
+      transform: translateY(2px);
+    }
+
+    .complete-btn.show {
+      display: block;
+    }
+
+    /* Celebration */
+    .celebration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .celebration.show {
+      display: flex;
+    }
+
+    .celebration-card {
+      background: white;
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      margin: 20px;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .celebration-icon {
+      font-size: 80px;
+      margin-bottom: 16px;
+    }
+
+    .celebration h2 {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--grape-700);
+      margin-bottom: 8px;
+    }
+
+    .celebration p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .scratch-area {
+      width: 200px;
+      height: 100px;
+      margin: 0 auto 24px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #FFE566, var(--gold), #FFA500);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scratch-area::before {
+      content: '긁어서 확인!';
+      font-size: 14px;
+      font-weight: 600;
+      color: #8B6914;
+    }
+
+    .scratch-revealed {
+      position: absolute;
+      inset: 0;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .scratch-area.revealed .scratch-revealed {
+      opacity: 1;
+    }
+
+    .scratch-area.revealed::before {
+      opacity: 0;
+    }
+
+    .gift-icon {
+      font-size: 32px;
+    }
+
+    .gift-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Cheer Popup */
+    .cheer-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .cheer-popup.show {
+      display: flex;
+    }
+
+    .cheer-card {
+      background: white;
+      border-radius: 24px;
+      padding: 32px;
+      text-align: center;
+      margin: 20px;
+      max-width: 300px;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 60px rgba(155,126,217,0.3);
+    }
+
+    .cheer-card .envelope {
+      font-size: 56px;
+      margin-bottom: 16px;
+      animation: wiggle 0.5s ease-in-out;
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0); }
+      25% { transform: rotate(-10deg); }
+      75% { transform: rotate(10deg); }
+    }
+
+    .cheer-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--grape-700);
+      margin-bottom: 12px;
+    }
+
+    .cheer-card p {
+      font-size: 20px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .cheer-card .from {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .cheer-card button {
+      margin-top: 20px;
+      padding: 12px 32px;
+      background: var(--grape-500);
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      animation: confetti-fall 3s linear forwards;
+      z-index: 200;
+    }
+
+    @keyframes confetti-fall {
+      to {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    /* Tab Bar */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 390px;
+      margin: 0 auto;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 28px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .tab-item.active {
+      color: var(--grape-600);
+    }
+
+    .tab-icon {
+      font-size: 24px;
+    }
+
+    /* Sound Toggle */
+    .sound-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <button class="sound-toggle" id="soundToggle">🔊</button>
+
+  <div class="phone-frame">
+    <header class="header">
+      <h1>🍇 포도알</h1>
+      <p>매일 30분 운동하기</p>
+    </header>
+
+    <div class="progress-card">
+      <div class="progress-header">
+        <span class="progress-title">진행 상황</span>
+        <span class="progress-count"><span id="completedCount">0</span> <span>/ 12</span></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <section class="grape-section">
+      <div class="grape-board">
+        <div class="grape-cluster" id="grapeCluster">
+          <!-- Grapes will be generated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <section class="reward-section">
+      <div class="reward-card">
+        <div class="reward-blur-overlay">
+          <div class="reward-icon" id="rewardIcon">🎁</div>
+          <div class="reward-text">선물이 기다려요!</div>
+          <div class="reward-hint" id="rewardHint">포도알을 채워서 확인하세요</div>
+        </div>
+      </div>
+    </section>
+
+    <button class="complete-btn" id="completeBtn">오늘의 목표 달성! 🎉</button>
+
+    <div class="tab-bar">
+      <div class="tab-item active">
+        <span class="tab-icon">🏠</span>
+        <span>홈</span>
+      </div>
+      <div class="tab-item">
+        <span class="tab-icon">🍇</span>
+        <span>챌린지</span>
+      </div>
+      <div class="tab-item">
+        <span class="tab-icon">👤</span>
+        <span>마이</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cheer Popup -->
+  <div class="cheer-popup" id="cheerPopup">
+    <div class="cheer-card">
+      <div class="envelope">💌</div>
+      <h3>응원 메시지가 도착했어요!</h3>
+      <p id="cheerMessage">"화이팅! 넌 할 수 있어! 💪"</p>
+      <div class="from">From: 엄마</div>
+      <button onclick="closeCheer()">고마워요! 💜</button>
+    </div>
+  </div>
+
+  <!-- Celebration Modal -->
+  <div class="celebration" id="celebration">
+    <div class="celebration-card">
+      <div class="celebration-icon">🎉</div>
+      <h2>축하해요!</h2>
+      <p>모든 포도알을 모았어요!</p>
+      <div class="scratch-area" id="scratchArea">
+        <div class="scratch-revealed">
+          <span class="gift-icon">☕️</span>
+          <span class="gift-name">스타벅스 아메리카노</span>
+        </div>
+      </div>
+      <button style="padding: 14px 28px; background: var(--mint-500); border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 600; color: white; cursor: pointer;" onclick="closeCelebration()">
+        감사 전하기 💜
+      </button>
+    </div>
+  </div>
+
+  <!-- Audio elements -->
+  <audio id="popSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp6WjIB4cWxqb3V9hpCZoJ6ZkYmCe3d2d3uAh46Vmpubl5CIgHl1c3N0d3uAhoyRlJaWlJGNiIN/e3l4eXt+goaJi42OjYyKh4WCf31+f4CCgoKDg4OCgYGAgYKDhISEhIOCgYGBgYKCgoKBgYGBgYKCgoKBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAgICAgICAgICAgICAgA==" type="audio/wav">
+  </audio>
+  <audio id="successSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onp6WjIB4cWxqb3V9hpCZoJ6ZkYmCe3d2d3uAh46Vmpubl5CIgHl1c3N0d3uAhoyRlJaWlJGNiIN/e3l4eXt+goaJi42OjYyKh4WCf31+f4CCgoKDg4OCgYGAgYKDhISEhIOCgYGBgYKCgoKBgYGBgYKCgoKBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAgICAgICAgICAgICAgA==" type="audio/wav">
+  </audio>
+
+  <script>
+    // State
+    let completed = 0;
+    const total = 12;
+    let soundEnabled = true;
+    const cheerPositions = [3, 7, 12]; // Positions with cheer messages
+    const cheerMessages = [
+      "화이팅! 넌 할 수 있어! 💪",
+      "벌써 절반이야! 대단해! 🌟",
+      "축하해!! 드디어 완료! 🎊"
+    ];
+
+    // Sound functions
+    function playPop() {
+      if (!soundEnabled) return;
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {}
+    }
+
+    function playSuccess() {
+      if (!soundEnabled) return;
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+
+        notes.forEach((freq, i) => {
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          oscillator.frequency.value = freq;
+          oscillator.type = 'sine';
+
+          const startTime = audioContext.currentTime + i * 0.1;
+          gainNode.gain.setValueAtTime(0.2, startTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+          oscillator.start(startTime);
+          oscillator.stop(startTime + 0.3);
+        });
+      } catch (e) {}
+    }
+
+    // Haptic feedback
+    function vibrate(pattern = 10) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    // Generate grape cluster
+    function generateGrapes() {
+      const cluster = document.getElementById('grapeCluster');
+      const rows = [
+        [1, 2, 3],
+        [4, 5, 6, 7],
+        [8, 9, 10],
+        [11, 12]
+      ];
+
+      rows.forEach((row, rowIndex) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'grape-row';
+
+        row.forEach(num => {
+          const grape = document.createElement('div');
+          grape.className = 'grape grape--empty';
+          grape.dataset.position = num;
+
+          if (cheerPositions.includes(num)) {
+            grape.dataset.hasCheer = 'true';
+          }
+
+          grape.addEventListener('click', () => handleGrapeClick(grape, num));
+          rowDiv.appendChild(grape);
+        });
+
+        cluster.appendChild(rowDiv);
+      });
+
+      updateNextAvailable();
+    }
+
+    // Update next available grape
+    function updateNextAvailable() {
+      const grapes = document.querySelectorAll('.grape');
+      grapes.forEach((grape, index) => {
+        const pos = parseInt(grape.dataset.position);
+        if (pos === completed + 1 && !grape.classList.contains('grape--completed')) {
+          grape.classList.remove('grape--empty');
+          grape.classList.add('grape--available');
+        }
+      });
+    }
+
+    // Handle grape click
+    function handleGrapeClick(grape, position) {
+      if (!grape.classList.contains('grape--available')) return;
+
+      // Complete grape
+      grape.classList.remove('grape--available');
+      grape.classList.add('grape--completed');
+
+      // Effects
+      playPop();
+      vibrate(15);
+      createParticles(grape);
+
+      completed++;
+      updateProgress();
+      updateNextAvailable();
+      updateRewardBlur();
+
+      // Check for cheer message
+      if (grape.dataset.hasCheer) {
+        grape.classList.add('grape--has-cheer');
+        setTimeout(() => {
+          showCheer(position);
+        }, 500);
+      }
+
+      // Check completion
+      if (completed === total) {
+        setTimeout(() => {
+          showCelebration();
+        }, 1000);
+      }
+    }
+
+    // Update progress
+    function updateProgress() {
+      document.getElementById('completedCount').textContent = completed;
+      document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+
+      if (completed > 0 && completed < total) {
+        document.getElementById('completeBtn').classList.add('show');
+      }
+    }
+
+    // Update reward blur
+    function updateRewardBlur() {
+      const progress = completed / total;
+      const blur = 20 * (1 - progress);
+      document.getElementById('rewardIcon').style.filter = `blur(${blur}px)`;
+
+      if (progress > 0.5) {
+        document.getElementById('rewardHint').textContent = '거의 다 왔어요!';
+      }
+      if (progress > 0.8) {
+        document.getElementById('rewardHint').textContent = '조금만 더!';
+      }
+    }
+
+    // Create particles
+    function createParticles(element) {
+      const rect = element.getBoundingClientRect();
+      const colors = ['#C4A8FF', '#FFB88C', '#7ED9B4', '#FFD700'];
+
+      for (let i = 0; i < 8; i++) {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+          position: fixed;
+          width: 8px;
+          height: 8px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          border-radius: 50%;
+          left: ${rect.left + rect.width / 2}px;
+          top: ${rect.top + rect.height / 2}px;
+          pointer-events: none;
+          z-index: 100;
+        `;
+        document.body.appendChild(particle);
+
+        const angle = (Math.PI * 2 * i) / 8;
+        const velocity = 50 + Math.random() * 50;
+        const dx = Math.cos(angle) * velocity;
+        const dy = Math.sin(angle) * velocity;
+
+        particle.animate([
+          { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+          { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+        ], {
+          duration: 600,
+          easing: 'cubic-bezier(0, 0.5, 0.5, 1)'
+        }).onfinish = () => particle.remove();
+      }
+    }
+
+    // Show cheer popup
+    function showCheer(position) {
+      const index = cheerPositions.indexOf(position);
+      document.getElementById('cheerMessage').textContent = `"${cheerMessages[index]}"`;
+      document.getElementById('cheerPopup').classList.add('show');
+      playSuccess();
+      vibrate([50, 30, 50]);
+    }
+
+    function closeCheer() {
+      document.getElementById('cheerPopup').classList.remove('show');
+    }
+
+    // Show celebration
+    function showCelebration() {
+      document.getElementById('celebration').classList.add('show');
+      playSuccess();
+      vibrate([100, 50, 100, 50, 100]);
+      createConfetti();
+    }
+
+    function closeCelebration() {
+      document.getElementById('celebration').classList.remove('show');
+    }
+
+    // Scratch area
+    document.getElementById('scratchArea').addEventListener('click', function() {
+      this.classList.add('revealed');
+      playSuccess();
+      vibrate(100);
+      createConfetti();
+    });
+
+    // Create confetti
+    function createConfetti() {
+      const colors = ['#C4A8FF', '#FFB88C', '#7ED9B4', '#FFD700', '#9B7ED9'];
+
+      for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = Math.random() * 100 + '%';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+          confetti.style.animationDuration = 2 + Math.random() * 2 + 's';
+          document.body.appendChild(confetti);
+
+          setTimeout(() => confetti.remove(), 4000);
+        }, i * 50);
+      }
+    }
+
+    // Sound toggle
+    document.getElementById('soundToggle').addEventListener('click', function() {
+      soundEnabled = !soundEnabled;
+      this.textContent = soundEnabled ? '🔊' : '🔇';
+    });
+
+    // Complete button (for demo)
+    document.getElementById('completeBtn').addEventListener('click', function() {
+      const nextGrape = document.querySelector('.grape--available');
+      if (nextGrape) {
+        handleGrapeClick(nextGrape, parseInt(nextGrape.dataset.position));
+      }
+    });
+
+    // Initialize
+    generateGrapes();
+  </script>
+</body>
+</html>
