@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>포도알 - 프로토타입</title>
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <style>
@@ -43,6 +43,13 @@
       background: linear-gradient(180deg, #F5EDE0 0%, var(--cream-white) 30%);
       position: relative;
       overflow: hidden;
+      padding-bottom: 100px; /* Space for tab bar */
+    }
+
+    @media (max-width: 390px) {
+      .phone-frame {
+        max-width: 100vw;
+      }
     }
 
     /* Header */
@@ -303,7 +310,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 1000;
     }
 
     .celebration.show {
@@ -404,7 +411,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 1001;
     }
 
     .cheer-popup.show {
@@ -474,7 +481,8 @@
       height: 10px;
       border-radius: 2px;
       animation: confetti-fall 3s linear forwards;
-      z-index: 200;
+      z-index: 2000;
+      pointer-events: none;
     }
 
     @keyframes confetti-fall {
@@ -495,8 +503,9 @@
       background: white;
       display: flex;
       justify-content: space-around;
-      padding: 12px 0 28px;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 16px));
       border-top: 1px solid #f0f0f0;
+      z-index: 100;
     }
 
     .tab-item {
@@ -534,7 +543,7 @@
   </style>
 </head>
 <body>
-  <button class="sound-toggle" id="soundToggle">🔊</button>
+  <button class="sound-toggle" id="soundToggle" aria-label="소리 켜기/끄기">🔊</button>
 
   <div class="phone-frame">
     <header class="header">
@@ -605,13 +614,13 @@
       <div class="celebration-icon">🎉</div>
       <h2>축하해요!</h2>
       <p>모든 포도알을 모았어요!</p>
-      <div class="scratch-area" id="scratchArea">
+      <div class="scratch-area" id="scratchArea" role="button" tabindex="0" aria-label="긁어서 선물 확인하기">
         <div class="scratch-revealed">
           <span class="gift-icon">☕️</span>
           <span class="gift-name">스타벅스 아메리카노</span>
         </div>
       </div>
-      <button style="padding: 14px 28px; background: var(--mint-500); border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 600; color: white; cursor: pointer;" onclick="closeCelebration()">
+      <button style="padding: 14px 28px; background: var(--mint-500); border: none; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 600; color: white; cursor: pointer;" onclick="closeCelebration()" aria-label="감사 전하기">
         감사 전하기 💜
       </button>
     </div>
@@ -710,12 +719,21 @@
           const grape = document.createElement('div');
           grape.className = 'grape grape--empty';
           grape.dataset.position = num;
+          grape.setAttribute('role', 'button');
+          grape.setAttribute('tabindex', '0');
+          grape.setAttribute('aria-label', `${num}번째 포도알`);
 
           if (cheerPositions.includes(num)) {
             grape.dataset.hasCheer = 'true';
           }
 
           grape.addEventListener('click', () => handleGrapeClick(grape, num));
+          grape.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleGrapeClick(grape, num);
+            }
+          });
           rowDiv.appendChild(grape);
         });
 
@@ -833,10 +851,14 @@
     // Show cheer popup
     function showCheer(position) {
       const index = cheerPositions.indexOf(position);
+      if (index === -1) return; // Guard against invalid index
       document.getElementById('cheerMessage').textContent = `"${cheerMessages[index]}"`;
       document.getElementById('cheerPopup').classList.add('show');
       playSuccess();
       vibrate([50, 30, 50]);
+
+      // Focus trap for accessibility
+      document.querySelector('.cheer-card button').focus();
     }
 
     function closeCheer() {
@@ -849,6 +871,9 @@
       playSuccess();
       vibrate([100, 50, 100, 50, 100]);
       createConfetti();
+
+      // Focus trap for accessibility
+      document.getElementById('scratchArea').focus();
     }
 
     function closeCelebration() {
@@ -856,19 +881,41 @@
     }
 
     // Scratch area
-    document.getElementById('scratchArea').addEventListener('click', function() {
-      this.classList.add('revealed');
+    const scratchArea = document.getElementById('scratchArea');
+    function revealScratch() {
+      if (scratchArea.classList.contains('revealed')) return;
+      scratchArea.classList.add('revealed');
       playSuccess();
       vibrate(100);
       createConfetti();
+    }
+    scratchArea.addEventListener('click', revealScratch);
+    scratchArea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        revealScratch();
+      }
     });
 
-    // Create confetti
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeCheer();
+        closeCelebration();
+      }
+    });
+
+    // Create confetti (with memory leak fix)
+    let confettiTimeouts = [];
     function createConfetti() {
+      // Clear any existing timeouts
+      confettiTimeouts.forEach(t => clearTimeout(t));
+      confettiTimeouts = [];
+
       const colors = ['#C4A8FF', '#FFB88C', '#7ED9B4', '#FFD700', '#9B7ED9'];
 
       for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           const confetti = document.createElement('div');
           confetti.className = 'confetti';
           confetti.style.left = Math.random() * 100 + '%';
@@ -877,8 +924,13 @@
           confetti.style.animationDuration = 2 + Math.random() * 2 + 's';
           document.body.appendChild(confetti);
 
-          setTimeout(() => confetti.remove(), 4000);
+          // Ensure cleanup
+          const removeTimeout = setTimeout(() => {
+            if (confetti.parentNode) confetti.remove();
+          }, 4000);
+          confettiTimeouts.push(removeTimeout);
         }, i * 50);
+        confettiTimeouts.push(timeout);
       }
     }
 
