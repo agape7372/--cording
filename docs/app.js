@@ -988,6 +988,55 @@ function initTip() {
     }
 }
 
+// Search Patients (홈 검색바)
+function searchPatients(query) {
+    const container = document.getElementById('recent-patients');
+    const countEl = document.getElementById('recent-count');
+
+    if (!query || query.trim() === '') {
+        renderPatientList();
+        return;
+    }
+
+    const patients = getPatients();
+    const q = query.toLowerCase().trim();
+    const filtered = patients.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.diagnosis && p.diagnosis.toLowerCase().includes(q))
+    );
+
+    countEl.textContent = filtered.length;
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="patient-list-empty">
+                <div class="patient-list-empty-icon">🔍</div>
+                <p>"${query}" 검색 결과 없음</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(patient => `
+        <div class="patient-card" data-patient-id="${patient.id}">
+            <div class="patient-info">
+                <div class="patient-name">${patient.name}</div>
+                <div class="patient-meta">${patient.gender === 'male' ? '남' : patient.gender === 'female' ? '여' : ''}${patient.age ? '/' + patient.age + '세' : ''} ${patient.diagnosis ? '· ' + patient.diagnosis : ''}</div>
+            </div>
+            <div class="patient-status">
+                <span class="status-badge ${patient.status || 'progress'}">${patient.status === 'complete' ? '완료' : '작성중'}</span>
+            </div>
+        </div>
+    `).join('');
+
+    container.querySelectorAll('.patient-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const patientId = card.dataset.patientId;
+            selectCasePatient(patientId);
+        });
+    });
+}
+
 // ============================================
 // Dashboard Functions
 // ============================================

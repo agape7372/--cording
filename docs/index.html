@@ -65,6 +65,16 @@
         <main id="screens" class="screens">
             <!-- Home Screen (Patient Dashboard) -->
             <section id="screen-home" class="screen active">
+                <!-- 검색바 -->
+                <div class="dashboard-search">
+                    <div class="search-input-wrap">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <input type="text" id="patient-search" class="search-input" placeholder="환자 이름 또는 진단명 검색" oninput="searchPatients(this.value)">
+                    </div>
+                </div>
+
                 <!-- 1. 빠른 작업 (Quick Actions) -->
                 <div class="quick-actions-section">
                     <button class="quick-action-card primary" onclick="startQuickAssessment()">
@@ -125,16 +135,12 @@
                     </button>
                 </div>
 
-                <!-- 3. 빠른 도구 (Quick Tools) -->
+                <!-- 3. 빠른 도구 (Quick Tools) - 전체 표시 -->
                 <div class="dashboard-section">
                     <div class="section-header">
                         <h3>빠른 도구</h3>
-                        <button class="section-toggle" id="tools-toggle" onclick="toggleToolsGrid()">
-                            <span id="tools-toggle-text">더보기</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
-                        </button>
                     </div>
-                    <div class="tools-grid" id="tools-grid">
+                    <div class="tools-grid expanded">
                         <button class="tool-btn" onclick="openStopwatch()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M12 5V2"/>
@@ -160,34 +166,33 @@
                             </svg>
                             <span>보행수</span>
                         </button>
-                        <!-- 더보기로 숨겨지는 도구들 -->
-                        <button class="tool-btn extra-tool" onclick="openDualTask()">
+                        <button class="tool-btn" onclick="openDualTask()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
                             </svg>
                             <span>이중과제</span>
                         </button>
-                        <button class="tool-btn extra-tool" onclick="openTremor()">
+                        <button class="tool-btn" onclick="openTremor()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M2 12h4l3-9 4 18 3-9h6"/>
                             </svg>
                             <span>떨림분석</span>
                         </button>
-                        <button class="tool-btn extra-tool" onclick="openDecibel()">
+                        <button class="tool-btn" onclick="openDecibel()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3Z"/>
                                 <path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
                             </svg>
                             <span>데시벨</span>
                         </button>
-                        <button class="tool-btn extra-tool" onclick="openTriggerPointMap()">
+                        <button class="tool-btn" onclick="openTriggerPointMap()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="5" r="3"/>
                                 <path d="M12 8v4m-4 0h8m-6 4l-2 6m4-6v6m4-6l2 6"/>
                             </svg>
                             <span>TrP 지도</span>
                         </button>
-                        <button class="tool-btn extra-tool" onclick="openAACBoard()">
+                        <button class="tool-btn" onclick="openAACBoard()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7" rx="1"/>
                                 <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -196,7 +201,7 @@
                             </svg>
                             <span>AAC</span>
                         </button>
-                        <button class="tool-btn extra-tool" onclick="openNeglectTest()">
+                        <button class="tool-btn" onclick="openNeglectTest()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
                             </svg>
@@ -219,7 +224,7 @@
                     <div class="tip-category" id="tip-category">균형 평가</div>
                 </div>
 
-                <!-- 설정 버튼 -->
+                <!-- 설정 버튼 (플로팅) -->
                 <button class="settings-floating-btn" onclick="showSettings()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
